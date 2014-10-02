@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="tw" ng-app="App">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.23/angular.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.11.0/ui-bootstrap-tpls.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	
+	<script src="https://code.angularjs.org/1.2.25/angular-animate.js"></script>
+
+	<script src="../datetime.js"></script>
+	<link rel="stylesheet" href="../dialog.css">
+	
+	<script>
+		angular.module("App", ["datetimeParser"]);
+	</script>
+</head>
+<body ng-controller="main" class="container">
+	<input type="text" datetime="yyyy-mm-dd HH:mm:ss">
+</body>
+</html>

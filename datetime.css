@@ -1,0 +1,24 @@
+.modal-primary .modal-header{
+	background-color: #428BCA;
+	color: white;
+}
+
+.modal-success .modal-header{
+	background-color: #5CB85C;
+	color: white;
+}
+
+.modal-info .modal-header{
+	background-color: #5BC0DE;
+	color: white;
+}
+
+.modal-warning .modal-header{
+	background-color: #F0AD4E;
+	color: white;
+}
+
+.modal-danger .modal-header{
+	background-color: #D9534F;
+	color: white;
+}
