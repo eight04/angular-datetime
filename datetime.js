@@ -446,14 +446,16 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 						}
 					} else if (e.keyCode == 38) {
 						// up
+						node.increase();
 					} else if (e.keyCode == 40) {
 						// down
+						node.decrease();
 					} else if (node.type == "string") {
 						e.preventDefault();
 						return;
 					} else {
 						// insert
-						
+						e.preventDefault();
 					}
 				}
 				
