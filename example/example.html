@@ -12,13 +12,17 @@
 	<script src="https://code.angularjs.org/1.2.25/angular-animate.js"></script>
 
 	<script src="../datetime.js"></script>
-	<link rel="stylesheet" href="../dialog.css">
+	<link rel="stylesheet" href="../datetime.css">
 	
 	<script>
-		angular.module("App", ["datetimeParser"]);
+		angular.module("App", ["datetime"]).controller("myDate", function($scope){
+			$scope.myDate = new Date();
+		});
 	</script>
 </head>
-<body ng-controller="main" class="container">
-	<input type="text" datetime="yyyy-mm-dd HH:mm:ss">
+<body class="container" ng-controller="myDate">
+	{{myDate}}
+	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" class="form-control">
+	<input type="text" datetime="MMM" ng-model="myDate" class="form-control">
 </body>
 </html>
