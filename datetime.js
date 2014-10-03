@@ -415,9 +415,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 			element.on("change focus keydown click", function(e){
 				var node = parser.getNodeFromPos(e.target.selectionStart);
 				
-				if (e.target.selectionStart == e.target.selectionEnd) {
-					selectNode(e.target, node);
-				} 
+				selectNode(e.target, node);
 				
 				if (e.type == "keydown") {
 					if (e.keyCode == 37) {
@@ -455,6 +453,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 						return;
 					} else {
 						// insert
+						
 					}
 				}
 				
