@@ -31,16 +31,194 @@ function selectNode(input, node) {
 
 angular.module("datetime", []).factory("datetimeParser", function($locale){
 	// Fetch date and time formats from $locale service
-	var datetimeFormats = $locale.DATETIME_FORMATS;
+	var formats = $locale.DATETIME_FORMATS;
+	console.log(datetimeFormats);
 
 	// Arrays of month and day names
-	var monthNames = datetimeFormats.MONTH;
-	var monthShortNames = datetimeFormats.SHORTMONTH;
-	var dayNames = datetimeFormats.DAY.concat(datetimeFormats.SHORTDAY);
+	// var monthNames = datetimeFormats.MONTH,
+		// monthShortNames = datetimeFormats.SHORTMONTH,
+		// dayNames = datetimeFormats.DAY,
+		// dayShortNames = datetimeFormats.SHORTDAY;
+		
 	
 	// Valid format tokens
 	var tokenRE = /yyyy|yy|y|M{1,4}|dd?|EEEE?|HH?|hh?|mm?|ss?|[.,](sss)|a|Z|ww|w|'((?:[^']+|'')*)'/g;
 	
+	var node = {
+		"y": {
+			minLength: 1,
+			maxLength: 4,
+			name: "year",
+			type: "number"
+		},
+		"yy": {
+			minLength: 2,
+			maxLength: 2,
+			name: "year",
+			type: "number"
+		},
+		"yyyy": {
+			minLength: 4,
+			maxLength: 4,
+			name: "year",
+			type: "number"
+		},
+		"MMMM": {
+			name: "month",
+			type: "select",
+			select: formats.MONTH
+		},
+		"MMM": {
+			name: "month",
+			type: "select",
+			select: formats.SHORTMONTH
+		},
+		"MM": {
+			minLength: 2,
+			maxLength: 2,
+			name: "month",
+			type: "number",
+		},
+		"M": {
+			minLength: 1,
+			maxLength: 2,
+			name: "month",
+			type: "number",
+		},
+		"dd": {
+			minLength: 2,
+			maxLength: 2,
+			name: "date",
+			type: "number",
+		},
+		"d": {
+			minLength: 1,
+			maxLength: 2,
+			name: "date",
+			type: "number",
+		},
+		"EEEE": {
+			name: "day",
+			type: "select",
+			select: formats.DAY
+		},
+		"EEE": {
+			name: "day",
+			type: "select",
+			select: formats.SHORTDAY
+		},
+		"HH": {
+			minLength: 2,
+			maxLength: 2,
+			name: "hour",
+			type: "number",
+		},
+		"H": {
+			minLength: 1,
+			maxLength: 2,
+			name: "hour",
+			type: "number",
+		},
+		"hh": {
+			minLength: 2,
+			maxLength: 2,
+			name: "hour12",
+			type: "number",
+		},
+		"h": {
+			minLength: 1,
+			maxLength: 2,
+			name: "hour12",
+			type: "number",
+		},
+		"mm": {
+			minLength: 2,
+			maxLength: 2,
+			name: "minute",
+			type: "number",
+		},
+		"m": {
+			minLength: 1,
+			maxLength: 2,
+			name: "minute",
+			type: "number",
+		},
+		"ss": {
+			minLength: 2,
+			maxLength: 2,
+			name: "second",
+			type: "number",
+		},
+		"s": {
+			minLength: 1,
+			maxLength: 2,
+			name: "second",
+			type: "number",
+		},
+		"sss": {
+			minLength: 3,
+			maxLength: 3,
+			name: "millisecond",
+			type: "number",
+		},
+		"a": {
+			name: "ampm",
+			type: "select",
+			select: formats.AMPMS
+		},
+		"ww": {
+			minLength: 2,
+			maxLength: 2,
+			name: "week",
+			type: "number"
+		},
+		"w": {
+			minLength: 1,
+			maxLength: 2,
+			name: "week",
+			type: "number"
+		},
+		"string": {
+			name: "string",
+			type: "static"
+		}
+	};
+	
+	function increase(){
+		if (this.type == "string") {
+			return;
+		}
+		if (this.type == "EEEE" || this.type == "EEE") {
+			// this.value = 
+		}
+		if (this.type == "MMMM" || this.type == "MMM") {
+			
+		}
+	}
+
+	function decrease(){
+
+	}
+	
+	function set(){
+	
+	}
+	
+	function createNode(name, value){
+		return {
+			name: node[name].name,
+			type: node[name.type,
+			minLenth: node[name].minLength,
+			maxLength: node[name].maxLength,
+			select: node[name].select,
+			value: value,
+			realValue: null,
+			increase: increase,
+			decrease: decrease,
+			set: set
+		};
+	}
+
 	function getParser(format) {
 		var nodes = [],
 			match,
