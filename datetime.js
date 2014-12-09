@@ -1,6 +1,4 @@
-/* global angular */
-/* global angular */
-/* eslint eqeqeq: 0, quotes: 0, no-multi-str: 0 */
+"use strict";
 
 function getInteger(string, startPoint, minLength, maxLength) {
 	var i;
@@ -30,20 +28,38 @@ function selectNode(input, node) {
 }
 
 angular.module("datetime", []).factory("datetimeParser", function($locale){
+	function escapeRE(str){
+		return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+	}
+
 	// Fetch date and time formats from $locale service
 	var formats = $locale.DATETIME_FORMATS;
-	console.log(datetimeFormats);
 
+	// Build regex matches
+	var re = {
+		AMPMS: angular.copy(formats.DAY),
+		DAY: angular.copy(formats.DAY),
+		MONTH: angular.copy(formats.MONTH),
+		SHORTDAY: angular.copy(formats.SHORTDAY),
+		SHORTMONTH: angular.copy(formats.SHORTMONTH)
+	};
+	var key, i;
+	for (key in re) {
+		for (i = 0; i < re[key].length; i++) {
+			re[key][i] = escapeRE(re[key][i]);
+		}
+		re[key] = new RegExp(re[key].join("|"));
+	}
 	// Arrays of month and day names
-	// var monthNames = datetimeFormats.MONTH,
-		// monthShortNames = datetimeFormats.SHORTMONTH,
-		// dayNames = datetimeFormats.DAY,
-		// dayShortNames = datetimeFormats.SHORTDAY;
-		
-	
+//	 var monthNames = datetimeFormats.MONTH,
+//		 monthShortNames = datetimeFormats.SHORTMONTH,
+//		 dayNames = datetimeFormats.DAY,
+//		 dayShortNames = datetimeFormats.SHORTDAY;
+
+
 	// Valid format tokens
-	var tokenRE = /yyyy|yy|y|M{1,4}|dd?|EEEE?|HH?|hh?|mm?|ss?|[.,](sss)|a|Z|ww|w|'((?:[^']+|'')*)'/g;
-	
+	var tokenRE = /yyyy|yy|y|M{1,4}|dd?|EEEE?|HH?|hh?|mm?|ss?|[.,](sss)|a|Z|ww|w|'(([^']+|'')*)'/g;
+
 	var node = {
 		"y": {
 			minLength: 1,
@@ -77,25 +93,25 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 			minLength: 2,
 			maxLength: 2,
 			name: "month",
-			type: "number",
+			type: "number"
 		},
 		"M": {
 			minLength: 1,
 			maxLength: 2,
 			name: "month",
-			type: "number",
+			type: "number"
 		},
 		"dd": {
 			minLength: 2,
 			maxLength: 2,
 			name: "date",
-			type: "number",
+			type: "number"
 		},
 		"d": {
 			minLength: 1,
 			maxLength: 2,
 			name: "date",
-			type: "number",
+			type: "number"
 		},
 		"EEEE": {
 			name: "day",
@@ -111,55 +127,55 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 			minLength: 2,
 			maxLength: 2,
 			name: "hour",
-			type: "number",
+			type: "number"
 		},
 		"H": {
 			minLength: 1,
 			maxLength: 2,
 			name: "hour",
-			type: "number",
+			type: "number"
 		},
 		"hh": {
 			minLength: 2,
 			maxLength: 2,
 			name: "hour12",
-			type: "number",
+			type: "number"
 		},
 		"h": {
 			minLength: 1,
 			maxLength: 2,
 			name: "hour12",
-			type: "number",
+			type: "number"
 		},
 		"mm": {
 			minLength: 2,
 			maxLength: 2,
 			name: "minute",
-			type: "number",
+			type: "number"
 		},
 		"m": {
 			minLength: 1,
 			maxLength: 2,
 			name: "minute",
-			type: "number",
+			type: "number"
 		},
 		"ss": {
 			minLength: 2,
 			maxLength: 2,
 			name: "second",
-			type: "number",
+			type: "number"
 		},
 		"s": {
 			minLength: 1,
 			maxLength: 2,
 			name: "second",
-			type: "number",
+			type: "number"
 		},
 		"sss": {
 			minLength: 3,
 			maxLength: 3,
 			name: "millisecond",
-			type: "number",
+			type: "number"
 		},
 		"a": {
 			name: "ampm",
@@ -183,31 +199,31 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 			type: "static"
 		}
 	};
-	
+
 	function increase(){
 		if (this.type == "string") {
 			return;
 		}
 		if (this.type == "EEEE" || this.type == "EEE") {
-			// this.value = 
+			// this.value =
 		}
 		if (this.type == "MMMM" || this.type == "MMM") {
-			
+
 		}
 	}
 
 	function decrease(){
 
 	}
-	
+
 	function set(){
-	
+
 	}
-	
+
 	function createNode(name, value){
 		return {
 			name: node[name].name,
-			type: node[name.type,
+			type: node[name].type,
 			minLenth: node[name].minLength,
 			maxLength: node[name].maxLength,
 			select: node[name].select,
@@ -223,10 +239,11 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 		var nodes = [],
 			match,
 			pos = 0;
-		
+
+		// Parse format to nodes
 		while (true) {
 			match = tokenRE.exec(format);
-			
+
 			if (!match) {
 				if (pos < format.length) {
 					nodes.push({
@@ -237,7 +254,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 				}
 				break;
 			}
-			
+
 			if (match.index > pos) {
 				nodes.push({
 					type: "string",
@@ -246,7 +263,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 				});
 				pos = match.index;
 			}
-			
+
 			if (match.index == pos) {
 				if (match[1]) {
 					nodes.push({
@@ -270,12 +287,15 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 				pos = tokenRE.lastIndex;
 			}
 		}
-		
+
+		// Build relationship between nodes
+		var i;
 		for (i = 0; i < nodes.length; i++) {
 			nodes[i].next = nodes[i + 1] || null;
 			nodes[i].prev = nodes[i - 1] || null;
 		}
-		
+
+		// Create match object
 		var init = {
 			parse: function(val){
 				var now = this.date = new Date(this.date.getTime()),
@@ -287,13 +307,13 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 					ss = now.getSeconds(),
 					sss = now.getMilliseconds(),
 					i, j, pos;
-					
+
 				pos = 0;
 				for (i = 0; i < nodes.length; i++) {
 					var p = nodes[i];
-					
+
 					// console.log(p);
-					
+
 					switch (p.type) {
 						case "string":
 							if (val.lastIndexOf(p.value, pos) != pos) {
@@ -302,7 +322,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							p.offset = pos;
 							pos += p.value.length;
 							break;
-						
+
 						case "yyyy":
 							year = val.substr(pos, 4);
 							if (isNaN(year)) {
@@ -312,7 +332,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							p.value = year;
 							pos += p.value.length;
 							break;
-							
+
 						case "yy":
 							year = val.substr(pos, 2);
 							if (isNaN(year)) {
@@ -322,7 +342,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							p.value = year;
 							pos += p.value.length;
 							break;
-							
+
 						case "y":
 							year = val.substr(pos, 4).match(/^\d\d+/);
 							if (year === null) {
@@ -333,7 +353,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							p.value = year;
 							pos += p.value.length;
 							break;
-							
+
 						case "MMMM":
 							for (j = 0; j < monthNames.length; j++) {
 								if (val.lastIndexOf(monthNames[j], pos) == pos) {
@@ -344,12 +364,12 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 									break;
 								}
 							}
-							
+
 							if (!month) {
 								throw 'Invalid month';
 							}
 							break;
-							
+
 						case "MMM":
 							match = "";
 							for (j = 0; j < monthShortNames.length; j++) {
@@ -359,17 +379,17 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 									match = m;
 								}
 							}
-							
+
 							if (!match) {
 								throw 'Invalid month';
 							}
-							
+
 							p.offset = pos;
 							p.value = match;
 							pos += p.value.length;
-						
+
 							break;
-							
+
 						case "EEEE":
 						case "EEE":
 							for (j = 0; j < dayNames.length; j++) {
@@ -381,7 +401,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 								}
 							}
 							break;
-							
+
 						case "MM":
 						case "M":
 							month = getInteger(val, pos, p.type.length, 2);
@@ -395,11 +415,11 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							p.value = month;
 							pos += p.value.length;
 							break;
-							
+
 						case "dd":
 						case "d":
 							date = getInteger(val, pos, p.type.length, 2);
-							
+
 							if (date === null || (date < 1) || (date > 31)) {
 								throw 'Invalid date';
 							}
@@ -408,7 +428,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							p.value = date;
 							pos += p.value.length;
 							break;
-							
+
 						case "HH":
 						case "H":
 							hh = getInteger(val, pos, p.type.length, 2);
@@ -421,7 +441,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							p.value = hh;
 							pos += p.value.length;
 							break;
-							
+
 						case "hh":
 						case "h":
 							hh = getInteger(val, pos, p.type.length, 2);
@@ -434,7 +454,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							p.value = hh;
 							pos += p.value.length;
 							break;
-							
+
 						case "mm":
 						case "m":
 							mm = getInteger(val, pos, p.type.length, 2);
@@ -447,7 +467,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							p.value = mm;
 							pos += p.value.length;
 							break;
-							
+
 						case "ss":
 						case "s":
 							ss = getInteger(val, pos, p.type.length, 2);
@@ -460,7 +480,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							p.value = ss;
 							pos += p.value.length;
 							break;
-							
+
 						case "sss":
 							sss = val.substr(pos, 4);
 
@@ -472,7 +492,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							p.value = sss;
 							pos += p.value.length;
 							break;
-							
+
 						case "a":
 							var a = val.substr(pos, 2).toLowerCase();
 							if (a == 'am') {
@@ -487,7 +507,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							p.value = ampm;
 							pos += p.value.length;
 							break;
-							
+
 						case "Z":
 							parsedZ = true;
 
@@ -515,7 +535,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							break;
 					}
 				}
-				
+
 				now.setFullYear(year);
 				now.setMonth(month * 1 - 1);
 				now.setDate(date);
@@ -523,61 +543,61 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 				now.setMinutes(mm);
 				now.setSeconds(ss);
 				now.setMilliseconds(sss);
-				
+
 				return now;
 			},
 			format: format,
 			nodes: nodes,
 			getNodeFromPos: function(pos){
 				var i;
-				
+
 				for (i = 0; i < nodes.length; i++) {
 					if (nodes[i].offset > pos) {
 						return nodes[i].prev;
 					}
 				}
-				
+
 				return nodes[i - 1];
 			},
 			date: new Date()
 		};
-		
+
 		// console.log("parser", init);
-		
+
 		return init;
 	}
-	
+
 	return getParser;
-	
+
 }).directive("datetime", function(datetimeParser, $filter){
 	return {
 		restrict: "A",
 		require: "ngModel",
 		link: function(scope, element, attrs, ngModel){
 			var parser = null;
-			
+
 			ngModel.$render = function(){
 				// console.log("render");
 				element.val(ngModel.$modelValue && parser ? $filter("date")(ngModel.$modelValue, parser.format) : undefined);
 				parser.parse(element.val());
 			};
-			
+
 			attrs.$observe("datetime", function(value){
 				parser = datetimeParser(value);
 				ngModel.$render();
 			});
-			
+
 			element.on("$destroy", function(){
 				parser = null;
 			});
-			
+
 			ngModel.$parsers.push(function(viewValue){
 				// console.log(viewValue);
-				
+
 				if (!parser) {
 					return undefined;
 				}
-				
+
 				try {
 					return parser.parse(viewValue);
 				} catch (e) {
@@ -585,21 +605,21 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 					return undefined;
 				}
 			});
-			
+
 			// ngModel.$formatters.push(function(modelValue){
 				// return $filter("date")(modelValue);
 			// });
-			
+
 			element.on("change focus keydown click", function(e){
 				var node = parser.getNodeFromPos(e.target.selectionStart);
-				
+
 				selectNode(e.target, node);
-				
+
 				if (e.type == "keydown") {
 					if (e.keyCode == 37) {
 						// left
 						e.preventDefault();
-						
+
 						var pre = node.prev;
 						while (pre && pre.type == "string") {
 							pre = pre.prev;
@@ -612,7 +632,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 					} else if (e.keyCode == 39) {
 						// right
 						e.preventDefault();
-						
+
 						var node = node.next;
 						while (node && node.type == "string") {
 							node = node.next;
@@ -636,7 +656,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 						e.preventDefault();
 					}
 				}
-				
+
 				// console.log(e);
 			});
 		}
@@ -650,56 +670,56 @@ some operation:
 left:
 	on select -> select pre word
 	on word left bound -> go to pre word
-	
+
 right:
 	on select -> select next word
 	on word right bound -> go to next word
 
 up:
 	on word -> add word value
-	
+
 down:
 	on word -> minor word value
-	
+
 focus:
 	on word -> select word
-	
+
 click:
 	on select -> deselect
-	
+
 	on word -> select word
-	
+
 back:
-	on word -> 
-		word is number -> 
+	on word ->
+		word is number ->
 			in word -> remove one digit
 			on word left bound -> set to zero, select word
 		word is string -> remove word
-		
+
 insert:
 	on select whole word ->
 		word is number -> remove word, move to word right bound, insert
 		word is string -> remove word, insert
-		
+
 	on select part ->
 		word is number -> remove select, move to select left bound, insert
 		word is string -> remove select, move to select left bound, insert
 
-	on word right bound -> 
+	on word right bound ->
 		word is number -> remove word left bound, insert
-		
-	word is number -> remove a character, move right
-	
-	word is string -> insert
-		
-	*/
-	
 
-	
+	word is number -> remove a character, move right
+
+	word is string -> insert
+
+	*/
+
+
+
 var datetime = {
 	handleEvent: function(e){
 		if (e.type == "focus") {
-		
+
 		} else if (e.type == "keydown") {
 		}
 		console.log(e);
