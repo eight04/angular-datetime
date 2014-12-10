@@ -486,16 +486,19 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			},
 			format: format,
 			nodes: nodes,
-			getNodeFromPos: function(pos){
-				var i;
+			getNodeFromPos: function(pos, pos2){
+				var i, p, q;
 
 				if (!pos) {
 					return nodes[0];
 				}
 				for (i = 0; i < nodes.length; i++) {
-					if (nodes[i].offset < pos && nodes[i].offset + nodes[i].value.length > pos) {
+					p = nodes[i].offset;
+					q = nodes[i].offset + nodes[i].value.length;
+
+					if (p < pos && q > pos && p < pos2 && q > pos2) {
 						return nodes[i];
-					} else if (nodes[i].type != "static" && (nodes[i].offset == pos || nodes[i].offset + nodes[i].value.length == pos)) {
+					} else if (nodes[i].type != "static" && (p <= pos && pos <= q && p <= pos2 && pos2 <= q)) {
 						return nodes[i];
 					}
 				}
@@ -615,7 +618,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			});
 
 			element.on("focus keydown click", function(e){
-				node = parser.getNodeFromPos(e.target.selectionStart);
+				node = parser.getNodeFromPos(e.target.selectionStart, e.target.selectionEnd);
 
 				if (e.type == "focus" || e.type == "click") {
 					e.preventDefault();
