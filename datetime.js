@@ -12,7 +12,7 @@ function getInteger(string, startPoint, minLength, maxLength) {
 			break;
 		}
 	}
-	return string.substr(startPoint, i);
+	return +string.substr(startPoint, i);
 }
 
 function getMatch(string, pattern, pos) {
@@ -194,6 +194,11 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 			name: "week",
 			type: "number"
 		},
+		"Z": {
+			name: "timezone",
+			type: "regex",
+			regex: /[+-]\d{4}/
+		},
 		"string": {
 			name: "string",
 			type: "static"
@@ -271,11 +276,13 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 
 	function createNode(name, value){
 		return {
+			offset: null,
 			name: node[name].name,
 			type: node[name].type,
-			minLenth: node[name].minLength,
+			minLength: node[name].minLength,
 			maxLength: node[name].maxLength,
 			select: node[name].select,
+			regex: node[name].regex,
 			value: value,
 			realValue: null,
 			increase: increase,
@@ -296,47 +303,22 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 			if (!match) {
 				if (pos < format.length) {
 					nodes.push(createNode("string", format.substring(pos)))
-//					nodes.push({
-//						type: "string",
-//						value: format.substring(pos),
-//						offset: null
-//					});
 				}
 				break;
 			}
 
 			if (match.index > pos) {
 				nodes.push(craeteNode("string", format.substring(pos, match.index)));
-//				nodes.push({
-//					type: "string",
-//					value: format.substring(pos, match.index),
-//					offset: null
-//				});
 				pos = match.index;
 			}
 
 			if (match.index == pos) {
 				if (match[1]) {
 					nodes.push(createNode("sss"));
-//					nodes.push({
-//						type: "sss",
-//						value: null,
-//						offset: null
-//					});
 				} else if (match[2]) {
 					nodes.push(createNode("string", match[2].replace("''", "'")));
-//					nodes.push({
-//						type: "string",
-//						value: match[1].replace("''", "'"),
-//						offset: null
-//					});
 				} else {
 					nodes.push(createNode(match[0]));
-//					nodes.push({
-//						type: match[0],
-//						value: null,
-//						offset: null
-//					});
 				}
 				pos = tokenRE.lastIndex;
 			}
@@ -351,8 +333,8 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 
 		// Create parser
 		var parser = {
-			parse: function(val){
-				var now = this.date = new Date(this.date.getTime()),
+			parse: function(val, defaultDate){
+				var now = new Date(defaultDate.getTime()),
 					year = now.getFullYear(),
 					month = now.getMonth() + 1,
 					date = now.getDate(),
@@ -367,7 +349,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 					var p = nodes[i];
 
 					switch (p.type) {
-						case "string":
+						case "static":
 							if (val.lastIndexOf(p.value, pos) != pos) {
 								throw 'Pattern value mismatch';
 							}
@@ -375,189 +357,30 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							pos += p.value.length;
 							break;
 
-						case "yyyy":
-							year = val.substr(pos, 4);
-							if (isNaN(year)) {
-								throw 'Invalid year';
+						case "number":
+							value = getInteger(val, pos, p.minLength, p.maxLength);
+							if (value == null) {
+								throw "Invalid number";
 							}
-							p.offset = pos;
-							p.value = year;
+							p.realValue = value;
+							p.value = value.toString();
 							pos += p.value.length;
 							break;
 
-						case "yy":
-							year = val.substr(pos, 2);
-							if (isNaN(year)) {
-								throw 'Invalid year';
-							}
-							p.offset = pos;
-							p.value = year;
-							pos += p.value.length;
-							break;
-
-						case "y":
-							year = val.substr(pos, 4).match(/^\d\d+/);
-							if (year === null) {
-								throw 'Invalid year';
-							}
-							year = year[0];
-							p.offset = pos;
-							p.value = year;
-							pos += p.value.length;
-							break;
-
-						case "MMMM":
-							for (j = 0; j < monthNames.length; j++) {
-								if (val.lastIndexOf(monthNames[j], pos) == pos) {
-									month = i + 1;
-									p.offset = pos;
-									p.value = monthNames[j];
-									pos += p.value.length;
-									break;
-								}
-							}
-
-							if (!month) {
-								throw 'Invalid month';
-							}
-							break;
-
-						case "MMM":
+						case "select":
 							match = "";
-							for (j = 0; j < monthShortNames.length; j++) {
-								m = getMatch(val, monthShortNames[j], pos);
-								if (m && m.length > match.length){
-									month = j + 1;
+							for (j = 0; j < p.select.length; j++) {
+								m = getMatch(val, p.select[j], pos);
+								if (m && m.length > match.length) {
+									value = j;
 									match = m;
 								}
 							}
-
 							if (!match) {
-								throw 'Invalid month';
+								throw "Invalid select";
 							}
-
-							p.offset = pos;
 							p.value = match;
-							pos += p.value.length;
-
-							break;
-
-						case "EEEE":
-						case "EEE":
-							for (j = 0; j < dayNames.length; j++) {
-								if (val.lastIndexOf(dayNames[j], pos) == pos) {
-									p.offset = pos;
-									p.value = dayNames[j];
-									pos += p.value.length;
-									break;
-								}
-							}
-							break;
-
-						case "MM":
-						case "M":
-							month = getInteger(val, pos, p.type.length, 2);
-
-							if (month === null || (month < 1) || (month > 12)) {
-								throw 'Invalid month';
-							}
-
-							p.offset = pos;
-							// console.log(month);
-							p.value = month;
-							pos += p.value.length;
-							break;
-
-						case "dd":
-						case "d":
-							date = getInteger(val, pos, p.type.length, 2);
-
-							if (date === null || (date < 1) || (date > 31)) {
-								throw 'Invalid date';
-							}
-
-							p.offset = pos;
-							p.value = date;
-							pos += p.value.length;
-							break;
-
-						case "HH":
-						case "H":
-							hh = getInteger(val, pos, p.type.length, 2);
-
-							if (hh === null || (hh < 0) || (hh > 23)) {
-								throw 'Invalid hours';
-							}
-
-							p.offset = pos;
-							p.value = hh;
-							pos += p.value.length;
-							break;
-
-						case "hh":
-						case "h":
-							hh = getInteger(val, pos, p.type.length, 2);
-
-							if (hh === null || (hh < 1) || (hh > 12)) {
-								throw 'Invalid hours';
-							}
-
-							p.offset = pos;
-							p.value = hh;
-							pos += p.value.length;
-							break;
-
-						case "mm":
-						case "m":
-							mm = getInteger(val, pos, p.type.length, 2);
-
-							if (mm === null || (mm < 0) || (mm > 59)) {
-								throw 'Invalid minutes';
-							}
-
-							p.offset = pos;
-							p.value = mm;
-							pos += p.value.length;
-							break;
-
-						case "ss":
-						case "s":
-							ss = getInteger(val, pos, p.type.length, 2);
-
-							if (ss === null || (ss < 0) || (ss > 59)) {
-								throw 'Invalid seconds';
-							}
-
-							p.offset = pos;
-							p.value = ss;
-							pos += p.value.length;
-							break;
-
-						case "sss":
-							sss = val.substr(pos, 4);
-
-							// if (sss === null || (sss < 0) || (sss > 999)) {
-									// throw 'Invalid milliseconds';
-								// }
-
-							p.offset = pos;
-							p.value = sss;
-							pos += p.value.length;
-							break;
-
-						case "a":
-							var a = val.substr(pos, 2).toLowerCase();
-							if (a == 'am') {
-								ampm = 'AM';
-							} else if (a == 'pm') {
-								ampm = 'PM';
-							} else {
-								throw 'Invalid AM/PM';
-							}
-
-							p.offset = pos;
-							p.value = ampm;
-							pos += p.value.length;
+							p.realValue = value;
 							break;
 
 						case "Z":
