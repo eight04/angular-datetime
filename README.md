@@ -10,3 +10,7 @@ Todos
 * Add validator.
 * Support day (EEEE, EEE).
 * Support week (ww, w).
+
+Known Issue
+-----------
+* Prevent keydown to restrict editing static node doesn't work well with chinese IME.

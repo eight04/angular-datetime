@@ -292,7 +292,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 				throw "Can't find select matching " + value;
 			}
 		}
-//		this.realValue = value;
+
 		if (this.type == "select") {
 			this.realValue = value;
 			this.value = this.select[value - 1];
@@ -489,9 +489,14 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			getNodeFromPos: function(pos){
 				var i;
 
+				if (!pos) {
+					return nodes[0];
+				}
 				for (i = 0; i < nodes.length; i++) {
-					if (nodes[i].offset > pos) {
-						return nodes[i].prev;
+					if (nodes[i].offset < pos && nodes[i].offset + nodes[i].value.length > pos) {
+						return nodes[i];
+					} else if (nodes[i].type != "static" && (nodes[i].offset == pos || nodes[i].offset + nodes[i].value.length == pos)) {
+						return nodes[i];
 					}
 				}
 
@@ -578,10 +583,9 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			var parser = datetime(attrs.datetime), node;
 
 			ngModel.$render = function(){
-				var selectionStart = element[0].selectionStart;
 				element.val(ngModel.$viewValue);
 				if (node) {
-					element[0].setSelectionRange(selectionStart, selectionStart + node.value.length);
+					element[0].setSelectionRange(node.offset, node.offset + node.value.length);
 				}
 			};
 
@@ -610,10 +614,11 @@ angular.module("datetime", []).factory("datetime", function($locale){
 				return parser.getText();
 			});
 
-			element.on("change focus keydown click", function(e){
+			element.on("focus keydown click", function(e){
 				node = parser.getNodeFromPos(e.target.selectionStart);
 
-				if (e.type == "click") {
+				if (e.type == "focus" || e.type == "click") {
+					e.preventDefault();
 					selectNode(e.target, node);
 				}
 
