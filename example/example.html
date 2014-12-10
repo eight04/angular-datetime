@@ -19,7 +19,7 @@
 	</script>
 </head>
 <body class="container" ng-controller="myDate">
-	<pre><code>myDate Model: {{myDate}}</code></pre>
+	<pre class="pool">myDate Model: {{myDate}}</pre>
 	<div class="form-group">
 		<label for="msql">MySQL Datetime</label>
 		<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" class="form-control" id="mysql">
@@ -27,6 +27,10 @@
 	<div class="form-group">
 		<label for="fullDate">Full Date</label>
 		<input type="text" datetime="fullDate" ng-model="myDate" class="form-control" id="fullDate">
+	</div>
+	<div class="form-group">
+		<label for="millisecond">Millisecond Test</label>
+		<input type="text" datetime=".sss ,sss" ng-model="myDate" class="form-control" id="millisecond">
 	</div>
 
 </body>

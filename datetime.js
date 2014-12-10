@@ -29,7 +29,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 	var formats = $locale.DATETIME_FORMATS;
 
 	// Valid format tokens. 1=sss, 2=''
-	var tokenRE = /yyyy|yy|y|M{1,4}|dd?|EEEE?|HH?|hh?|mm?|ss?|[.,](sss)|a|Z|ww|w|'(([^']+|'')*)'/g;
+	var tokenRE = /yyyy|yy|y|M{1,4}|dd?|EEEE?|HH?|hh?|mm?|ss?|([.,])sss|a|Z|ww|w|'(([^']+|'')*)'/g;
 
 	var node = {
 		"y": {
@@ -350,7 +350,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 
 			if (match.index == pos) {
 				if (match[1]) {
-					nodes.push(createNode("milliPrefix"));
+					nodes.push(createNode("string", match[1]));
 					nodes.push(createNode("sss"));
 				} else if (match[2]) {
 					nodes.push(createNode("string", match[2].replace("''", "'")));

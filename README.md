@@ -10,6 +10,9 @@ Todos
 * Add validator.
 * Support day (EEEE, EEE).
 * Support week (ww, w).
+* Should make weekdays static.
+* Doesn't update model correctly with duplicate node name.
+* Use dynamic date limit (min, max) depend on month.
 
 Known Issue
 -----------
