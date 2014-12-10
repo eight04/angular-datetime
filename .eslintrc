@@ -10,7 +10,8 @@
 		"no-use-before-define": [2, "nofunc"],
 		"global-strict": 0,
 		"no-empty": 0,
-		"no-constant-condition": 0
+		"no-constant-condition": 0,
+		"quotes": 0
 	},
 	globals: {
 		angular: false

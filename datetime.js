@@ -64,18 +64,24 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 		"y": {
 			minLength: 1,
 			maxLength: 4,
+			min: 1,
+			max: 9999,
 			name: "year",
 			type: "number"
 		},
 		"yy": {
 			minLength: 2,
 			maxLength: 2,
+			min: 1,
+			max: 99,
 			name: "year",
 			type: "number"
 		},
 		"yyyy": {
 			minLength: 4,
 			maxLength: 4,
+			min: 1,
+			max: 9999,
 			name: "year",
 			type: "number"
 		},
@@ -92,24 +98,32 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 		"MM": {
 			minLength: 2,
 			maxLength: 2,
+			min: 1,
+			max: 12,
 			name: "month",
 			type: "number"
 		},
 		"M": {
 			minLength: 1,
 			maxLength: 2,
+			min: 1,
+			max: 12,
 			name: "month",
 			type: "number"
 		},
 		"dd": {
 			minLength: 2,
 			maxLength: 2,
+			min: 1,
+			max: 31,
 			name: "date",
 			type: "number"
 		},
 		"d": {
 			minLength: 1,
 			maxLength: 2,
+			min: 1,
+			max: 31,
 			name: "date",
 			type: "number"
 		},
@@ -126,54 +140,77 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 		"HH": {
 			minLength: 2,
 			maxLength: 2,
+			min: 0,
+			max: 23,
 			name: "hour",
 			type: "number"
 		},
 		"H": {
 			minLength: 1,
 			maxLength: 2,
+			min: 0,
+			max: 23,
 			name: "hour",
 			type: "number"
 		},
 		"hh": {
 			minLength: 2,
 			maxLength: 2,
+			min: 1,
+			max: 12,
 			name: "hour12",
 			type: "number"
 		},
 		"h": {
 			minLength: 1,
 			maxLength: 2,
+			min: 1,
+			max: 12,
 			name: "hour12",
 			type: "number"
 		},
 		"mm": {
 			minLength: 2,
 			maxLength: 2,
+			min: 0,
+			max: 59,
 			name: "minute",
 			type: "number"
 		},
 		"m": {
 			minLength: 1,
 			maxLength: 2,
+			min: 0,
+			max: 59,
 			name: "minute",
 			type: "number"
 		},
 		"ss": {
 			minLength: 2,
 			maxLength: 2,
+			min: 0,
+			max: 59,
 			name: "second",
 			type: "number"
 		},
 		"s": {
 			minLength: 1,
 			maxLength: 2,
+			min: 0,
+			max: 59,
 			name: "second",
 			type: "number"
+		},
+		"milliPrefix": {
+			name: "milliPrefix",
+			type: "regex",
+			regex: /[,.]/
 		},
 		"sss": {
 			minLength: 3,
 			maxLength: 3,
+			min: 0,
+			max: 999,
 			name: "millisecond",
 			type: "number"
 		},
@@ -185,12 +222,16 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 		"ww": {
 			minLength: 2,
 			maxLength: 2,
+			min: 0,
+			max: 53,
 			name: "week",
 			type: "number"
 		},
 		"w": {
 			minLength: 1,
 			maxLength: 2,
+			min: 0,
+			max: 53,
 			name: "week",
 			type: "number"
 		},
@@ -211,14 +252,19 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 		}
 		if (this.type == "select") {
 			if (this.realValue == null) {
-				this.realValue = this.select.length - 1;
+				this.realValue = 1;
+			} else {
+				this.realValue = this.realValue % this.select.length + 1;
 			}
-			this.realValue = (this.realValue + 1) % this.select.length;
-			this.value = this.select[this.realValue];
+			this.value = this.select[this.realValue - 1];
 			return;
 		}
 		if (this.type == "number") {
-			this.realValue -= 1;
+			if (!this.realValue) {
+				this.realValue = this.max;
+			} else {
+				this.realValue += 1;
+			}
 			this.value = this.realValue.toString();
 		}
 	}
@@ -229,14 +275,16 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 		}
 		if (this.type == "select") {
 			if (this.realValue == null) {
-				this.realValue = 0;
+				this.realValue = this.select.length;
+			} else {
+				this.realValue = this.realValue % this.select.length + this.realValue - 1;
 			}
-			this.realValue = (this.realValue - 1 + this.select.length) % this.select.length;
-			this.value = this.select[this.realValue];
+			this.value = this.select[this.realValue - 1];
 			return;
 		}
 		if (this.type == "number") {
-			this.realValue += 1;
+
+			this.realValue -= 1;
 			this.value = this.realValue.toString();
 		}
 	}
@@ -302,18 +350,19 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 
 			if (!match) {
 				if (pos < format.length) {
-					nodes.push(createNode("string", format.substring(pos)))
+					nodes.push(createNode("string", format.substring(pos)));
 				}
 				break;
 			}
 
 			if (match.index > pos) {
-				nodes.push(craeteNode("string", format.substring(pos, match.index)));
+				nodes.push(createNode("string", format.substring(pos, match.index)));
 				pos = match.index;
 			}
 
 			if (match.index == pos) {
 				if (match[1]) {
+					nodes.push(createNode("milliPrefix"));
 					nodes.push(createNode("sss"));
 				} else if (match[2]) {
 					nodes.push(createNode("string", match[2].replace("''", "'")));
@@ -334,15 +383,8 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 		// Create parser
 		var parser = {
 			parse: function(val, defaultDate){
-				var now = new Date(defaultDate.getTime()),
-					year = now.getFullYear(),
-					month = now.getMonth() + 1,
-					date = now.getDate(),
-					hh = now.getHours(),
-					mm = now.getMinutes(),
-					ss = now.getSeconds(),
-					sss = now.getMilliseconds(),
-					i, j, pos;
+				var now = defaultDate ? new Date(defaultDate.getTime()) : new Date(),
+					i, j, pos, m, match, value;
 
 				pos = 0;
 				for (i = 0; i < nodes.length; i++) {
@@ -358,10 +400,12 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							break;
 
 						case "number":
+							// Fail when meeting .sss
 							value = getInteger(val, pos, p.minLength, p.maxLength);
 							if (value == null) {
 								throw "Invalid number";
 							}
+							p.offset = pos;
 							p.realValue = value;
 							p.value = value.toString();
 							pos += p.value.length;
@@ -379,45 +423,74 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							if (!match) {
 								throw "Invalid select";
 							}
+							p.offset = pos;
 							p.value = match;
-							p.realValue = value;
+							p.realValue = value + 1;
+							pos += p.value.length;
 							break;
 
-						case "Z":
-							parsedZ = true;
-
-							if (val[pos] === 'Z') {
-								z = 0;
-
-								pos += 1;
-							} else if (val[pos + 3] === ':') {
-								var tzStr = val.substr(pos, 6);
-
-								z = (parseInt(tzStr.substr(0, 3), 10) * 60) + parseInt(tzStr.substr(4, 2), 10);
-
-								pos += 6;
-							} else {
-								var tzStr = val.substring(pos, 5);
-
-								z = (parseInt(tzStr.substr(0, 3), 10) * 60) + parseInt(tzStr.substr(3, 2), 10);
-
-								pos += 5;
+						case "regex":
+							m = p.regex.exec(val.substr(pos));
+							if (!m || m.index != 0) {
+								throw "Regex doesn't match";
 							}
-
-							if (z > 720 || z < -720) {
-								throw 'Invalid timezone';
-							}
+							p.offset = pos;
+							p.value = m[0];
+							p.realValue = m[0];
+							pos += p.value.length;
 							break;
 					}
 				}
 
-				now.setFullYear(year);
-				now.setMonth(month * 1 - 1);
-				now.setDate(date);
-				now.setHours(hh);
-				now.setMinutes(mm);
-				now.setSeconds(ss);
-				now.setMilliseconds(sss);
+				var ampm, hour12;
+				for (i = 0; i < nodes.length; i++) {
+					p = nodes[i];
+					switch (p.name) {
+						case "year":
+							now.setFullYear(p.realValue);
+							break;
+
+						case "month":
+							now.setMonth(p.realValue - 1);
+							break;
+
+						case "date":
+							now.setDate(p.realValue);
+							break;
+
+						case "hour":
+							now.setHours(p.realValue);
+							break;
+
+						case "minute":
+							now.setMinutes(p.realValue);
+							break;
+
+						case "second":
+							now.setSeconds(p.realValue);
+							break;
+
+						case "millisecond":
+							now.setMilliseconds(p.realValue);
+							break;
+
+						case "ampm":
+							ampm = p;
+							break;
+
+						case "hour12":
+							hour12 = p;
+							break;
+					}
+				}
+				if (ampm && hour12) {
+					if (ampm.realValue == 1) {
+						value = hour12.realValue % 12;
+					} else {
+						value = hour12.realValue % 12 + 12;
+					}
+					now.setHours(value);
+				}
 
 				return now;
 			},
@@ -508,13 +581,13 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 						// right
 						e.preventDefault();
 
-						var node = node.next;
-						while (node && node.type == "string") {
-							node = node.next;
+						var next = node.next;
+						while (next && next.type == "string") {
+							next = next.next;
 						}
 
-						if (node) {
-							selectNode(e.target, node);
+						if (next) {
+							selectNode(e.target, next);
 							return;
 						}
 					} else if (e.keyCode == 38) {
@@ -590,21 +663,9 @@ insert:
 	*/
 
 
-
-var datetime = {
-	handleEvent: function(e){
-		if (e.type == "focus") {
-
-		} else if (e.type == "keydown") {
-		}
-		console.log(e);
-	}
-};
-
 // document.addEventListener("DOMContentLoaded", function(){
 	// var element = document.querySelector(".datetime");
 
 	// element.addEventListener("focus", datetime);
 	// element.addEventListener("keydown", datetime);
 // });
-
