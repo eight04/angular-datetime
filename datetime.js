@@ -576,7 +576,38 @@ angular.module("datetime", []).factory("datetime", function($locale){
 }).directive("datetime", function(datetime){
 
 	function selectNode(input, node) {
-		input.setSelectionRange(node.offset, node.next ? node.next.offset : input.value.length);
+		if (input.setSelectionRange) {
+			input.setSelectionRange(node.offset, node.offset + node.value.length);
+		} else if (input.createTextRange) {
+			var range = input.createTextRange();
+			range.moveStart('character', node.offset);
+			range.collapse();
+			range.moveEnd('character', node.value.length);
+			range.select();
+		}
+	}
+
+	function getInputSelection(input) {
+		if (input.selectionStart != undefined && input.selectionEnd != undefined) {
+			return {
+				start: input.selectionStart,
+				end: input.selectionEnd
+			};
+		}
+		if (document.selection) {
+			var bookmark = document.selection.createRange().getBookmark();
+			var range = input.createTextRange();
+			var range2 = range.duplicate();
+			range.moveToBookmark(bookmark);
+			range2.setEndPoint("EndToStart", range);
+
+			var start = range2.text.length;
+			var end = start + range.text.length;
+			return {
+				start: start,
+				end: end
+			};
+		}
 	}
 
 	return {
@@ -587,8 +618,8 @@ angular.module("datetime", []).factory("datetime", function($locale){
 
 			ngModel.$render = function(){
 				element.val(ngModel.$viewValue);
-				if (node) {
-					element[0].setSelectionRange(node.offset, node.offset + node.value.length);
+				if (node && document.activeElement == element[0]) {
+					selectNode(element[0], node);
 				}
 			};
 
@@ -618,7 +649,8 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			});
 
 			element.on("focus keydown click", function(e){
-				node = parser.getNodeFromPos(e.target.selectionStart, e.target.selectionEnd);
+				var selection = getInputSelection(e.target);
+				node = parser.getNodeFromPos(selection.start, selection.end);
 
 				if (e.type == "focus" || e.type == "click") {
 					e.preventDefault();
@@ -654,6 +686,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 						}
 					} else if (e.keyCode == 38) {
 						// up
+						e.preventDefault();
 						scope.$evalAsync(function(){
 							node.increase();
 							ngModel.$setViewValue(parser.getText());
@@ -662,6 +695,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 
 					} else if (e.keyCode == 40) {
 						// down
+						e.preventDefault();
 						scope.$evalAsync(function(){
 							node.decrease();
 							ngModel.$setViewValue(parser.getText());
