@@ -15,10 +15,15 @@
 	<script>
 		angular.module("App", ["datetime"]).controller("myDate", function($scope, $filter){
 			$scope.myDate = new Date();
+			$scope.createDate = function(){
+				return new Date();
+			}
 		});
 	</script>
 </head>
 <body class="container" ng-controller="myDate">
+	<h2>Angular Datetime <small>Demo Page</small></h2>
+	<button class="btn-default" ng-click="myDate = createDate()">Set myDate to now</button>
 	<pre class="pool">myDate Model: {{myDate}}</pre>
 	<div class="form-group">
 		<label for="msql">MySQL Datetime</label>
