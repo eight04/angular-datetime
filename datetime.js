@@ -239,7 +239,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			return;
 		}
 		if (this.type == "number") {
-			if (!this.realValue || this.realValue >= this.max) {
+			if (this.realValue == null || this.realValue >= this.max) {
 				this.realValue = this.min;
 			} else {
 				this.realValue += 1;
@@ -256,7 +256,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			if (this.realValue == null) {
 				this.realValue = this.select.length;
 			} else {
-				this.realValue = this.realValue % this.select.length + this.realValue - 1;
+				this.realValue = (this.realValue - 1) || this.select.length;
 			}
 			this.value = this.select[this.realValue - 1];
 			return;
@@ -292,10 +292,10 @@ angular.module("datetime", []).factory("datetime", function($locale){
 				throw "Can't find select matching " + value;
 			}
 		}
-		this.realValue = value;
+//		this.realValue = value;
 		if (this.type == "select") {
 			this.realValue = value;
-			this.value = this.select[value];
+			this.value = this.select[value - 1];
 		} else if (this.type == "number") {
 			this.realValue = value;
 			this.value = zpad(value, this.minLength);
@@ -447,6 +447,10 @@ angular.module("datetime", []).factory("datetime", function($locale){
 							p.set(date.getDate());
 							break;
 
+						case "day":
+							p.set((date.getDay() + 1) % 7 || 7);
+							break;
+
 						case "hour":
 							p.set(date.getHours());
 							break;
@@ -472,6 +476,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 							break;
 					}
 				}
+
 				// Re-calc offset
 				var pos = 0;
 				for (i = 0; i < this.nodes.length; i++) {
@@ -570,13 +575,14 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		restrict: "A",
 		require: "ngModel",
 		link: function(scope, element, attrs, ngModel){
-			var parser = datetime(attrs.datetime);
+			var parser = datetime(attrs.datetime), node;
 
 			ngModel.$render = function(){
-				var selectionStart = element[0].selectionStart,
-					selectionEnd = element[0].selectionEnd;
+				var selectionStart = element[0].selectionStart;
 				element.val(ngModel.$viewValue);
-				element[0].setSelectionRange(selectionStart, selectionEnd);
+				if (node) {
+					element[0].setSelectionRange(selectionStart, selectionStart + node.value.length);
+				}
 			};
 
 			element.on("$destroy", function(){
@@ -597,12 +603,15 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			});
 
 			ngModel.$formatters.push(function(modelValue){
+				if (!modelValue) {
+					return undefined;
+				}
 				parser.setDate(modelValue);
 				return parser.getText();
 			});
 
 			element.on("change focus keydown click", function(e){
-				var node = parser.getNodeFromPos(e.target.selectionStart);
+				node = parser.getNodeFromPos(e.target.selectionStart);
 
 				if (e.type == "click") {
 					selectNode(e.target, node);
