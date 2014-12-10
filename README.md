@@ -13,6 +13,7 @@ Todos
 * Should make weekdays static.
 * Doesn't update model correctly with duplicate node name.
 * Use dynamic date limit (min, max) depend on month.
+* Don't disable all keys on static node.
 
 Known Issue
 -----------
