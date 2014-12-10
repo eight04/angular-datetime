@@ -25,34 +25,8 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		return string.substr(pos, i);
 	}
 
-	//	function escapeRE(str){
-//		return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-//	}
-
 	// Fetch date and time formats from $locale service
 	var formats = $locale.DATETIME_FORMATS;
-
-	// Build regex matches
-//	var re = {
-//		AMPMS: angular.copy(formats.DAY),
-//		DAY: angular.copy(formats.DAY),
-//		MONTH: angular.copy(formats.MONTH),
-//		SHORTDAY: angular.copy(formats.SHORTDAY),
-//		SHORTMONTH: angular.copy(formats.SHORTMONTH)
-//	};
-//	var key, i;
-//	for (key in re) {
-//		for (i = 0; i < re[key].length; i++) {
-//			re[key][i] = escapeRE(re[key][i]);
-//		}
-//		re[key] = new RegExp(re[key].join("|"));
-//	}
-	// Arrays of month and day names
-//	 var monthNames = datetimeFormats.MONTH,
-//		 monthShortNames = datetimeFormats.SHORTMONTH,
-//		 dayNames = datetimeFormats.DAY,
-//		 dayShortNames = datetimeFormats.SHORTDAY;
-
 
 	// Valid format tokens. 1=sss, 2=''
 	var tokenRE = /yyyy|yy|y|M{1,4}|dd?|EEEE?|HH?|hh?|mm?|ss?|[.,](sss)|a|Z|ww|w|'(([^']+|'')*)'/g;
@@ -354,6 +328,10 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			match,
 			pos = 0;
 
+		if (formats[format]) {
+			format = formats[format];
+		}
+
 		// Parse format to nodes
 		while (true) {
 			match = tokenRE.exec(format);
@@ -478,7 +456,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 							break;
 
 						case "second":
-							p.set(date.getMinutes());
+							p.set(date.getSeconds());
 							break;
 
 						case "millisecond":
@@ -592,20 +570,14 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		restrict: "A",
 		require: "ngModel",
 		link: function(scope, element, attrs, ngModel){
-			var parser = null;
+			var parser = datetime(attrs.datetime);
 
 			ngModel.$render = function(){
 				var selectionStart = element[0].selectionStart,
 					selectionEnd = element[0].selectionEnd;
 				element.val(ngModel.$viewValue);
 				element[0].setSelectionRange(selectionStart, selectionEnd);
-//				console.log("render");
 			};
-
-			attrs.$observe("datetime", function(value){
-				parser = datetime(value);
-				ngModel.$render();
-			});
 
 			element.on("$destroy", function(){
 				parser = null;
@@ -620,7 +592,8 @@ angular.module("datetime", []).factory("datetime", function($locale){
 				} catch (e) {
 					return undefined;
 				}
-				return parser.getDate();
+				// Create new date to make Angular notice the different...
+				return new Date(parser.getDate().getTime());
 			});
 
 			ngModel.$formatters.push(function(modelValue){
@@ -664,7 +637,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 						}
 					} else if (e.keyCode == 38) {
 						// up
-						scope.$apply(function(){
+						scope.$evalAsync(function(){
 							node.increase();
 							ngModel.$setViewValue(parser.getText());
 							ngModel.$render();
@@ -672,7 +645,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 
 					} else if (e.keyCode == 40) {
 						// down
-						scope.$apply(function(){
+						scope.$evalAsync(function(){
 							node.decrease();
 							ngModel.$setViewValue(parser.getText());
 							ngModel.$render();
