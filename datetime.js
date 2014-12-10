@@ -1,55 +1,52 @@
 "use strict";
 
-function getInteger(string, startPoint, minLength, maxLength) {
-	var i;
-	for (i = 0; i < minLength; i++) {
-		if (isNaN(string[startPoint + i])) {
-			return null;
+angular.module("datetime", []).factory("datetime", function($locale){
+
+	function getInteger(string, startPoint, minLength, maxLength) {
+		var i;
+		for (i = 0; i < minLength; i++) {
+			if (isNaN(string[startPoint + i])) {
+				return null;
+			}
 		}
-	}
-	for (; i < maxLength; i++) {
-		if (isNaN(string[startPoint + i])) {
-			break;
+		for (; i < maxLength; i++) {
+			if (isNaN(string[startPoint + i])) {
+				break;
+			}
 		}
+		return string.substr(startPoint, i);
 	}
-	return +string.substr(startPoint, i);
-}
 
-function getMatch(string, pattern, pos) {
-	var i = 0;
-	while (i + pos < string.length && i < pattern.length && string[pos + i].toUpperCase() == pattern[i].toUpperCase()) {
-		i++;
+	function getMatch(string, pattern, pos) {
+		var i = 0;
+		while (i + pos < string.length && i < pattern.length && string[pos + i].toUpperCase() == pattern[i].toUpperCase()) {
+			i++;
+		}
+		return string.substr(pos, i);
 	}
-	return string.substr(pos, i);
-}
 
-function selectNode(input, node) {
-	input.setSelectionRange(node.offset, node.next ? node.next.offset : input.value.length);
-}
-
-angular.module("datetime", []).factory("datetimeParser", function($locale){
-	function escapeRE(str){
-		return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-	}
+	//	function escapeRE(str){
+//		return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+//	}
 
 	// Fetch date and time formats from $locale service
 	var formats = $locale.DATETIME_FORMATS;
 
 	// Build regex matches
-	var re = {
-		AMPMS: angular.copy(formats.DAY),
-		DAY: angular.copy(formats.DAY),
-		MONTH: angular.copy(formats.MONTH),
-		SHORTDAY: angular.copy(formats.SHORTDAY),
-		SHORTMONTH: angular.copy(formats.SHORTMONTH)
-	};
-	var key, i;
-	for (key in re) {
-		for (i = 0; i < re[key].length; i++) {
-			re[key][i] = escapeRE(re[key][i]);
-		}
-		re[key] = new RegExp(re[key].join("|"));
-	}
+//	var re = {
+//		AMPMS: angular.copy(formats.DAY),
+//		DAY: angular.copy(formats.DAY),
+//		MONTH: angular.copy(formats.MONTH),
+//		SHORTDAY: angular.copy(formats.SHORTDAY),
+//		SHORTMONTH: angular.copy(formats.SHORTMONTH)
+//	};
+//	var key, i;
+//	for (key in re) {
+//		for (i = 0; i < re[key].length; i++) {
+//			re[key][i] = escapeRE(re[key][i]);
+//		}
+//		re[key] = new RegExp(re[key].join("|"));
+//	}
 	// Arrays of month and day names
 //	 var monthNames = datetimeFormats.MONTH,
 //		 monthShortNames = datetimeFormats.SHORTMONTH,
@@ -246,6 +243,14 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 		}
 	};
 
+	function zpad(n, len){
+		n = n.toString();
+		if (n.length >= len) {
+			return n;
+		}
+		return Array(len - n.length + 1).join("0") + n;
+	}
+
 	function increase(){
 		if (this.type == "string") {
 			return;
@@ -260,12 +265,12 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 			return;
 		}
 		if (this.type == "number") {
-			if (!this.realValue) {
-				this.realValue = this.max;
+			if (!this.realValue || this.realValue >= this.max) {
+				this.realValue = this.min;
 			} else {
 				this.realValue += 1;
 			}
-			this.value = this.realValue.toString();
+			this.value = zpad(this.realValue, this.minLength);
 		}
 	}
 
@@ -283,9 +288,12 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 			return;
 		}
 		if (this.type == "number") {
-
-			this.realValue -= 1;
-			this.value = this.realValue.toString();
+			if (!this.realValue || this.realValue <= this.min) {
+				this.realValue = this.max;
+			} else {
+				this.realValue -= 1;
+			}
+			this.value = zpad(this.realValue, this.minLength);
 		}
 	}
 
@@ -316,7 +324,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 			this.value = this.select[value];
 		} else if (this.type == "number") {
 			this.realValue = value;
-			this.value = value.toString();
+			this.value = zpad(value, this.minLength);
 		} else {
 			throw "Unknown node type " + this.type;
 		}
@@ -329,6 +337,8 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 			type: node[name].type,
 			minLength: node[name].minLength,
 			maxLength: node[name].maxLength,
+			min: node[name].min,
+			max: node[name].max,
 			select: node[name].select,
 			regex: node[name].regex,
 			value: value,
@@ -382,9 +392,8 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 
 		// Create parser
 		var parser = {
-			parse: function(val, defaultDate){
-				var now = defaultDate ? new Date(defaultDate.getTime()) : new Date(),
-					i, j, pos, m, match, value;
+			parse: function(val){
+				var i, j, pos, m, match, value;
 
 				pos = 0;
 				for (i = 0; i < nodes.length; i++) {
@@ -393,7 +402,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 					switch (p.type) {
 						case "static":
 							if (val.lastIndexOf(p.value, pos) != pos) {
-								throw 'Pattern value mismatch';
+								throw ['Pattern value mismatch', p, val, pos];
 							}
 							p.offset = pos;
 							pos += p.value.length;
@@ -406,8 +415,8 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 								throw "Invalid number";
 							}
 							p.offset = pos;
-							p.realValue = value;
-							p.value = value.toString();
+							p.realValue = +value;
+							p.value = value;
 							pos += p.value.length;
 							break;
 
@@ -441,10 +450,74 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 							break;
 					}
 				}
+			},
+			setDate: function(date) {
+				var i, p;
+				this.date = date;
+				for (i = 0; i < this.nodes.length; i++) {
+					p = this.nodes[i];
+					switch (p.name) {
+						case "year":
+							p.set(date.getFullYear());
+							break;
 
-				var ampm, hour12;
+						case "month":
+							p.set(date.getMonth() + 1);
+							break;
+
+						case "date":
+							p.set(date.getDate());
+							break;
+
+						case "hour":
+							p.set(date.getHours());
+							break;
+
+						case "minute":
+							p.set(date.getMinutes());
+							break;
+
+						case "second":
+							p.set(date.getMinutes());
+							break;
+
+						case "millisecond":
+							p.set(date.getMilliseconds());
+							break;
+
+						case "ampm":
+							p.set(date.getHours() < 12 ? 1 : 2);
+							break;
+
+						case "hour12":
+							p.set(date.getHours() % 12 || 12);
+							break;
+					}
+				}
+				// Re-calc offset
+				var pos = 0;
+				for (i = 0; i < this.nodes.length; i++) {
+					this.nodes[i].offset = pos;
+					pos += this.nodes[i].value.length;
+				}
+			},
+			format: format,
+			nodes: nodes,
+			getNodeFromPos: function(pos){
+				var i;
+
 				for (i = 0; i < nodes.length; i++) {
-					p = nodes[i];
+					if (nodes[i].offset > pos) {
+						return nodes[i].prev;
+					}
+				}
+
+				return nodes[i - 1];
+			},
+			getDate: function(){
+				var ampm, hour12, i, p, value, now = this.date;
+				for (i = 0; i < this.nodes.length; i++) {
+					p = this.nodes[i];
 					switch (p.name) {
 						case "year":
 							now.setFullYear(p.realValue);
@@ -494,30 +567,27 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 
 				return now;
 			},
-			format: format,
-			nodes: nodes,
-			getNodeFromPos: function(pos){
-				var i;
-
-				for (i = 0; i < nodes.length; i++) {
-					if (nodes[i].offset > pos) {
-						return nodes[i].prev;
-					}
+			getText: function(){
+				var i, text = "";
+				for (i = 0; i < this.nodes.length; i++) {
+					text += this.nodes[i].value;
 				}
-
-				return nodes[i - 1];
+				return text;
 			},
 			date: new Date()
 		};
-
-		// console.log("parser", init);
 
 		return parser;
 	}
 
 	return getParser;
 
-}).directive("datetime", function(datetimeParser, $filter){
+}).directive("datetime", function(datetime){
+
+	function selectNode(input, node) {
+		input.setSelectionRange(node.offset, node.next ? node.next.offset : input.value.length);
+	}
+
 	return {
 		restrict: "A",
 		require: "ngModel",
@@ -525,13 +595,15 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 			var parser = null;
 
 			ngModel.$render = function(){
-				// console.log("render");
-				element.val(ngModel.$modelValue && parser ? $filter("date")(ngModel.$modelValue, parser.format) : undefined);
-				parser.parse(element.val());
+				var selectionStart = element[0].selectionStart,
+					selectionEnd = element[0].selectionEnd;
+				element.val(ngModel.$viewValue);
+				element[0].setSelectionRange(selectionStart, selectionEnd);
+//				console.log("render");
 			};
 
 			attrs.$observe("datetime", function(value){
-				parser = datetimeParser(value);
+				parser = datetime(value);
 				ngModel.$render();
 			});
 
@@ -540,28 +612,28 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 			});
 
 			ngModel.$parsers.push(function(viewValue){
-				// console.log(viewValue);
-
 				if (!parser) {
 					return undefined;
 				}
-
 				try {
-					return parser.parse(viewValue);
+					parser.parse(viewValue);
 				} catch (e) {
-					// console.log(e);
 					return undefined;
 				}
+				return parser.getDate();
 			});
 
-			// ngModel.$formatters.push(function(modelValue){
-				// return $filter("date")(modelValue);
-			// });
+			ngModel.$formatters.push(function(modelValue){
+				parser.setDate(modelValue);
+				return parser.getText();
+			});
 
 			element.on("change focus keydown click", function(e){
 				var node = parser.getNodeFromPos(e.target.selectionStart);
 
-				selectNode(e.target, node);
+				if (e.type == "click") {
+					selectNode(e.target, node);
+				}
 
 				if (e.type == "keydown") {
 					if (e.keyCode == 37) {
@@ -569,7 +641,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 						e.preventDefault();
 
 						var pre = node.prev;
-						while (pre && pre.type == "string") {
+						while (pre && pre.type == "static") {
 							pre = pre.prev;
 						}
 
@@ -582,7 +654,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 						e.preventDefault();
 
 						var next = node.next;
-						while (next && next.type == "string") {
+						while (next && next.type == "static") {
 							next = next.next;
 						}
 
@@ -592,16 +664,26 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 						}
 					} else if (e.keyCode == 38) {
 						// up
-						node.increase();
+						scope.$apply(function(){
+							node.increase();
+							ngModel.$setViewValue(parser.getText());
+							ngModel.$render();
+						});
+
 					} else if (e.keyCode == 40) {
 						// down
-						node.decrease();
-					} else if (node.type == "string") {
+						scope.$apply(function(){
+							node.decrease();
+							ngModel.$setViewValue(parser.getText());
+							ngModel.$render();
+						});
+
+					} else if (node.type == "static") {
 						e.preventDefault();
 						return;
 					} else {
 						// insert
-						e.preventDefault();
+//						e.preventDefault();
 					}
 				}
 
