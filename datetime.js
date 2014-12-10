@@ -57,7 +57,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 //		 dayShortNames = datetimeFormats.SHORTDAY;
 
 
-	// Valid format tokens
+	// Valid format tokens. 1=sss, 2=''
 	var tokenRE = /yyyy|yy|y|M{1,4}|dd?|EEEE?|HH?|hh?|mm?|ss?|[.,](sss)|a|Z|ww|w|'(([^']+|'')*)'/g;
 
 	var node = {
@@ -204,20 +204,69 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 		if (this.type == "string") {
 			return;
 		}
-		if (this.type == "EEEE" || this.type == "EEE") {
-			// this.value =
+		if (this.type == "select") {
+			if (this.realValue == null) {
+				this.realValue = this.select.length - 1;
+			}
+			this.realValue = (this.realValue + 1) % this.select.length;
+			this.value = this.select[this.realValue];
+			return;
 		}
-		if (this.type == "MMMM" || this.type == "MMM") {
-
+		if (this.type == "number") {
+			this.realValue -= 1;
+			this.value = this.realValue.toString();
 		}
 	}
 
 	function decrease(){
-
+		if (this.type == "string") {
+			return;
+		}
+		if (this.type == "select") {
+			if (this.realValue == null) {
+				this.realValue = 0;
+			}
+			this.realValue = (this.realValue - 1 + this.select.length) % this.select.length;
+			this.value = this.select[this.realValue];
+			return;
+		}
+		if (this.type == "number") {
+			this.realValue += 1;
+			this.value = this.realValue.toString();
+		}
 	}
 
-	function set(){
+	function set(value){
+		var i;
+		if (this.type == "string") {
+			return;
+		}
+		if (typeof value == "string") {
+			if (this.type != "select") {
+				throw "You can't use set string value on numeric node";
+			}
 
+			for (i = 0; i < this.select.length; i++) {
+				if (this.select[i] == value) {
+					value = i;
+					break;
+				}
+			}
+
+			if (i == this.select.length) {
+				throw "Can't find select matching " + value;
+			}
+		}
+		this.realValue = value;
+		if (this.type == "select") {
+			this.realValue = value;
+			this.value = this.select[value];
+		} else if (this.type == "number") {
+			this.realValue = value;
+			this.value = value.toString();
+		} else {
+			throw "Unknown node type " + this.type;
+		}
 	}
 
 	function createNode(name, value){
@@ -246,43 +295,48 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 
 			if (!match) {
 				if (pos < format.length) {
-					nodes.push({
-						type: "string",
-						value: format.substring(pos),
-						offset: null
-					});
+					nodes.push(createNode("string", format.substring(pos)))
+//					nodes.push({
+//						type: "string",
+//						value: format.substring(pos),
+//						offset: null
+//					});
 				}
 				break;
 			}
 
 			if (match.index > pos) {
-				nodes.push({
-					type: "string",
-					value: format.substring(pos, match.index),
-					offset: null
-				});
+				nodes.push(craeteNode("string", format.substring(pos, match.index)));
+//				nodes.push({
+//					type: "string",
+//					value: format.substring(pos, match.index),
+//					offset: null
+//				});
 				pos = match.index;
 			}
 
 			if (match.index == pos) {
 				if (match[1]) {
-					nodes.push({
-						type: "sss",
-						value: null,
-						offset: null
-					});
+					nodes.push(createNode("sss"));
+//					nodes.push({
+//						type: "sss",
+//						value: null,
+//						offset: null
+//					});
 				} else if (match[2]) {
-					nodes.push({
-						type: "string",
-						value: match[1].replace("''", "'"),
-						offset: null
-					});
+					nodes.push(createNode("string", match[2].replace("''", "'")));
+//					nodes.push({
+//						type: "string",
+//						value: match[1].replace("''", "'"),
+//						offset: null
+//					});
 				} else {
-					nodes.push({
-						type: match[0],
-						value: null,
-						offset: null
-					});
+					nodes.push(createNode(match[0]));
+//					nodes.push({
+//						type: match[0],
+//						value: null,
+//						offset: null
+//					});
 				}
 				pos = tokenRE.lastIndex;
 			}
@@ -295,8 +349,8 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 			nodes[i].prev = nodes[i - 1] || null;
 		}
 
-		// Create match object
-		var init = {
+		// Create parser
+		var parser = {
 			parse: function(val){
 				var now = this.date = new Date(this.date.getTime()),
 					year = now.getFullYear(),
@@ -311,8 +365,6 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 				pos = 0;
 				for (i = 0; i < nodes.length; i++) {
 					var p = nodes[i];
-
-					// console.log(p);
 
 					switch (p.type) {
 						case "string":
@@ -564,7 +616,7 @@ angular.module("datetime", []).factory("datetimeParser", function($locale){
 
 		// console.log("parser", init);
 
-		return init;
+		return parser;
 	}
 
 	return getParser;
