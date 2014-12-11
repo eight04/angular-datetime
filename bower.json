@@ -1,6 +1,6 @@
 {
   "name": "angular-datetime",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "homepage": "https://github.com/eight04/angular-datetime",
   "authors": [
     "eight <eight04@gmail.com>"
@@ -9,9 +9,14 @@
   "moduleType": [
     "globals"
   ],
+  "main": [
+    "datetime.js"
+  ],
   "keywords": [
     "angular",
-    "datetime"
+    "datetime",
+    "time",
+    "parser"
   ],
   "license": "MIT",
   "ignore": [
@@ -20,6 +25,9 @@
     "bower_components",
     "test",
     "tests",
-	"example"
-  ]
+    "example"
+  ],
+  "dependencies": {
+    "angular": "1.2.x"
+  }
 }
