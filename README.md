@@ -25,3 +25,4 @@ Todos
 Known Issue
 -----------
 * Prevent keydown to restrict editing static node doesn't work well with chinese IME.
+* Use Tab key to navigate between inputs will auto select text in Chrome.
