@@ -33,6 +33,14 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		return string.substr(pos, i);
 	}
 
+	function getTimezone(date) {
+		var tz = date.getTimezoneOffset(), text = "";
+		text += tz <= 0 ? "+" : "-";
+		text += zpad(Math.floor(Math.abs(tz) / 60), 2);
+		text += zpad(Math.abs(tz) % 60, 2);
+		return text;
+	}
+
 	// Fetch date and time formats from $locale service
 	var formats = $locale.DATETIME_FORMATS;
 
@@ -232,7 +240,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		}
 		return Array(len - n.length + 1).join("0") + n;
 	}
-	
+
 	function limitLength(str, len) {
 		if (str.length <= len) {
 			return str;
@@ -280,32 +288,31 @@ angular.module("datetime", []).factory("datetime", function($locale){
 
 	function set(value){
 		var i;
-		if (this.type == "string") {
-			return;
-		}
-		if (typeof value == "string") {
-			if (this.type != "select") {
-				throw "You can't use string value on numeric node";
-			}
-
-			for (i = 0; i < this.select.length; i++) {
-				if (this.select[i] == value) {
-					value = i;
-					break;
+		if (this.type == "select") {
+			if (typeof value == "string") {
+				for (i = 0; i < this.select.length; i++) {
+					if (this.select[i] == value) {
+						value = i;
+						break;
+					}
+				}
+				if (i == this.select.length) {
+					throw "Can't find select matching " + value;
 				}
 			}
-
-			if (i == this.select.length) {
-				throw "Can't find select matching " + value;
-			}
-		}
-
-		if (this.type == "select") {
 			this.realValue = value;
 			this.value = this.select[value - 1];
+
 		} else if (this.type == "number") {
 			this.realValue = value;
 			this.value = limitLength(zpad(value, this.minLength), this.maxLength);
+
+		} else if (this.type == "regex") {
+			if (!this.regex.test(value)) {
+				throw "Regex " + this.regex.pattern + " dosn't match value " + value;
+			}
+			this.realValue = value;
+			this.value = value;
 		}
 	}
 
@@ -394,7 +401,6 @@ angular.module("datetime", []).factory("datetime", function($locale){
 						case "number":
 							// Fail when meeting .sss
 							value = getInteger(val, pos, p.minLength, p.maxLength);
-							console.log(value);
 							if (value == null) {
 								throw "Invalid number";
 							}
@@ -481,6 +487,9 @@ angular.module("datetime", []).factory("datetime", function($locale){
 						case "hour12":
 							p.set(date.getHours() % 12 || 12);
 							break;
+
+						case "timezone":
+							p.set(getTimezone(date));
 					}
 				}
 
@@ -675,7 +684,6 @@ angular.module("datetime", []).factory("datetime", function($locale){
 				try {
 					parser.parse(viewValue);
 				} catch (e) {
-					console.log(e);
 					return undefined;
 				}
 				// Create new date to make Angular notice the different...
