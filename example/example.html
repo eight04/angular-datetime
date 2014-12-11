@@ -24,13 +24,12 @@
 	<script src="https://rawgit.com/scottjehl/Respond/master/dest/respond.src.js"></script>
 	<![endif]-->
 </head>
-<body class="container-sm" ng-controller="myDate">
+<body class="container container-sm" ng-controller="myDate">
 	<h2>Angular Datetime <small>Demo Page</small></h2>
 <!--
 	<code>ngModel: {{myDate}}</code>
 	<button class="btn-default" ng-click="myDate = createDate()">Set to now</button>
 -->
-	<h3>Basic</h3>
 	<p>To use the directive, add <code>datetime="date-format"</code> attribute to your input.</p>
 	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" class="form-control">
 	<pre><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate"&gt;</code></pre>
