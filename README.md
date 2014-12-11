@@ -1,12 +1,24 @@
 angular-datetime
 ================
-This module includes a datetime directive which implements datetime control behavior, also includes a datetime parser which can parse date object to date string or date string to date object.
+This module includes a datetime directive and a parser service.
+
+Features
+--------
+* A Datetime directive which add type=datetime behavior to input[text].
+* A parser, which can parse date string into date object with defined format.
+* A formatter, which can convert date object into date string without Angular builtin date filter.
 
 Demo
 ----
-[Demo page][1]
+Check the [Demo page][demo] for usage example.
 
-[1]: https://rawgit.com/eight04/angular-datetime/master/example/example.html
+[demo]: https://rawgit.com/eight04/angular-datetime/master/example/example.html
+
+Install
+-------
+Bower:
+
+	bower install angular-datetime --save
 
 Todos
 -----
@@ -21,3 +33,4 @@ Known Issue
 -----------
 * Prevent keydown to restrict editing static node doesn't work well with chinese IME.
 * Use Tab key to navigate between inputs will auto select text in Chrome.
+* Since Angular use dirty check to detect model change, we have to create a new date object everytime the view change. Perhaps there is a way to tell Angular to update view manually.

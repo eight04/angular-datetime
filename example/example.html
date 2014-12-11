@@ -6,7 +6,6 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.23/angular.min.js"></script>
 
 	<script src="https://code.angularjs.org/1.2.25/angular-animate.js"></script>
-<!--	<script src="https://code.angularjs.org/1.2.26/i18n/angular-locale_zh-tw.js"></script>-->
 
 	<script src="../datetime.js"></script>
 	<link rel="stylesheet" href="../datetime.css">
@@ -18,22 +17,24 @@
 			$scope.createDate = function(){
 				return new Date();
 			}
-			console.log($locale);
 		});
 	</script>
+
+	<!--[if lt ie 9]>
+	<script src="https://rawgit.com/scottjehl/Respond/master/dest/respond.src.js"></script>
+	<![endif]-->
 </head>
-<body class="container" ng-controller="myDate">
+<body class="container-sm" ng-controller="myDate">
 	<h2>Angular Datetime <small>Demo Page</small></h2>
-	<button class="btn-default" ng-click="myDate = createDate()">Set date model to now</button>
-	<pre class="pool">myDate Model: {{myDate}}</pre>
-	<div class="form-group">
-		<label for="msql">MySQL format</label>
-		<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" class="form-control" id="mysql">
-	</div>
-	<div class="form-group">
-		<label for="iso">Timezone</label>
-		<input type="text" datetime="Z" ng-model="myDate" class="form-control" id="iso">
-	</div>
+<!--
+	<code>ngModel: {{myDate}}</code>
+	<button class="btn-default" ng-click="myDate = createDate()">Set to now</button>
+-->
+	<h3>Basic</h3>
+	<p>To use the directive, add <code>datetime="date-format"</code> attribute to your input.</p>
+	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" class="form-control">
+	<pre><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate"&gt;</code></pre>
+
 	<h3>Localizable formats</h3>
 	<div class="form-group">
 		<label for="medium">Medium</label>
@@ -68,5 +69,13 @@
 		<input type="text" datetime="shortTime" ng-model="myDate" class="form-control" id="shortTime">
 	</div>
 
+	<pre><code>&lt;input type="text" datetime="medium" ng-model="myDate"&gt;
+&lt;input type="text" datetime="short" ng-model="myDate"&gt;
+&lt;input type="text" datetime="fullDate" ng-model="myDate"&gt;
+&lt;input type="text" datetime="longDate" ng-model="myDate"&gt;
+&lt;input type="text" datetime="mediumDate" ng-model="myDate"&gt;
+&lt;input type="text" datetime="shortDate" ng-model="myDate"&gt;
+&lt;input type="text" datetime="mediumTime" ng-model="myDate"&gt;
+&lt;input type="text" datetime="shortTime" ng-model="myDate"&gt;</code></pre>
 </body>
 </html>
