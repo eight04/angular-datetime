@@ -3,6 +3,9 @@
 angular.module("datetime", []).factory("datetime", function($locale){
 
 	function isNumber(str) {
+		if (!str) {
+			return false;
+		}
 		var charCode = str.charCodeAt(0);
 		if (charCode >= 48 && charCode <= 57) {
 			return true;
@@ -733,11 +736,10 @@ angular.module("datetime", []).factory("datetime", function($locale){
 
 				if (e.type == "focus" || e.type == "click") {
 					e.preventDefault();
-					e.stopImmediatePropagation();
 					selectNode(e.target, node);
 				}
 
-				if (e.type == "keydown") {
+				if (e.type == "keydown" && !e.ctrlKey && !e.altKey) {
 
 					if (e.keyCode == 37) {
 						// left
@@ -810,62 +812,3 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		}
 	};
 });
-
-/*
-
-some operation:
-
-left:
-	on select -> select pre word
-	on word left bound -> go to pre word
-
-right:
-	on select -> select next word
-	on word right bound -> go to next word
-
-up:
-	on word -> add word value
-
-down:
-	on word -> minor word value
-
-focus:
-	on word -> select word
-
-click:
-	on select -> deselect
-
-	on word -> select word
-
-back:
-	on word ->
-		word is number ->
-			in word -> remove one digit
-			on word left bound -> set to zero, select word
-		word is string -> remove word
-
-insert:
-	on select whole word ->
-		word is number -> remove word, move to word right bound, insert
-		word is string -> remove word, insert
-
-	on select part ->
-		word is number -> remove select, move to select left bound, insert
-		word is string -> remove select, move to select left bound, insert
-
-	on word right bound ->
-		word is number -> remove word left bound, insert
-
-	word is number -> remove a character, move right
-
-	word is string -> insert
-
-	*/
-
-
-// document.addEventListener("DOMContentLoaded", function(){
-	// var element = document.querySelector(".datetime");
-
-	// element.addEventListener("focus", datetime);
-	// element.addEventListener("keydown", datetime);
-// });
