@@ -508,9 +508,6 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			getNodeFromPos: function(pos, pos2){
 				var i, p, q;
 
-				if (!pos) {
-					return nodes[0];
-				}
 				for (i = 0; i < nodes.length; i++) {
 					p = nodes[i].offset;
 					q = nodes[i].offset + nodes[i].value.length;
@@ -522,7 +519,13 @@ angular.module("datetime", []).factory("datetime", function($locale){
 					}
 				}
 
-				return nodes[i - 1];
+				for (i = 0; i < nodes.length; i++) {
+					if (nodes[i].type != "static") {
+						return nodes[i];
+					}
+				}
+
+				return nodes[0];
 			},
 			getDate: function(){
 				var ampm, hour12, i, p, value, now = this.date;
@@ -592,7 +595,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 
 	return getParser;
 
-}).directive("datetime", function(datetime, $log){
+}).directive("datetime", function(datetime, $log, $timeout){
 
 	function getInputSelection(input) {
 		if (input.selectionStart != undefined && input.selectionEnd != undefined) {
@@ -634,6 +637,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			start: node.offset,
 			end: node.offset + node.value.length
 		});
+		return node;
 	}
 
 	function selectPrevNode(input, node) {
@@ -643,9 +647,9 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		}
 
 		if (pre) {
-			selectNode(input, pre);
+			return selectNode(input, pre);
 		} else {
-			selectNode(input, node);
+			return selectNode(input, node);
 		}
 	}
 
@@ -656,9 +660,9 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		}
 
 		if (next) {
-			selectNode(input, next);
+			return selectNode(input, next);
 		} else {
-			selectNode(input, node);
+			return selectNode(input, node);
 		}
 	}
 
@@ -690,11 +694,22 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		}
 	}
 
+	function getInitialNode(parser) {
+		var i;
+		for (i = 0; i < parser.nodes.length; i++) {
+			if (parser.nodes[i].type != "static") {
+				return parser.nodes[i];
+			}
+		}
+		return parser.nodes[0];
+	}
+
 	return {
 		restrict: "A",
 		require: "ngModel",
 		link: function(scope, element, attrs, ngModel){
-			var parser = datetime(attrs.datetime), node;
+			var parser = datetime(attrs.datetime),	// Create the parser
+				node = getInitialNode(parser);	// Activated node
 
 			ngModel.$render = function(){
 				var selection = getInputSelection(element[0]);
@@ -730,26 +745,33 @@ angular.module("datetime", []).factory("datetime", function($locale){
 				return parser.getText();
 			});
 
-			element.on("focus keydown click", function(e){
-				var selection = getInputSelection(e.target);
-				node = parser.getNodeFromPos(selection.start, selection.end);
+			element.on("focus blur keydown click mousedown", function(e){
 
-				if (e.type == "focus" || e.type == "click") {
+				if (e.type == "focus") {
 					e.preventDefault();
+					$timeout(function(){
+						selectNode(element[0], node);
+					});
+				}
+				if (e.type == "mousedown") {
+					$timeout(function(){
+						var selection = getInputSelection(e.target);
+						node = parser.getNodeFromPos(selection.start, selection.end);
+					});
+				}
+				if (e.type == "click") {
 					selectNode(e.target, node);
 				}
-
 				if (e.type == "keydown" && !e.ctrlKey && !e.altKey) {
-
 					if (e.keyCode == 37) {
 						// left
 						e.preventDefault();
-						selectPrevNode(e.target, node);
+						node = selectPrevNode(e.target, node);
 
 					} else if (e.keyCode == 39) {
 						// right
 						e.preventDefault();
-						selectNextNode(e.target, node);
+						node = selectNextNode(e.target, node);
 
 					} else if (e.keyCode == 38) {
 						// up
@@ -783,7 +805,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 							} else {
 								scope.$evalAsync(function(){
 									if (ngModel.$modelValue && node.value.length >= node.maxLength) {
-										selectNextNode(e.target, node);
+										node = selectNextNode(e.target, node);
 									}
 								});
 							}
@@ -799,8 +821,9 @@ angular.module("datetime", []).factory("datetime", function($locale){
 								if (error) {
 									selectNode(e.target, node);
 								} else {
+									var selection = getInputSelection(e.target);
 									setInputSelection(e.target, {
-										start: selection.start + 1,
+										start: selection.start,
 										end: node.offset + node.value.length
 									});
 								}
