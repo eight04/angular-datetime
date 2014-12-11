@@ -1,8 +1,8 @@
 {
-	env: {
-		browser: true
+	"env": {
+		"browser": true
 	},
-	rules: {
+	"rules": {
 		"no-trailing-spaces": 0,
 		"eqeqeq": 0,
 		"no-shadow": 0,
@@ -13,7 +13,7 @@
 		"no-constant-condition": 0,
 		"quotes": 0
 	},
-	globals: {
-		angular: false
+	"globals": {
+		"angular": false
 	}
 }
