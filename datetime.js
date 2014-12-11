@@ -2,15 +2,23 @@
 
 angular.module("datetime", []).factory("datetime", function($locale){
 
+	function isNumber(str) {
+		var charCode = str.charCodeAt(0);
+		if (charCode >= 48 && charCode <= 57) {
+			return true;
+		}
+		return false;
+	}
+
 	function getInteger(string, startPoint, minLength, maxLength) {
 		var i;
 		for (i = 0; i < minLength; i++) {
-			if (isNaN(string[startPoint + i])) {
+			if (!isNumber(string[startPoint + i])) {
 				return null;
 			}
 		}
 		for (; i < maxLength; i++) {
-			if (isNaN(string[startPoint + i])) {
+			if (!isNumber(string[startPoint + i])) {
 				break;
 			}
 		}
@@ -224,11 +232,15 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		}
 		return Array(len - n.length + 1).join("0") + n;
 	}
+	
+	function limitLength(str, len) {
+		if (str.length <= len) {
+			return str;
+		}
+		return str.substr(str.length - len);
+	}
 
 	function increase(){
-		if (this.type == "string") {
-			return;
-		}
 		if (this.type == "select") {
 			if (this.realValue == null) {
 				this.realValue = 1;
@@ -237,8 +249,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			}
 			this.value = this.select[this.realValue - 1];
 			return;
-		}
-		if (this.type == "number") {
+		} else if (this.type == "number") {
 			if (this.realValue == null || this.realValue >= this.max) {
 				this.realValue = this.min;
 			} else {
@@ -249,9 +260,6 @@ angular.module("datetime", []).factory("datetime", function($locale){
 	}
 
 	function decrease(){
-		if (this.type == "string") {
-			return;
-		}
 		if (this.type == "select") {
 			if (this.realValue == null) {
 				this.realValue = this.select.length;
@@ -260,8 +268,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			}
 			this.value = this.select[this.realValue - 1];
 			return;
-		}
-		if (this.type == "number") {
+		} else if (this.type == "number") {
 			if (!this.realValue || this.realValue <= this.min) {
 				this.realValue = this.max;
 			} else {
@@ -278,7 +285,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		}
 		if (typeof value == "string") {
 			if (this.type != "select") {
-				throw "You can't use set string value on numeric node";
+				throw "You can't use string value on numeric node";
 			}
 
 			for (i = 0; i < this.select.length; i++) {
@@ -298,9 +305,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			this.value = this.select[value - 1];
 		} else if (this.type == "number") {
 			this.realValue = value;
-			this.value = zpad(value, this.minLength);
-		} else {
-			throw "Unknown node type " + this.type;
+			this.value = limitLength(zpad(value, this.minLength), this.maxLength);
 		}
 	}
 
@@ -389,6 +394,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 						case "number":
 							// Fail when meeting .sss
 							value = getInteger(val, pos, p.minLength, p.maxLength);
+							console.log(value);
 							if (value == null) {
 								throw "Invalid number";
 							}
@@ -407,6 +413,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 									match = m;
 								}
 							}
+//							console.log(match, match && p.select[value]);
 							if (!match) {
 								throw "Invalid select";
 							}
@@ -575,18 +582,6 @@ angular.module("datetime", []).factory("datetime", function($locale){
 
 }).directive("datetime", function(datetime){
 
-	function selectNode(input, node) {
-		if (input.setSelectionRange) {
-			input.setSelectionRange(node.offset, node.offset + node.value.length);
-		} else if (input.createTextRange) {
-			var range = input.createTextRange();
-			range.moveStart('character', node.offset);
-			range.collapse();
-			range.moveEnd('character', node.value.length);
-			range.select();
-		}
-	}
-
 	function getInputSelection(input) {
 		if (input.selectionStart != undefined && input.selectionEnd != undefined) {
 			return {
@@ -610,6 +605,53 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		}
 	}
 
+	function setInputSelection(input, range) {
+		if (input.setSelectionRange) {
+			input.setSelectionRange(range.start, range.end);
+		} else if (input.createTextRange) {
+			var select = input.createTextRange();
+			select.moveStart("character", range.start);
+			select.collapse();
+			select.moveEnd("character", range.end - range.start);
+			select.select();
+		}
+	}
+
+	function selectNode(input, node) {
+		setInputSelection(input, {
+			start: node.offset,
+			end: node.offset + node.value.length
+		});
+	}
+
+	function printable(keyCode) {
+		var valid =
+			(keyCode > 47 && keyCode < 58)   || // number keys
+			keyCode == 32 || keyCode == 13   || // spacebar & return key(s) (if you want to allow carriage returns)
+			(keyCode > 64 && keyCode < 91)   || // letter keys
+			(keyCode > 95 && keyCode < 112)  || // numpad keys
+			(keyCode > 185 && keyCode < 193) || // ;=,-./` (in order)
+			(keyCode > 218 && keyCode < 223) || // [\]' (in order)
+			keyCode == 8 || // Backspace
+			keyCode == 46;	// Delete
+
+		return valid;
+	}
+
+	function numberKey(keyCode) {
+		return keyCode > 47 && keyCode < 58 || keyCode > 95 && keyCode < 112;
+	}
+
+	function makeRealValue(parser) {
+		var i, p, pos = 0;
+		for (i = 0; i < parser.nodes.length; i++) {
+			p = parser.nodes[i];
+			p.set(p.realValue);
+			p.offset = pos;
+			pos += p.value.length;
+		}
+	}
+
 	return {
 		restrict: "A",
 		require: "ngModel",
@@ -617,10 +659,9 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			var parser = datetime(attrs.datetime), node;
 
 			ngModel.$render = function(){
+				var selection = getInputSelection(element[0]);
 				element.val(ngModel.$viewValue);
-				if (node && document.activeElement == element[0]) {
-					selectNode(element[0], node);
-				}
+				setInputSelection(element[0], selection);
 			};
 
 			element.on("$destroy", function(){
@@ -634,6 +675,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 				try {
 					parser.parse(viewValue);
 				} catch (e) {
+					console.log(e);
 					return undefined;
 				}
 				// Create new date to make Angular notice the different...
@@ -658,6 +700,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 				}
 
 				if (e.type == "keydown") {
+
 					if (e.keyCode == 37) {
 						// left
 						e.preventDefault();
@@ -669,7 +712,8 @@ angular.module("datetime", []).factory("datetime", function($locale){
 
 						if (pre) {
 							selectNode(e.target, pre);
-							return;
+						} else {
+							selectNode(e.target, node);
 						}
 					} else if (e.keyCode == 39) {
 						// right
@@ -682,7 +726,8 @@ angular.module("datetime", []).factory("datetime", function($locale){
 
 						if (next) {
 							selectNode(e.target, next);
-							return;
+						} else {
+							selectNode(e.target, node);
 						}
 					} else if (e.keyCode == 38) {
 						// up
@@ -691,6 +736,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 							node.increase();
 							ngModel.$setViewValue(parser.getText());
 							ngModel.$render();
+							selectNode(element[0], node);
 						});
 
 					} else if (e.keyCode == 40) {
@@ -700,18 +746,28 @@ angular.module("datetime", []).factory("datetime", function($locale){
 							node.decrease();
 							ngModel.$setViewValue(parser.getText());
 							ngModel.$render();
+							selectNode(element[0], node);
 						});
 
-					} else if (node.type == "static") {
-						e.preventDefault();
-						return;
-					} else {
-						// insert
-//						e.preventDefault();
+					} else if (node.type == "static" || node.type == "regex") {
+						// Key list from stackoverflow: http://x.co/606xD
+						if (printable(e.keyCode)) {
+							e.preventDefault();
+						}
+					} else if (node.type == "number") {
+						if (printable(e.keyCode) && !numberKey(e.keyCode)) {
+							e.preventDefault();
+						}
+					} else if (node.type == "select") {
+						if (printable(e.keyCode)) {
+							scope.$evalAsync(function(){
+								makeRealValue(parser);
+								ngModel.$setViewValue(parser.getText());
+								ngModel.$render();
+							});
+						}
 					}
 				}
-
-				// console.log(e);
 			});
 		}
 	};

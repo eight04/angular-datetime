@@ -6,18 +6,19 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.23/angular.min.js"></script>
 
 	<script src="https://code.angularjs.org/1.2.25/angular-animate.js"></script>
-	<script src="https://code.angularjs.org/1.2.26/i18n/angular-locale_zh-tw.js"></script>
+<!--	<script src="https://code.angularjs.org/1.2.26/i18n/angular-locale_zh-tw.js"></script>-->
 
 	<script src="../datetime.js"></script>
 	<link rel="stylesheet" href="../datetime.css">
 	<link rel="stylesheet" href="https://rawgit.com/eight04/end2end/master/dist/end2end.css">
 
 	<script>
-		angular.module("App", ["datetime"]).controller("myDate", function($scope, $filter){
+		angular.module("App", ["datetime"]).controller("myDate", function($scope, $filter, $locale){
 			$scope.myDate = new Date();
 			$scope.createDate = function(){
 				return new Date();
 			}
+			console.log($locale);
 		});
 	</script>
 </head>
