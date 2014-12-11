@@ -712,9 +712,12 @@ angular.module("datetime", []).factory("datetime", function($locale){
 				node = getInitialNode(parser);	// Activated node
 
 			ngModel.$render = function(){
-				var selection = getInputSelection(element[0]);
-				element.val(ngModel.$viewValue);
+				var selection;
 				if (document.activeElement == element[0]) {
+					selection = getInputSelection(element[0]);
+				}
+				element.val(ngModel.$viewValue);
+				if (selection) {
 					setInputSelection(element[0], selection);
 				}
 			};
@@ -751,16 +754,21 @@ angular.module("datetime", []).factory("datetime", function($locale){
 					e.preventDefault();
 					$timeout(function(){
 						selectNode(element[0], node);
+						console.log("focus-inner");
 					});
+					console.log("focus");
 				}
 				if (e.type == "mousedown") {
 					$timeout(function(){
 						var selection = getInputSelection(e.target);
 						node = parser.getNodeFromPos(selection.start, selection.end);
+						console.log("mousedown-inner");
 					});
+					console.log("mousedown");
 				}
 				if (e.type == "click") {
 					selectNode(e.target, node);
+					console.log("click");
 				}
 				if (e.type == "keydown" && !e.ctrlKey && !e.altKey) {
 					if (e.keyCode == 37) {
