@@ -31,6 +31,7 @@ Todos
 * Link date and weekday.
 * Link same name nodes.
 * Link relative name nodes.
+* Fix shortYear and year issues.
 
 Known Issue
 -----------
