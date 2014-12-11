@@ -7,6 +7,7 @@ Features
 * A Datetime directive which add type=datetime behavior to input[text].
 * A parser, which can parse date string into date object with defined format.
 * A formatter, which can convert date object into date string without Angular builtin date filter.
+* Support IE8.
 
 Demo
 ----
@@ -28,6 +29,8 @@ Todos
 * Doesn't update model correctly with duplicate node name.
 * Use dynamic date limit (min, max) depend on month.
 * Link date and weekday.
+* Link same name nodes.
+* Link relative name nodes.
 
 Known Issue
 -----------
