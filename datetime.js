@@ -589,7 +589,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 
 	return getParser;
 
-}).directive("datetime", function(datetime){
+}).directive("datetime", function(datetime, $log){
 
 	function getInputSelection(input) {
 		if (input.selectionStart != undefined && input.selectionEnd != undefined) {
@@ -633,6 +633,32 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		});
 	}
 
+	function selectPrevNode(input, node) {
+		var pre = node.prev;
+		while (pre && pre.type == "static") {
+			pre = pre.prev;
+		}
+
+		if (pre) {
+			selectNode(input, pre);
+		} else {
+			selectNode(input, node);
+		}
+	}
+
+	function selectNextNode(input, node) {
+		var next = node.next;
+		while (next && next.type == "static") {
+			next = next.next;
+		}
+
+		if (next) {
+			selectNode(input, next);
+		} else {
+			selectNode(input, node);
+		}
+	}
+
 	function printable(keyCode) {
 		var valid =
 			(keyCode > 47 && keyCode < 58)   || // number keys
@@ -670,7 +696,9 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			ngModel.$render = function(){
 				var selection = getInputSelection(element[0]);
 				element.val(ngModel.$viewValue);
-				setInputSelection(element[0], selection);
+				if (document.activeElement == element[0]) {
+					setInputSelection(element[0], selection);
+				}
 			};
 
 			element.on("$destroy", function(){
@@ -684,6 +712,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 				try {
 					parser.parse(viewValue);
 				} catch (e) {
+					$log.error(e);
 					return undefined;
 				}
 				// Create new date to make Angular notice the different...
@@ -704,6 +733,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 
 				if (e.type == "focus" || e.type == "click") {
 					e.preventDefault();
+					e.stopImmediatePropagation();
 					selectNode(e.target, node);
 				}
 
@@ -712,31 +742,13 @@ angular.module("datetime", []).factory("datetime", function($locale){
 					if (e.keyCode == 37) {
 						// left
 						e.preventDefault();
+						selectPrevNode(e.target, node);
 
-						var pre = node.prev;
-						while (pre && pre.type == "static") {
-							pre = pre.prev;
-						}
-
-						if (pre) {
-							selectNode(e.target, pre);
-						} else {
-							selectNode(e.target, node);
-						}
 					} else if (e.keyCode == 39) {
 						// right
 						e.preventDefault();
+						selectNextNode(e.target, node);
 
-						var next = node.next;
-						while (next && next.type == "static") {
-							next = next.next;
-						}
-
-						if (next) {
-							selectNode(e.target, next);
-						} else {
-							selectNode(e.target, node);
-						}
 					} else if (e.keyCode == 38) {
 						// up
 						e.preventDefault();
@@ -763,15 +775,33 @@ angular.module("datetime", []).factory("datetime", function($locale){
 							e.preventDefault();
 						}
 					} else if (node.type == "number") {
-						if (printable(e.keyCode) && !numberKey(e.keyCode)) {
-							e.preventDefault();
+						if (printable(e.keyCode)) {
+							if (!numberKey(e.keyCode)) {
+								e.preventDefault();
+							} else {
+								scope.$evalAsync(function(){
+									if (ngModel.$modelValue && node.value.length >= node.maxLength) {
+										selectNextNode(e.target, node);
+									}
+								});
+							}
 						}
+
 					} else if (node.type == "select") {
 						if (printable(e.keyCode)) {
 							scope.$evalAsync(function(){
+								var error = !ngModel.$modelValue;
 								makeRealValue(parser);
 								ngModel.$setViewValue(parser.getText());
 								ngModel.$render();
+								if (error) {
+									selectNode(e.target, node);
+								} else {
+									setInputSelection(e.target, {
+										start: selection.start + 1,
+										end: node.offset + node.value.length
+									});
+								}
 							});
 						}
 					}
