@@ -13,7 +13,7 @@ Demo
 ----
 Check the [Demo page][demo] for usage example.
 
-[demo]: https://rawgit.com/eight04/angular-datetime/master/example/example.html
+[demo]: https://rawgit.com/eight04/angular-datetime/master/demo.html
 
 Install
 -------
