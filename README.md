@@ -24,18 +24,14 @@ Bower:
 Todos
 -----
 * Add validator.
-* Support day (EEEE, EEE).
 * Support week (ww, w).
 * Doesn't update model correctly with duplicate node name.
 * Use dynamic date limit (min, max) depend on month.
-* Link date and weekday.
-* Link same name nodes.
-* Link relative name nodes.
-* Fix shortYear and year issues.
+* Make day editable. (How?)
 
 Known Issue
 -----------
 * Prevent keydown to restrict editing static node doesn't work well with chinese IME.
 * Use Tab key to navigate between inputs will auto select text in Chrome.
-* Since Angular use dirty check to detect model change, we have to create a new date object everytime the view change. Perhaps there is a way to tell Angular to update view manually.
-* Since 2 digit year ('yy') is ambiguous when converting date string back to date object (Ex. 2014 -> 14, 1914 -> 14, ...). You have better avoid that.
+* Angular use dirty check to detect model change, we have to create a new date object everytime the view change. Perhaps there is a way to tell Angular to update view manually.
+* 2 digit year ('yy') is ambiguous when converting date string back to date object (Ex. 14 -> 2014, 1914, ...). You have better avoid that.
