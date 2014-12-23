@@ -251,6 +251,20 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		return str.substr(str.length - len);
 	}
 
+	function updateOthers(){
+		var i, n;
+		for (i = 0; i < this.parent.length; i++) {
+			n = this.parent[i];
+			if (this == n) {
+				continue;
+			}
+			// Sync same name nodes
+			if (this.name == n.name) {
+				n.set(this.realValue, true);
+			}
+		}
+	}
+
 	function increase(){
 		if (this.type == "select") {
 			if (this.realValue == null) {
@@ -268,6 +282,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			}
 			this.value = zpad(this.realValue, this.minLength);
 		}
+//		this.update();
 	}
 
 	function decrease(){
@@ -287,8 +302,10 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			}
 			this.value = zpad(this.realValue, this.minLength);
 		}
+//		this.update();
 	}
 
+//	function set(value, stopUpdate){
 	function set(value){
 		var i;
 		if (this.type == "select") {
@@ -317,6 +334,10 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			this.realValue = value;
 			this.value = value;
 		}
+//
+//		if (!stopUpdate) {
+//			this.update();
+//		}
 	}
 
 	function createNode(name, value){
@@ -334,7 +355,8 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			realValue: null,
 			increase: increase,
 			decrease: decrease,
-			set: set
+			set: set,
+			updateOthers: updateOthers
 		};
 	}
 
@@ -381,6 +403,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		for (i = 0; i < nodes.length; i++) {
 			nodes[i].next = nodes[i + 1] || null;
 			nodes[i].prev = nodes[i - 1] || null;
+			nodes[i].parent = nodes;
 		}
 
 		// Create parser
@@ -781,6 +804,8 @@ angular.module("datetime", []).factory("datetime", function($locale){
 						e.preventDefault();
 						scope.$evalAsync(function(){
 							node.increase();
+							node.updateOthers();
+							parser.setDate(parser.getDate());
 							ngModel.$setViewValue(parser.getText());
 							ngModel.$render();
 							selectNode(element[0], node);
@@ -791,6 +816,8 @@ angular.module("datetime", []).factory("datetime", function($locale){
 						e.preventDefault();
 						scope.$evalAsync(function(){
 							node.decrease();
+							node.updateOthers();
+							parser.setDate(parser.getDate());
 							ngModel.$setViewValue(parser.getText());
 							ngModel.$render();
 							selectNode(element[0], node);
