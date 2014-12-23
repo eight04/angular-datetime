@@ -835,6 +835,10 @@ angular.module("datetime", []).factory("datetime", function($locale){
 							} else {
 								scope.$evalAsync(function(){
 									if (ngModel.$modelValue && node.value.length >= node.maxLength) {
+										node.updateOthers();
+										parser.setDate(parser.getDate());
+										ngModel.$setViewValue(parser.getText());
+										ngModel.$render();
 										node = selectNextNode(e.target, node);
 									}
 								});
@@ -846,6 +850,8 @@ angular.module("datetime", []).factory("datetime", function($locale){
 							scope.$evalAsync(function(){
 								var error = !ngModel.$modelValue;
 								makeRealValue(parser);
+								node.updateOthers();
+								parser.setDate(parser.getDate());
 								ngModel.$setViewValue(parser.getText());
 								ngModel.$render();
 								if (error) {
