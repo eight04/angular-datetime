@@ -757,16 +757,20 @@ angular.module("datetime", []).factory("datetime", function($locale){
 					parser.parse(viewValue);
 				} catch (e) {
 					$log.error(e);
+					ngModel.$setValidity("datetime", false);
 					return undefined;
 				}
-				// Create new date to make Angular notice the different...
+				ngModel.$setValidity("datetime", true);
+				// Create new date to make Angular notice the difference.
 				return new Date(parser.getDate().getTime());
 			});
 
 			ngModel.$formatters.push(function(modelValue){
 				if (!modelValue) {
+					ngModel.$setValidity("datetime", false);
 					return undefined;
 				}
+				ngModel.$setValidity("datetime", true);
 				parser.setDate(modelValue);
 				return parser.getText();
 			});

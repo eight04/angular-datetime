@@ -25,7 +25,6 @@ Todos
 -----
 * Add validator.
 * Support week (ww, w).
-* Doesn't update model correctly with duplicate node name.
 * Use dynamic date limit (min, max) depend on month.
 * Make day editable. (How?)
 
