@@ -748,27 +748,22 @@ angular.module("datetime", []).factory("datetime", function($locale){
 				return parser.getText();
 			});
 
-			element.on("focus blur keydown click mousedown", function(e){
+			element.on("focus keydown click mousedown", function(e){
 
 				if (e.type == "focus") {
 					e.preventDefault();
 					$timeout(function(){
 						selectNode(element[0], node);
-						console.log("focus-inner");
 					});
-					console.log("focus");
 				}
 				if (e.type == "mousedown") {
 					$timeout(function(){
 						var selection = getInputSelection(e.target);
 						node = parser.getNodeFromPos(selection.start, selection.end);
-						console.log("mousedown-inner");
 					});
-					console.log("mousedown");
 				}
 				if (e.type == "click") {
 					selectNode(e.target, node);
-					console.log("click");
 				}
 				if (e.type == "keydown" && !e.ctrlKey && !e.altKey) {
 					if (e.keyCode == 37) {
