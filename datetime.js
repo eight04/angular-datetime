@@ -467,6 +467,8 @@ angular.module("datetime", []).factory("datetime", function($locale){
 							break;
 					}
 				}
+
+				return this;
 			},
 			setDate: function(date) {
 				var i, p;
@@ -525,6 +527,8 @@ angular.module("datetime", []).factory("datetime", function($locale){
 					this.nodes[i].offset = pos;
 					pos += this.nodes[i].value.length;
 				}
+
+				return this;
 			},
 			format: format,
 			nodes: nodes,
