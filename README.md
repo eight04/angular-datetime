@@ -63,6 +63,17 @@ Todos
 * Use dynamic date limit (min, max) depend on month.
 * Make day editable. (How?)
 
+1.0 Milestone
+-------------
+* Move out `.getNodeFromPos` from parser. It should stay in datetime directive.
+* Make node list become plain data.
+	- Change `.increase/.decrease` to helper function. Ex `increaseNodeValue(parser, index)`.
+	- Let node has ability to define dynamic min/max value. or
+	- Let node has ability to define `increase/decrease` function.
+	- Rename `node` difination to `definedTokens`.
+* Let `increaseNodeValue/decreaseNodeValue/setNodeValue` update model.
+* Use closure to create parser.
+
 Known Issue
 -----------
 * Prevent keydown to restrict editing static node doesn't work well with chinese IME.
