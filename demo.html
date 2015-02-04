@@ -23,7 +23,7 @@
 	<script src="https://rawgit.com/scottjehl/Respond/master/dest/respond.src.js"></script>
 	<![endif]-->
 </head>
-<body class="container container-sm" ng-controller="myDate">
+<body class="container-sm" ng-controller="myDate">
 	<h2>Angular Datetime <small>Demo Page</small></h2>
 <!--
 	<code>ngModel: {{myDate}}</code>
@@ -80,6 +80,12 @@
 	<div class="form-group">
 		<label for="duplicate-name">Duplicate name test</label>
 		<input type="text" datetime=",sss .sss" ng-model="myDate" class="form-control" id="duplicate-name">
+	</div>
+	<div class="form-group">
+		<label>
+			MySQL date part
+			<input type="text" class="form-control" datetime="yyyy-MM-dd" ng-model="myDate">
+		</label>
 	</div>
 </body>
 </html>
