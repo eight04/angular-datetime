@@ -73,6 +73,7 @@ Todos
 	- Rename `node` difination to `definedTokens`.
 * Let `increaseNodeValue/decreaseNodeValue/setNodeValue` update model.
 * Use closure to create parser.
+* Always leaves correct value in input element. Refresh view value after bluring.
 
 Known Issue
 -----------
