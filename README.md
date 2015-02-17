@@ -74,6 +74,8 @@ Todos
 * Let `increaseNodeValue/decreaseNodeValue/setNodeValue` update model.
 * Use closure to create parser.
 * Always leaves correct value in input element. Refresh view value after bluring.
+* Strictly seperate parser and directive operation?
+* Track current node.
 
 Known Issue
 -----------

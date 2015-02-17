@@ -251,6 +251,7 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		return str.substr(str.length - len);
 	}
 
+	/*
 	function updateOthers(){
 		var i, n;
 		for (i = 0; i < this.parent.length; i++) {
@@ -306,6 +307,8 @@ angular.module("datetime", []).factory("datetime", function($locale){
 	}
 
 //	function set(value, stopUpdate){
+	*/
+
 	function set(value){
 		var i;
 		if (this.type == "select") {
@@ -353,10 +356,10 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			regex: node[name].regex,
 			value: value,
 			realValue: null,
-			increase: increase,
-			decrease: decrease,
-			set: set,
-			updateOthers: updateOthers
+//			increase: increase,
+//			decrease: decrease,
+			set: set
+//			updateOthers: updateOthers
 		};
 	}
 
@@ -532,28 +535,28 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			},
 			format: format,
 			nodes: nodes,
-			getNodeFromPos: function(pos, pos2){
-				var i, p, q;
-
-				for (i = 0; i < nodes.length; i++) {
-					p = nodes[i].offset;
-					q = nodes[i].offset + nodes[i].value.length;
-
-					if (p < pos && q > pos && p < pos2 && q > pos2) {
-						return nodes[i];
-					} else if (nodes[i].type != "static" && (p <= pos && pos <= q && p <= pos2 && pos2 <= q)) {
-						return nodes[i];
-					}
-				}
-
-				for (i = 0; i < nodes.length; i++) {
-					if (nodes[i].type != "static") {
-						return nodes[i];
-					}
-				}
-
-				return nodes[0];
-			},
+//			getNodeFromPos: function(pos, pos2){
+//				var i, p, q;
+//
+//				for (i = 0; i < nodes.length; i++) {
+//					p = nodes[i].offset;
+//					q = nodes[i].offset + nodes[i].value.length;
+//
+//					if (p < pos && q > pos && p < pos2 && q > pos2) {
+//						return nodes[i];
+//					} else if (nodes[i].type != "static" && (p <= pos && pos <= q && p <= pos2 && pos2 <= q)) {
+//						return nodes[i];
+//					}
+//				}
+//
+//				for (i = 0; i < nodes.length; i++) {
+//					if (nodes[i].type != "static") {
+//						return nodes[i];
+//					}
+//				}
+//
+//				return nodes[0];
+//			},
 			getDate: function(){
 				var ampm, hour12, i, p, value, now = this.date;
 				for (i = 0; i < this.nodes.length; i++) {
@@ -623,6 +626,37 @@ angular.module("datetime", []).factory("datetime", function($locale){
 	return getParser;
 
 }).directive("datetime", function(datetime, $log, $timeout){
+
+	function add(date, value, node) {
+		switch (node.name) {
+			case "year":
+				date.setFullYear(date.getFullYear() + value);
+				return;
+			case "month":
+				date.setMonth(date.getMonth() + value);
+				return;
+			case "date":
+			case "day":
+				date.setDate(date.getDate() + value);
+				return;
+			case "hour":
+			case "hour12":
+				date.setHours(date.getHours() + value);
+				return;
+			case "minute":
+				date.setMinutes(date.getMinutes() + value);
+				return;
+			case "second":
+				date.setSeconds(date.getSeconds() + value);
+				return;
+			case "millisecond":
+				date.setMilliseconds(date.getMilliseconds() + value);
+				return;
+			case "ampm":
+				date.setHours((date.getHours() + 12) % 24);
+				return;
+		}
+	}
 
 	function getInputSelection(input) {
 		if (input.selectionStart != undefined && input.selectionEnd != undefined) {
@@ -711,6 +745,16 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		return keyCode > 47 && keyCode < 58 || keyCode > 95 && keyCode < 112;
 	}
 
+	function getNumberKey(code) {
+		if (code > 47 && code < 58) {
+			return code - 48;
+		}
+		if (code > 95 && code < 112) {
+			return code - 96;
+		}
+		return false;
+	}
+
 	function makeRealValue(parser) {
 		var i, p, pos = 0;
 		for (i = 0; i < parser.nodes.length; i++) {
@@ -729,6 +773,30 @@ angular.module("datetime", []).factory("datetime", function($locale){
 			}
 		}
 		return parser.nodes[0];
+	}
+
+	function getNode(offset0, offset1, nodes) {
+		var i;
+
+		// Not collapse
+		if (offset0 != offset1) {
+			for (i = 0; i < nodes.length; i++) {
+				if (nodes[i].offset <= offset0 && nodes[i].offset + nodes[i].value.length >= offset1) {
+					return nodes[i];
+				}
+			}
+		}
+
+		// Collapse
+		for (i = 0; i < nodes.length; i++) {
+			if (nodes[i].offset == offset0) {
+				return nodes[i];
+			}
+			if (nodes[i].offset > offset0) {
+				return nodes[i - 1];
+			}
+		}
+		return nodes[i - 1];
 	}
 
 	return {
@@ -790,7 +858,8 @@ angular.module("datetime", []).factory("datetime", function($locale){
 				if (e.type == "mousedown") {
 					$timeout(function(){
 						var selection = getInputSelection(e.target);
-						node = parser.getNodeFromPos(selection.start, selection.end);
+//						node = parser.getNodeFromPos(selection.start, selection.end);
+						node = getNode(selection.start, selection.end, parser.nodes);
 					});
 				}
 				if (e.type == "click") {
@@ -811,9 +880,9 @@ angular.module("datetime", []).factory("datetime", function($locale){
 						// up
 						e.preventDefault();
 						scope.$evalAsync(function(){
-							node.increase();
-							node.updateOthers();
-							parser.setDate(parser.getDate());
+							var date = parser.getDate();
+							add(date, 1, node);
+							parser.setDate(date);
 							ngModel.$setViewValue(parser.getText());
 							ngModel.$render();
 							selectNode(element[0], node);
@@ -823,9 +892,9 @@ angular.module("datetime", []).factory("datetime", function($locale){
 						// down
 						e.preventDefault();
 						scope.$evalAsync(function(){
-							node.decrease();
-							node.updateOthers();
-							parser.setDate(parser.getDate());
+							var date = parser.getDate();
+							add(date, -1, node);
+							parser.setDate(date);
 							ngModel.$setViewValue(parser.getText());
 							ngModel.$render();
 							selectNode(element[0], node);
@@ -840,25 +909,41 @@ angular.module("datetime", []).factory("datetime", function($locale){
 						if (printable(e.keyCode)) {
 							if (!numberKey(e.keyCode)) {
 								e.preventDefault();
-							} else {
-								scope.$evalAsync(function(){
-									if (ngModel.$modelValue && node.value.length >= node.maxLength) {
-										node.updateOthers();
-										parser.setDate(parser.getDate());
-										ngModel.$setViewValue(parser.getText());
-										ngModel.$render();
-										node = selectNextNode(e.target, node);
-									}
-								});
+								return;
 							}
+							
+							node.viewValue = node
+							
+							selection = getInputSelection(e.target);
+							var viewValue = ngModel.$viewValue.substring(0, selection.start) + key + ngModel.$viewValue.substring(selection.end);
+							try {
+								parser.parse(viewValue);
+							} catch(e) {
+								ngModel.$setViewValue(viewValue);
+								ngModel.$render();
+								selection.start++;
+								selection.end = selection.start;
+								setInputSelection(e.target, selection);
+								return;
+							}
+							selection.start
+							selection.start;
+							scope.$evalAsync(function(){
+								if (ngModel.$modelValue && node.value.length >= node.maxLength) {
+									parser.setDate(parser.getDate());
+									ngModel.$setViewValue(parser.getText());
+									ngModel.$render();
+									node = selectNextNode(e.target, node);
+								}
+							});
 						}
 
 					} else if (node.type == "select") {
 						if (printable(e.keyCode)) {
-							scope.$evalAsync(function(){
+							$timeout(function(){
 								var error = !ngModel.$modelValue;
 								makeRealValue(parser);
-								node.updateOthers();
+//								node.updateOthers();
 								parser.setDate(parser.getDate());
 								ngModel.$setViewValue(parser.getText());
 								ngModel.$render();
