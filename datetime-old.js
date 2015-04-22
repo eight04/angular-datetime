@@ -803,48 +803,8 @@ angular.module("datetime", []).factory("datetime", function($locale){
 		restrict: "A",
 		require: "ngModel",
 		link: function(scope, element, attrs, ngModel){
-			var parser = datetime(attrs.datetime),	// Create the parser
-				node = getInitialNode(parser);	// Activated node
-
-			ngModel.$render = function(){
-				var selection;
-				if (document.activeElement == element[0]) {
-					selection = getInputSelection(element[0]);
-				}
-				element.val(ngModel.$viewValue);
-				if (selection) {
-					setInputSelection(element[0], selection);
-				}
-			};
-
 			element.on("$destroy", function(){
 				parser = null;
-			});
-
-			ngModel.$parsers.push(function(viewValue){
-				if (!parser) {
-					return undefined;
-				}
-				try {
-					parser.parse(viewValue);
-				} catch (e) {
-					$log.error(e);
-					ngModel.$setValidity("datetime", false);
-					return undefined;
-				}
-				ngModel.$setValidity("datetime", true);
-				// Create new date to make Angular notice the difference.
-				return new Date(parser.getDate().getTime());
-			});
-
-			ngModel.$formatters.push(function(modelValue){
-				if (!modelValue) {
-					ngModel.$setValidity("datetime", false);
-					return undefined;
-				}
-				ngModel.$setValidity("datetime", true);
-				parser.setDate(modelValue);
-				return parser.getText();
 			});
 
 			element.on("focus keydown click mousedown", function(e){

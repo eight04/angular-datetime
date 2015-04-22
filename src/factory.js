@@ -197,6 +197,7 @@ angular.module("datetime").factory("datetime", function($locale){
 			s.push(days[i]);
 		}
 		s.push(days[0]);
+//		console.log(s);
 		return s;
 	}
 
@@ -210,9 +211,7 @@ angular.module("datetime").factory("datetime", function($locale){
 			token: definedTokens[token],
 			value: value,
 			viewValue: value || "",
-			error: null,
-			offset: null,
-			priority: 0
+			offset: 0
 		};
 	}
 
@@ -268,10 +267,14 @@ angular.module("datetime").factory("datetime", function($locale){
 	}
 
 	function getMatch(str, pos, pattern) {
-		var i = 0;
-		while (str[pos + i] && str[pos + i] == pattern[i]) {
+		var i = 0,
+			strQ = str.toUpperCase(),
+			patternQ = pattern.toUpperCase();
+
+		while (strQ[pos + i] && strQ[pos + i] == patternQ[i]) {
 			i++;
 		}
+
 		return str.substr(pos, i);
 	}
 
@@ -315,7 +318,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				node.value = date.getDate();
 				break;
 			case "day":
-				node.value = date.getDay();
+				node.value = date.getDay() || 7;
 				break;
 			case "hour":
 				node.value = date.getHours();
@@ -354,6 +357,7 @@ angular.module("datetime").factory("datetime", function($locale){
 
 	function setDate(date, value, token) {
 		var h;
+
 		switch (token.name) {
 			case "year":
 				date.setFullYear(value);
@@ -365,7 +369,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				date.setDate(value);
 				break;
 			case "day":
-				date.setDate(date.getDate() + (value - date.getDay()));
+				date.setDate(date.getDate() + (value - (date.getDay() || 7)));
 				break;
 			case "hour":
 				date.setHours(value);
@@ -394,107 +398,123 @@ angular.module("datetime").factory("datetime", function($locale){
 		}
 	}
 
+	// Re-calculate offset
+	function calcOffset(nodes) {
+		var i, offset = 0;
+		for (i = 0; i < nodes.length; i++) {
+			nodes[i].offset = offset;
+			offset += nodes[i].viewValue.length;
+		}
+	}
+
+	function parseNode(node, text, pos) {
+		var p = node, m, match, value, j;
+		switch (p.token.type) {
+			case "static":
+				if (text.lastIndexOf(p.value, pos) != pos) {
+					throw {
+						code: "TEXT_MISMATCH",
+						message: 'Pattern value mismatch',
+						text: text,
+						node: p,
+						pos: pos
+					};
+				}
+				break;
+
+			case "number":
+				// Fail when meeting .sss
+				value = getInteger(text, pos);
+				if (value == null) {
+					throw {
+						code: "NUMBER_MISMATCH",
+						message: "Invalid number",
+						text: text,
+						node: p,
+						pos: pos
+					};
+				}
+				if (value.length < p.token.minLength) {
+					throw {
+						code: "NUMBER_TOOSHORT",
+						message: "The length of number is too short",
+						text: text,
+						node: p,
+						pos: pos
+					};
+				}
+
+				if (value.length > p.token.maxLength) {
+					value = value.substr(0, p.token.maxLength);
+				}
+
+				p.value = +value;
+				p.viewValue = value;
+				break;
+
+			case "select":
+				match = "";
+				for (j = 0; j < p.token.select.length; j++) {
+					m = getMatch(text, pos, p.token.select[j]);
+					if (m && m.length > match.length) {
+						value = j;
+						match = m;
+					}
+				}
+				if (!match) {
+					throw {
+						code: "SELECT_MISMATCH",
+						message: "Invalid select",
+						text: text,
+						node: p,
+						pos: pos
+					};
+				}
+
+				if (match != p.token.select[value]) {
+					throw {
+						code: "SELECT_INCOMPLETE",
+						message: "Incomplete select",
+						text: text,
+						node: p,
+						pos: pos,
+						match: match,
+						selected: p.token.select[value]
+					};
+				}
+
+				p.value = value + 1;
+				p.viewValue = match;
+				break;
+
+			case "regex":
+				m = p.regex.exec(text.substr(pos));
+				if (!m || m.index != 0) {
+					throw {
+						CODE: "REGEX_MISMATCH",
+						message: "Regex doesn't match",
+						text: text,
+						node: p,
+						pos: pos
+					};
+				}
+				p.value = m[0];
+				p.viewValue = m[0];
+				break;
+		}
+	}
+
 	// Main parsing loop. Loop through nodes, parse text, update date model.
 	function parseLoop(nodes, text, date) {
-		var i, p, pos, value, match, j, m;
+		var i, pos;
+
 		pos = 0;
+
 		for (i = 0; i < nodes.length; i++) {
-			p = nodes[i];
+			parseNode(nodes[i], text, pos);
 
-			p.offset = pos;
-
-			switch (p.token.type) {
-				case "static":
-					if (text.lastIndexOf(p.value, pos) != pos) {
-						throw {
-							message: 'Pattern value mismatch',
-							pos: pos,
-							text: text,
-							node: p
-						};
-					}
-					break;
-
-				case "number":
-					// Fail when meeting .sss
-					value = getInteger(text, pos);
-					if (value == null) {
-						throw {
-							message: "Invalid number",
-							pos: pos,
-							text: text,
-							node: p
-						};
-					}
-					if (value.length < p.token.minLength) {
-						throw {
-							message: "The length of number is too short",
-							pos: pos,
-							text: text,
-							node: p
-						};
-					} else {
-						if (value.length > p.token.maxLength) {
-							value = value.substr(0, p.token.maxLength);
-						}
-						setDate(date, +value, p.token);
-					}
-
-					p.value = +value;
-					p.viewValue = value;
-					break;
-
-				case "select":
-					match = "";
-					for (j = 0; j < p.token.select.length; j++) {
-						m = getMatch(text, pos, p.token.select[j]);
-						if (m && m.length > match.length) {
-							value = j;
-							match = m;
-						}
-					}
-					if (!match) {
-						throw {
-							message: "Invalid select",
-							pos: pos,
-							text: text,
-							node: p
-						};
-					}
-
-					if (match != p.token.select[value]) {
-						throw {
-							message: "Incomplete select",
-							pos: pos,
-							text: text,
-							node: p,
-							match: match,
-							match2: p.token.select[value] 
-						};
-					}
-
-					setDate(date, value + 1, p.token);
-
-					p.value = value + 1;
-					p.viewValue = match;
-					break;
-
-				case "regex":
-					m = p.regex.exec(text.substr(pos));
-					if (!m || m.index != 0) {
-						throw {
-							message: "Regex doesn't match",
-							text: text,
-							pos: pos,
-							node: p
-						};
-					}
-					p.value = m[0];
-					p.viewValue = m[0];
-					break;
-			}
-
-			pos += p.viewValue.length;
+			setDate(date, nodes[i].value, nodes[i].token);
+			pos += nodes[i].viewValue.length;
 		}
 	}
 
@@ -507,7 +527,6 @@ angular.module("datetime").factory("datetime", function($locale){
 		var parser = {
 			parse: function(text) {
 				var date = new Date(parser.date.getTime());
-				parser.error = null;
 				try {
 					parseLoop(parser.nodes, text, date);
 				} catch (err) {
@@ -515,10 +534,20 @@ angular.module("datetime").factory("datetime", function($locale){
 					parser.setDate(parser.date);
 					throw err;
 				}
-				parser.date = date;
+				parser.setDate(date);
+				return parser;
 			},
-			parseNode: function(text, id) {
-
+			parseNode: function(node, text) {
+				var date = new Date(parser.date.getTime());
+				try {
+					parseNode(node, text, 0);
+				} catch (err) {
+					parser.setDate(parser.date);
+					throw err;
+				}
+				setDate(date, node.value, node.token);
+				parser.setDate(date);
+				return parser;
 			},
 			setDate: function(date){
 				parser.date = date;
@@ -529,6 +558,8 @@ angular.module("datetime").factory("datetime", function($locale){
 
 					setText(node, date, node.token);
 				}
+				calcOffset(parser.nodes);
+				return parser;
 			},
 			getDate: function(){
 				return parser.date;

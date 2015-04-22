@@ -2,11 +2,23 @@ angular-datetime
 ================
 This module includes a datetime directive and a parser service.
 
+From 0.x to 1.0
+---------------
+* Added Karma test.
+* Changed source structure.
+* Now you can chain parser's methods.
+* Parsing error won't mess up modelValue anymore.
+
 Features
 --------
-* A Datetime directive which add type=datetime behavior to input[text].
-* A parser, which can parse date string into date object with defined format.
-* A formatter, which can convert date object into date string without Angular builtin date filter.
+* This module includes:
+	- A directive adding `type=datetime` behavior to `input[text]`:
+		- Use date object as modelValue.
+		- Use arrow keys to move on different part of datestring.
+		- Use arrow keys to increase/decrease value.
+		- Typeahead. Ex. "se" -> "September".
+	- A parser, which can parse date string into date object with defined format.
+	- A formatter, which can convert date object into date string without Angular builtin date filter.
 * Support IE8.
 
 Demo
@@ -47,8 +59,8 @@ angular.controller("myController", function(datetime){
 	// Catch the parsing error
 	try {
 		parser.parse("2015-123-456");
-	} catch (e) {
-		console.log(e);	// -> ["Pattern value mismatch", ... ]
+	} catch (err) {
+		console.log(err);	// -> {code: "...", message: "...", ...}
 	}
 });
 ```
@@ -57,30 +69,8 @@ angular.controller("myController", function(datetime){
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate">
 ```
 
-Todos
------
-* Support week (ww, w).
-* Use dynamic date limit (min, max) depend on month.
-* Make day editable. (How?)
-
-1.0 Milestone
--------------
-* Move out `.getNodeFromPos` from parser. It should stay in datetime directive.
-* Make node list become plain data.
-	- Change `.increase/.decrease` to helper function. Ex `increaseNodeValue(parser, index)`.
-	- Let node has ability to define dynamic min/max value. or
-	- Let node has ability to define `increase/decrease` function.
-	- Rename `node` difination to `definedTokens`.
-* Let `increaseNodeValue/decreaseNodeValue/setNodeValue` update model.
-* Use closure to create parser.
-* Always leaves correct value in input element. Refresh view value after bluring.
-* Strictly seperate parser and directive operation?
-* Track current node.
-* Sync text value and date object.
-
 Known Issue
 -----------
 * Prevent keydown to restrict editing static node doesn't work well with chinese IME.
-* Use Tab key to navigate between inputs will auto select text in Chrome.
-* Angular use dirty check to detect model change, we have to create a new date object everytime the view change. Perhaps there is a way to tell Angular to update view manually.
-* 2 digit year ('yy') is ambiguous when converting date string back to date object (Ex. 14 -> 2014, 1914, ...). It's better to avoid it.
+* 2 digit year 'yy' is ambiguous when converting datestring back to date object (Ex. 14 -> 2014, 1914, ...). You should avoid it.
+* Parser don't know how to parse datestring if some pattern are duplicate in datetime formats. (Ex. parsing "1989-1999" with "yyyy-yyyy" is undefined behavior.)

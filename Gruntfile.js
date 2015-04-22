@@ -18,12 +18,19 @@ module.exports = function(grunt) {
 				src: ["src/main.js", "src/factory.js", "src/directive.js"],
 				dest: "dist/datetime.js"
 			}
+		},
+		watch: {
+			js: {
+				files: ["src/*.js"],
+				tasks: ["default"]
+			}
 		}
 	});
 
 	// Load the plugin that provides the "uglify" task.
 	grunt.loadNpmTasks('grunt-bump');
 	grunt.loadNpmTasks('grunt-contrib-concat');
+	grunt.loadNpmTasks('grunt-contrib-watch');
 
 	// Default task(s).
 	grunt.registerTask('default', ["concat"]);
