@@ -15,6 +15,6 @@
 		"strict": 0
 	},
 	"globals": {
-		"angular": false
+		"angular": true
 	}
 }

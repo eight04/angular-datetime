@@ -1,3 +1,7 @@
+"use strict";
+
+angular.module("datetime", []);
+
 angular.module("datetime").factory("datetime", function($locale){
 	// Fetch date and time formats from $locale service
 	var formats = $locale.DATETIME_FORMATS;
@@ -550,4 +554,14 @@ angular.module("datetime").factory("datetime", function($locale){
 	}
 
 	return createParser;
+});
+
+angular.module("datetime").directive("datetime", function(){
+	return {
+		restrict: "A",
+		require: "?ngModel",
+		link: function(scope, element, ngModel) {
+
+		}
+	};
 });
