@@ -1,6 +1,6 @@
 "use strict";
 
-angular.factory("datetime", function($locale){
+angular.module("datetime").factory("datetime", function($locale){
 	// Fetch date and time formats from $locale service
 	var formats = $locale.DATETIME_FORMATS;
 	// Valid format tokens. 1=sss, 2=''
@@ -201,6 +201,7 @@ angular.factory("datetime", function($locale){
 		return {
 			token: definedTokens[token],
 			value: value,
+			viewValue: value || "",
 			error: null,
 			offset: null,
 			priority: 0
@@ -246,7 +247,7 @@ angular.factory("datetime", function($locale){
 		for (i = 0; i < nodes.length; i++) {
 			nodes[i].next = nodes[i + 1] || null;
 			nodes[i].prev = nodes[i - 1] || null;
-			nodes[i].parent = nodes;
+			nodes[i].id = i;
 		}
 
 		return nodes;
@@ -281,11 +282,70 @@ angular.factory("datetime", function($locale){
 		return Math.floor(diff / (7 * 24 * 60 * 60 * 1000));
 	}
 
-	function getDate(date, token) {
-		
+	function num2str(num, minLength, maxLength) {
+		var i;
+		num = "" + num;
+		if (num.length > maxLength) {
+			num = num.substr(num.length - maxLength);
+		} else if (num.length < minLength) {
+			for (i = num.length; i < minLength; i++) {
+				num = "0" + num;
+			}
+		}
+		return num;
+	}
+
+	function setText(node, date, token) {
+		switch (token.name) {
+			case "year":
+				node.value = date.getFullYear();
+				break;
+			case "month":
+				node.value = date.getMonth();
+				break;
+			case "date":
+				node.value = date.getDate();
+				break;
+			case "day":
+				node.value = date.getDay() - 1;
+				break;
+			case "hour":
+				node.value = date.getHours();
+				break;
+			case "hour12":
+				node.value = date.getHours() % 12 || 12;
+				break;
+			case "ampm":
+				node.value = date.getHours() < 12 ? 0 : 1;
+				break;
+			case "minute":
+				node.value = date.getMinutes();
+				break;
+			case "second":
+				node.value = date.getSeconds();
+				break;
+			case "millisecond":
+				node.value = date.getMilliseconds();
+				break;
+			case "week":
+				node.value = getWeek(date);
+				break;
+		}
+
+		switch (token.type) {
+			case "number":
+				node.viewValue = num2str(node.value, token.minLength, token.maxLength);
+				break;
+			case "select":
+				node.viewValue = token.select[node.value];
+				break;
+			default:
+				node.viewValue = node.value + "";
+		}
 	}
 
 	function setDate(date, value, token) {
+		var h;
 		switch (token.name) {
 			case "year":
 				date.setFullYear(value);
@@ -305,8 +365,12 @@ angular.factory("datetime", function($locale){
 			case "hour12":
 				date.setHours(date.getHours() < 12 ? value : value + 12);
 				break;
-//			case "ampm":
-
+			case "ampm":
+				h = date.getHours();
+				if ((h < 12) == !!value) {
+					date.setHours((h + 12) % 24);
+				}
+				break;
 			case "minute":
 				date.setMinutes(value);
 				break;
@@ -322,6 +386,113 @@ angular.factory("datetime", function($locale){
 		}
 	}
 
+	// Main parsing loop. Loop through nodes, parse text, update date model.
+	function parseLoop(nodes, text, date) {
+		var i, p, pos, value, match, j, m;
+		pos = 0;
+		for (i = 0; i < nodes.length; i++) {
+			p = nodes[i];
+
+			p.offset = pos;
+
+			switch (p.token.type) {
+				case "static":
+					if (text.lastIndexOf(p.value, pos) != pos) {
+						throw {
+							message: 'Pattern value mismatch',
+							pos: pos,
+							text: text,
+							node: p
+						};
+					}
+					break;
+
+				case "number":
+					// Fail when meeting .sss
+					value = getInteger(text, pos);
+					if (value == null) {
+						throw {
+							message: "Invalid number",
+							pos: pos,
+							text: text,
+							node: p
+						};
+					}
+					if (value.length < p.token.minLength) {
+						throw {
+							message: "The length of number is too short",
+							pos: pos,
+							text: text,
+							node: p
+						};
+					} else {
+						if (value.length > p.token.maxLength) {
+							value = value.substr(0, p.token.maxLength);
+						}
+						if (p.token.name == "month") {
+							setDate(date, +value - 1, p.token);
+						} else {
+							setDate(date, +value, p.token);
+						}
+					}
+
+					p.value = +value;
+					p.viewValue = value;
+					break;
+
+				case "select":
+					match = "";
+					for (j = 0; j < p.token.select.length; j++) {
+						m = getMatch(text, pos, p.token.select[j]);
+						if (m && m.length > match.length) {
+							value = j;
+							match = m;
+						}
+					}
+					if (!match) {
+						throw {
+							message: "Invalid select",
+							pos: pos,
+							text: text,
+							node: p
+						};
+					}
+					if (match != p.token.select[j]) {
+						throw {
+							message: "Incomplete select",
+							pos: pos,
+							text: text,
+							node: p
+						};
+					}
+					if (p.token.name == "month") {
+						setDate(date, j, p.token);
+					} else {
+						setDate(date, j + 1, p.token);
+					}
+					p.value = j;
+					p.viewValue = match;
+					break;
+
+				case "regex":
+					m = p.regex.exec(text.substr(pos));
+					if (!m || m.index != 0) {
+						throw {
+							message: "Regex doesn't match",
+							text: text,
+							pos: pos,
+							node: p
+						};
+					}
+					p.value = m[0];
+					p.viewValue = m[0];
+					break;
+			}
+
+			pos += p.viewValue.length;
+		}
+	}
+
 	function createParser(format) {
 
 		format = getFormat(format);
@@ -329,147 +500,45 @@ angular.factory("datetime", function($locale){
 		var nodes = createNodes(format);
 
 		var parser = {
-			parse: function(str) {
-				var i, j, pos, m, match, value;
-
-				parser.error = false;
-
-				pos = 0;
-				for (i = 0; i < nodes.length; i++) {
-					var p = nodes[i];
-
-					p.error = null;
-					p.offset = null;
-
-					switch (p.token.type) {
-						case "static":
-							if (str.lastIndexOf(p.value, pos) != pos) {
-								throw {
-									message: 'Pattern value mismatch',
-									pos: pos,
-									str: str,
-									node: p
-								};
-							}
-							p.offset = pos;
-							pos += p.value.length;
-							break;
-
-						case "number":
-							// Fail when meeting .sss
-							value = getInteger(str, pos);
-							if (value == null) {
-								throw {
-									message: "Invalid number",
-									pos: pos,
-									str: str,
-									node: p
-								};
-							}
-							if (value.length < p.token.minLength) {
-								parser.error = true;
-								p.error = {
-									message: "The length of number is too short",
-									pos: pos,
-									str: str,
-									node: p
-								};
-							} else {
-								if (value.length > p.token.maxLength) {
-									value = value.substr(0, p.token.maxLength);
-								}
-								if (p.token.name == "month") {
-									setDate(parser.date, +value - 1, p.token);
-								} else {
-									setDate(parser.date, +value, p.token);
-								}
-							}
-
-							p.offset = pos;
-							p.value = value;
-							pos += p.value.length;
-							break;
-
-						case "select":
-							match = "";
-							for (j = 0; j < p.token.select.length; j++) {
-								m = getMatch(str, pos, p.token.select[j]);
-								if (m && m.length > match.length) {
-									value = j;
-									match = m;
-								}
-							}
-							if (!match) {
-								throw {
-									message: "Invalid select",
-									pos: pos,
-									str: str,
-									node: p
-								};
-							}
-							if (match != p.token.select[j]) {
-								p.error = {
-									message: "Incomplete select",
-									pos: pos,
-									str: str,
-									node: p
-								};
-							}
-							if (p.token.name == "month") {
-								setDate(parser.date, j, p.token);
-							} else {
-								setDate(parser.date, j + 1, p.token);
-							}
-							p.offset = pos;
-							p.value = match;
-							pos += p.value.length;
-							break;
-
-						case "regex":
-							m = p.regex.exec(str.substr(pos));
-							if (!m || m.index != 0) {
-								throw {
-									message: "Regex doesn't match",
-									str: str,
-									pos: pos,
-									node: p
-								};
-							}
-							p.offset = pos;
-							p.value = m[0];
-							pos += p.value.length;
-							break;
-					}
+			parse: function(text) {
+				var date = new Date(parser.date.getTime());
+				parser.error = null;
+				try {
+					parseLoop(parser.nodes, text, date);
+				} catch (err) {
+					// Should we reset date object if failed to parse?
+					parser.setDate(parser.date);
+					throw err;
 				}
-				return parser;
+				parser.date = date;
+			},
+			parseNode: function(text, id) {
+
 			},
 			setDate: function(date){
 				parser.date = date;
+
+				var i, node;
+				for (i = 0; i < parser.nodes.length; i++) {
+					node = parser.nodes[i];
+
+					setText(node, date, node.token);
+				}
 			},
 			getDate: function(){
 				return parser.date;
 			},
 			getText: function(){
-				var i, p, text = "";
+				var i, text = "";
 				for (i = 0; i < parser.nodes.length; i++) {
-					p = parser.nodes[i];
-
-					switch (p.token.type) {
-						case "number":
-						case "select":
-							text += getDate(date, p.token);
-							break;
-						case "static":
-						case "regex":
-							text += p.value;
-							break;
-					}
+					text += parser.nodes[i].viewValue;
 				}
+				return text;
 			},
-			date: new Date(),
+			date: null,
 			format: format,
 			nodes: nodes,
-			error: false
+			error: null
 		};
 
 		return parser;

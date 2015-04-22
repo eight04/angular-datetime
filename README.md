@@ -76,6 +76,7 @@ Todos
 * Always leaves correct value in input element. Refresh view value after bluring.
 * Strictly seperate parser and directive operation?
 * Track current node.
+* Sync text value and date object.
 
 Known Issue
 -----------

@@ -911,9 +911,9 @@ angular.module("datetime", []).factory("datetime", function($locale){
 								e.preventDefault();
 								return;
 							}
-							
+
 							node.viewValue = node
-							
+
 							selection = getInputSelection(e.target);
 							var viewValue = ngModel.$viewValue.substring(0, selection.start) + key + ngModel.$viewValue.substring(selection.end);
 							try {
