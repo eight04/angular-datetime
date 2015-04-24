@@ -347,6 +347,10 @@ angular.module("datetime").factory("datetime", function($locale){
 				break;
 		}
 
+		if (node.value < 0) {
+			node.value = 0;
+		}
+
 		switch (token.type) {
 			case "number":
 				node.viewValue = num2str(node.value, token.minLength, token.maxLength);
@@ -399,6 +403,10 @@ angular.module("datetime").factory("datetime", function($locale){
 			case "week":
 				date.setDate(date.getDate() + (value - getWeek(date)) * 7);
 				break;
+		}
+
+		if (date.getFullYear() < 0) {
+			date.setFullYear(0);
 		}
 	}
 
