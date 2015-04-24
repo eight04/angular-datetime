@@ -496,7 +496,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				m = p.regex.exec(text.substr(pos));
 				if (!m || m.index != 0) {
 					throw {
-						CODE: "REGEX_MISMATCH",
+						code: "REGEX_MISMATCH",
 						message: "Regex doesn't match",
 						text: text,
 						node: p,
@@ -511,15 +511,27 @@ angular.module("datetime").factory("datetime", function($locale){
 
 	// Main parsing loop. Loop through nodes, parse text, update date model.
 	function parseLoop(nodes, text, date) {
-		var i, pos;
+		var i, pos, errorBuff;
 
 		pos = 0;
 
 		for (i = 0; i < nodes.length; i++) {
-			parseNode(nodes[i], text, pos);
+			try {
+				parseNode(nodes[i], text, pos);
+				setDate(date, nodes[i].value, nodes[i].token);
+				pos += nodes[i].viewValue.length;
+			} catch (err) {
+				if (err.code == "NUMBER_TOOSHORT") {
+					errorBuff = err;
+					pos += err.match.length;
+				} else {
+					throw err;
+				}
+			}
+		}
 
-			setDate(date, nodes[i].value, nodes[i].token);
-			pos += nodes[i].viewValue.length;
+		if (errorBuff) {
+			throw errorBuff;
 		}
 	}
 
