@@ -534,6 +534,15 @@ angular.module("datetime").factory("datetime", function($locale){
 			}
 		}
 
+		if (text.length > pos) {
+			throw {
+				code: "TEXT_TOOLONG",
+				message: "Text is too long",
+				text: text,
+				pos: pos
+			};
+		}
+
 		if (errorBuff) {
 			throw errorBuff;
 		}

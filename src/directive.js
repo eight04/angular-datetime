@@ -153,7 +153,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 	function getRange(element, nodes, node) {
 		var selection = getInputSelection(element), i, range;
 		for (i = 0; i < nodes.length; i++) {
-			if (!range && nodes[i].offset + nodes[i].viewValue.length >= selection.start) {
+			if (!range && nodes[i].offset + nodes[i].viewValue.length >= selection.start || i == nodes.length - 1) {
 				range = {
 					element: element,
 					node: nodes[i],
@@ -243,6 +243,9 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 					}
 					scope.$evalAsync(function(){
 						viewValue = parser.getText();
+						if (viewValue == ngModel.$viewValue) {
+							throw "angular-datetime crashed!";
+						}
 						ngModel.$setViewValue(viewValue);
 						ngModel.$render();
 					});
