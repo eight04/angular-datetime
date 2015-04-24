@@ -440,7 +440,8 @@ angular.module("datetime").factory("datetime", function($locale){
 						message: "The length of number is too short",
 						text: text,
 						node: p,
-						pos: pos
+						pos: pos,
+						match: value
 					};
 				}
 

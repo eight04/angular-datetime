@@ -444,7 +444,8 @@ angular.module("datetime").factory("datetime", function($locale){
 						message: "The length of number is too short",
 						text: text,
 						node: p,
-						pos: pos
+						pos: pos,
+						match: value
 					};
 				}
 
@@ -791,6 +792,12 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 				node: getInitialNode(parser.nodes),
 				start: 0,
 				end: "end"
+			},
+			errorRange = {
+				element: element,
+				node: null,
+				start: 0,
+				end: 0
 			};
 
 		ngModel.$render = function(){
@@ -808,9 +815,14 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 				parser.parse(viewValue);
 			} catch (err) {
 				$log.error(err);
+
 				ngModel.$setValidity("datetime", false);
 
-				if (err.code != "NUMBER_TOOSHORT") {
+				if (err.code == "NUMBER_TOOSHORT") {
+					errorRange.node = err.node;
+					errorRange.start = 0;
+					errorRange.end = err.match.length;
+				} else {
 					range = getRange(element, parser.nodes, range.node);
 					range.end = "end";
 					if (err.code == "SELECT_INCOMPLETE") {
@@ -819,13 +831,10 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 					} else {
 						range.start = 0;
 					}
-
-					//				console.log(range);
 					scope.$evalAsync(function(){
 						viewValue = parser.getText();
 						ngModel.$setViewValue(viewValue);
 						ngModel.$render();
-						//					scope.$apply();
 					});
 				}
 
@@ -866,19 +875,26 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 		element.on("focus keydown keypress click", function(e){
 			switch (e.type) {
 				case "focus":
-					range = createRange(element, parser.nodes);
-					setTimeout(function(){
-						selectRange(range);
-					});
+					if (!ngModel.$error.datetime) {
+						range = createRange(element, parser.nodes);
+						setTimeout(function(){
+							selectRange(range);
+						});
+					} else {
+						setTimeout(function(){
+							selectRange(errorRange);
+						});
+					}
 					break;
 				case "keydown":
-
 					switch (e.keyCode) {
 						case 37:
 							// Left
 							e.preventDefault();
 							if (!ngModel.$error.datetime) {
 								selectRange(range, "prev");
+							} else {
+								selectRange(errorRange);
 							}
 							break;
 						case 39:
@@ -886,6 +902,8 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 							e.preventDefault();
 							if (!ngModel.$error.datetime) {
 								selectRange(range, "next");
+							} else {
+								selectRange(errorRange);
 							}
 							break;
 						case 38:
@@ -902,8 +920,13 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 					break;
 
 				case "click":
-					range = createRange(element, parser.nodes);
-					selectRange(range);
+					e.preventDefault();
+					if (!ngModel.$error.datetime) {
+						range = createRange(element, parser.nodes);
+						selectRange(range);
+					} else {
+						selectRange(errorRange);
+					}
 					break;
 
 				case "keypress":
