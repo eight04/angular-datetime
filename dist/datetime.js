@@ -782,7 +782,6 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 	}
 
 	function isRangeAtEnd(range) {
-//		console.log(range);
 		var maxLength, length;
 		if (!isRangeCollapse(range)) {
 			return false;
@@ -793,6 +792,11 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 			return false;
 		}
 		return range.start == length;
+	}
+
+	function isNumberKey(e) {
+		var keyCode = e.charCode || e.keyCode;
+		return keyCode >= 48 && keyCode <= 57;
 	}
 
 	function linkFunc(scope, element, attrs, ngModel) {
@@ -873,7 +877,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 			});
 		}
 
-		element.on("focus keydown click", function(e){
+		element.on("focus keydown keypress click", function(e){
 			switch (e.type) {
 				case "focus":
 					range = createRange(element, parser.nodes);
@@ -905,24 +909,26 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 							e.preventDefault();
 							addNodeValue(range.node, -1);
 							break;
-						default:
-							setTimeout(function(){
-								var rangeQ;
-								rangeQ = getRange(element, parser.nodes, range.node);
-								if (isRangeAtEnd(rangeQ)) {
-									rangeQ.node = getNode(rangeQ.node.next) || rangeQ.node;
-									rangeQ.start = 0;
-									rangeQ.end = "end";
-									range = rangeQ;
-									selectRange(range);
-								}
-							});
 					}
 					break;
 
 				case "click":
 					range = createRange(element, parser.nodes);
 					selectRange(range);
+					break;
+
+				case "keypress":
+					if (isNumberKey(e)) {
+						setTimeout(function(){
+							range = getRange(element, parser.nodes, range.node);
+							if (isRangeAtEnd(range)) {
+								range.node = getNode(range.node.next) || range.node;
+								range.start = 0;
+								range.end = "end";
+								selectRange(range);
+							}
+						});
+					}
 					break;
 
 			}
