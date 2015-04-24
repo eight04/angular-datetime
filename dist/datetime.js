@@ -716,14 +716,29 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 		}
 	}
 
-	function selectRange(range, direction) {
+	function getLastNode(node, direction) {
+		var lastNode;
+
+		do {
+			lastNode = node;
+			node = getNode(node[direction], direction);
+		} while (node);
+
+		return lastNode;
+	}
+
+	function selectRange(range, direction, toEnd) {
 		if (!range.node) {
 			return;
 		}
 		if (direction) {
 			range.start = 0;
 			range.end = "end";
-			range.node = getNode(range.node[direction], direction) || range.node;
+			if (toEnd) {
+				range.node = getLastNode(range.node, direction);
+			} else {
+				range.node = getNode(range.node[direction], direction) || range.node;
+			}
 		}
 		setInputSelection(range.element, {
 			start: range.start + range.node.offset,
@@ -947,6 +962,24 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 							// Down
 							e.preventDefault();
 							addNodeValue(range.node, -1);
+							break;
+						case 36:
+							// Home
+							e.preventDefault();
+							if (ngModel.$error.datetime) {
+								selectRange(errorRange);
+							} else {
+								selectRange(range, "prev", true);
+							}
+							break;
+						case 35:
+							// End
+							e.preventDefault();
+							if (ngModel.$error.datetime) {
+								selectRange(errorRange);
+							} else {
+								selectRange(range, "next", true);
+							}
 							break;
 					}
 					break;
