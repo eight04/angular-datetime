@@ -300,17 +300,21 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 			scope.$apply();
 		}
 
-		element.on("focus keydown keypress click", function(e){
+		var waitForClick;
+		element.on("focus keydown keypress mousedown click", function(e){
 			switch (e.type) {
+				case "mousedown":
+					waitForClick = true;
+					break;
 				case "focus":
-					if (!ngModel.$error.datetime) {
-						range = createRange(element, parser.nodes);
+					e.preventDefault();
+					if (!waitForClick) {
 						setTimeout(function(){
-							selectRange(range);
-						});
-					} else {
-						setTimeout(function(){
-							selectRange(errorRange);
+							if (!ngModel.$error.datetime) {
+								selectRange(range);
+							} else {
+								selectRange(errorRange);
+							}
 						});
 					}
 					break;
@@ -367,6 +371,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 
 				case "click":
 					e.preventDefault();
+					waitForClick = false;
 					if (!ngModel.$error.datetime) {
 						range = createRange(element, parser.nodes);
 						selectRange(range);
