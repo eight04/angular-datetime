@@ -63,21 +63,6 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 		return node;
 	}
 
-	function selectNode(input, node, direction) {
-		if (!node) {
-			return;
-		}
-		if (direction) {
-			node = getNode(node[direction], direction) || node;
-		}
-//		console.log(node);
-		setInputSelection(input, {
-			start: node.offset,
-			end: node.offset + node.viewValue.length
-		});
-		return node;
-	}
-
 	function addDate(date, token, diff) {
 		switch (token.name) {
 			case "year":
@@ -281,11 +266,12 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 			parser.setDate(date);
 			viewValue = parser.getText();
 			ngModel.$setViewValue(viewValue);
+
+			range.start = 0;
+			range.end = "end";
 			ngModel.$render();
+
 			scope.$apply();
-			setTimeout(function(){
-				selectNode(node);
-			});
 		}
 
 		element.on("focus keydown keypress click", function(e){
@@ -302,13 +288,16 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 						case 37:
 							// Left
 							e.preventDefault();
-
-							selectRange(range, "prev");
+							if (!ngModel.$error.datetime) {
+								selectRange(range, "prev");
+							}
 							break;
 						case 39:
 							// Right
 							e.preventDefault();
-							selectRange(range, "next");
+							if (!ngModel.$error.datetime) {
+								selectRange(range, "next");
+							}
 							break;
 						case 38:
 							// Up
