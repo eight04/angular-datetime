@@ -376,9 +376,22 @@ angular.module("datetime").factory("datetime", function($locale){
 		}
 	}
 
-	function setDate(date, value, token) {
-		var h;
+	function setHour12(date, hour) {
+		hour = hour % 12;
+		if (date.getHours() >= 12) {
+			hour += 12;
+		}
+		date.setHours(hour);
+	}
 
+	function setAmpm(date, ampm) {
+		var hour = date.getHours();
+		if ((hour < 12) == (ampm > 1)) {
+			date.setHours((hour + 12) % 24);
+		}
+	}
+
+	function setDate(date, value, token) {
 		switch (token.name) {
 			case "year":
 				date.setFullYear(value);
@@ -396,13 +409,10 @@ angular.module("datetime").factory("datetime", function($locale){
 				date.setHours(value);
 				break;
 			case "hour12":
-				date.setHours((date.getHours() < 12 ? 0 : 1) * 12 + value % 12);
+				setHour12(date, value);
 				break;
 			case "ampm":
-				h = date.getHours();
-				if ((h < 12) == (value == 2)) {
-					date.setHours((h + 12) % 24);
-				}
+				setAmpm(date, value);
 				break;
 			case "minute":
 				date.setMinutes(value);
