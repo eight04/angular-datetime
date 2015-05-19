@@ -359,6 +359,13 @@ angular.module("datetime").factory("datetime", function($locale){
 		}
 	}
 
+	function makePositive(value, step) {
+		while (value <= 0) {
+			value += step;
+		}
+		return value;
+	}
+
 	function setDate(date, value, token) {
 		var h;
 
@@ -373,7 +380,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				date.setDate(value);
 				break;
 			case "day":
-				date.setDate(date.getDate() + (value - (date.getDay() || 7)));
+				date.setDate(makePositive(date.getDate() + (value - (date.getDay() || 7)), 7));
 				break;
 			case "hour":
 				date.setHours(value);
@@ -524,6 +531,7 @@ angular.module("datetime").factory("datetime", function($locale){
 			try {
 				parseNode(nodes[i], text, pos);
 				pos += nodes[i].viewValue.length;
+
 				compareDate = new Date(baseDate.getTime());
 				setDate(compareDate, nodes[i].value, nodes[i].token);
 				if (compareDate.getTime() != baseDate.getTime()) {
@@ -561,15 +569,27 @@ angular.module("datetime").factory("datetime", function($locale){
 
 		var parser = {
 			parse: function(text) {
-				var date = new Date(parser.date.getTime());
+//				console.log("parse " + text);
+				var oldDate = parser.date,
+					date = new Date(oldDate.getTime()),
+					newText;
 				try {
 					parseLoop(parser.nodes, text, date);
+					parser.setDate(date);
+					newText = parser.getText();
+					if (text != newText) {
+						throw {
+							code: "INCONSISTENT_INPUT",
+							message: "Successfully parsed but the output text doesn't match the input",
+							text: text,
+							properText: newText
+						};
+					}
 				} catch (err) {
 					// Should we reset date object if failed to parse?
-					parser.setDate(parser.date);
+					parser.setDate(oldDate);
 					throw err;
 				}
-				parser.setDate(date);
 				return parser;
 			},
 			parseNode: function(node, text) {

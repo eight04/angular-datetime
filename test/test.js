@@ -67,15 +67,37 @@ describe("datetime service", function(){
 		});
 
 		it("operate on right hand", function(){
-			parser.parse("2000-2001");
-
-			expect(parser.getText()).toEqual("2001-2001");
+			try {
+				parser.parse("2000-2001");
+			} catch (er) {
+				expect(er.properText).toEqual("2001-2001");
+			}
 		});
 
 		it("operate on left hand", function(){
-			parser.parse("2002-2001");
+			try {
+				parser.parse("2001-2000");
+			} catch (er) {
+				expect(er.properText).toEqual("2001-2001");
+			}
+		});
 
-			expect(parser.getText()).toEqual("2002-2002");
+		it("Tuesday, May 19, 2015", function(){
+			parser = datetime("fullDate");
+			try {
+				parser.parse("Tuesday, May 1, 2015");
+			} catch (er) {
+				expect(er.properText).toEqual("Friday, May 1, 2015");
+			}
+			parser.parse("Friday, May 1, 2015");
+			try {
+				parser.parse("Friday, May 19, 2015");
+			} catch (er) {
+				expect(er.properText).toEqual("Tuesday, May 19, 2015");
+			}
+			parser.parse("Tuesday, May 19, 2015");
+
+			expect(parser.getText()).toEqual("Tuesday, May 19, 2015");
 		});
 
 	});

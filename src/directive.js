@@ -249,15 +249,19 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 					errorRange.end = err.match.length;
 				} else {
 					range = getRange(element, parser.nodes, range.node);
-					range.end = "end";
 					if (err.code == "SELECT_INCOMPLETE") {
+						viewValue = parser.getText();
 						parser.parseNode(range.node, err.selected);
 						range.start = err.match.length;
+						range.end = "end";
+					} else if (err.code == "INCONSISTENT_INPUT") {
+						viewValue = err.properText;
 					} else {
+						viewValue = parser.getText();
 						range.start = 0;
+						range.end = "end";
 					}
 					scope.$evalAsync(function(){
-						viewValue = parser.getText();
 						if (viewValue == ngModel.$viewValue) {
 							throw "angular-datetime crashed!";
 						}

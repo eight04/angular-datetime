@@ -2,18 +2,6 @@ angular-datetime
 ================
 This module includes a datetime directive and a parser service.
 
-This branch is aimed to solve parsing conflict problem.
-
-The following behavior is undefined in v1.0
-```
-parser("yyyy-yyyy").parse("2000-2001")
-```
-But for the input element, if the change is "2000-2000" => "2000-2001", then the result should be "2001-2001". If the change is "2001-2001" => "2000-2001" then the result should be "2000-2000".
-
-This should also fix weekday/date problem.
-
-To achieve this feature, parser has to remeber the previous state, ignore those nodes which doesn't change, and apply those changed nodes.
-
 From 0.x to 1.0
 ---------------
 * Added Karma test.
