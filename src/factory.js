@@ -606,7 +606,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				}
 				return text;
 			},
-			date: null,
+			date: new Date(),
 			format: format,
 			nodes: nodes,
 			error: null
