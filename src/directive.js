@@ -205,9 +205,11 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 		return range.start == length;
 	}
 
-	function isNumberKey(e) {
+	function isPrintableKey(e) {
 		var keyCode = e.charCode || e.keyCode;
-		return keyCode >= 48 && keyCode <= 57;
+		return keyCode >= 48 && keyCode <= 57 ||
+			keyCode >= 65 && keyCode <= 90 ||
+			keyCode >= 97 && keyCode <= 122;
 	}
 
 	function linkFunc(scope, element, attrs, ngModel) {
@@ -386,7 +388,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 					break;
 
 				case "keypress":
-					if (isNumberKey(e)) {
+					if (isPrintableKey(e)) {
 						setTimeout(function(){
 							range = getRange(element, parser.nodes, range.node);
 							if (isRangeAtEnd(range)) {
