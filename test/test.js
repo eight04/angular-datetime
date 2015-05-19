@@ -50,4 +50,33 @@ describe("datetime service", function(){
 			});
 		});
 	});
+
+	describe("test duplicate name and state change", function(){
+
+		var datetime, parser;
+
+		beforeEach(angular.mock.module("datetime"));
+
+		beforeEach(angular.mock.inject(function(_datetime_){
+			datetime = _datetime_;
+		}));
+
+		it("create parser", function(){
+			parser = datetime("yyyy-yyyy");
+			parser.parse("2000-2000");
+		});
+
+		it("operate on right hand", function(){
+			parser.parse("2000-2001");
+
+			expect(parser.getText()).toEqual("2001-2001");
+		});
+
+		it("operate on left hand", function(){
+			parser.parse("2002-2001");
+
+			expect(parser.getText()).toEqual("2002-2002");
+		});
+
+	});
 });

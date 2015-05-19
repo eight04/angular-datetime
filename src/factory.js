@@ -515,15 +515,20 @@ angular.module("datetime").factory("datetime", function($locale){
 
 	// Main parsing loop. Loop through nodes, parse text, update date model.
 	function parseLoop(nodes, text, date) {
-		var i, pos, errorBuff;
+		var i, pos, errorBuff, baseDate, compareDate;
 
 		pos = 0;
+		baseDate = new Date(date.getTime());
 
 		for (i = 0; i < nodes.length; i++) {
 			try {
 				parseNode(nodes[i], text, pos);
-				setDate(date, nodes[i].value, nodes[i].token);
 				pos += nodes[i].viewValue.length;
+				compareDate = new Date(baseDate.getTime());
+				setDate(compareDate, nodes[i].value, nodes[i].token);
+				if (compareDate.getTime() != baseDate.getTime()) {
+					setDate(date, nodes[i].value, nodes[i].token);
+				}
 			} catch (err) {
 				if (err.code == "NUMBER_TOOSHORT") {
 					errorBuff = err;
