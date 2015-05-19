@@ -69,9 +69,17 @@ angular.controller("myController", function(datetime){
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate">
 ```
 
-Known Issue
------------
-* Prevent keydown to restrict editing static node doesn't work well with chinese IME.
+Parsing errors
+--------------
+* TEXT_MISMATCH
+* NUMBER_MISMATCH
+* NUMBER_TOOSHORT
+* SELECT_MISMATCH
+* SELECT_INCOMPLETE
+* REGEX_MISMATCH
+* TEXT_TOOLONG
+* INCONSISTENT_INPUT
+
+Known Issues
+------------
 * 2 digit year 'yy' is ambiguous when converting datestring back to date object (Ex. 14 -> 2014, 1914, ...). You should avoid it.
-* Parser don't know how to parse datestring if some pattern are duplicate in datetime formats. (Ex. parsing "1989-1999" with "yyyy-yyyy" is undefined behavior.)
-	- Maybe we could add priority to each node, so the parser will know which value to use.
