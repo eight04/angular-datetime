@@ -2,6 +2,18 @@ angular-datetime
 ================
 This module includes a datetime directive and a parser service.
 
+This branch is aimed to solve parsing conflict problem.
+
+The following behavior is undefined in v1.0
+```
+parser("yyyy-yyyy").parse("2000-2001")
+```
+But for the input element, if the change is "2000-2000" => "2000-2001", then the result should be "2001-2001". If the change is "2001-2001" => "2000-2001" then the result should be "2000-2000".
+
+This should also fix weekday/date problem.
+
+To achieve this feature, parser has to remeber the previous state, ignore those nodes which doesn't change, and apply those changed nodes.
+
 From 0.x to 1.0
 ---------------
 * Added Karma test.
@@ -74,3 +86,4 @@ Known Issue
 * Prevent keydown to restrict editing static node doesn't work well with chinese IME.
 * 2 digit year 'yy' is ambiguous when converting datestring back to date object (Ex. 14 -> 2014, 1914, ...). You should avoid it.
 * Parser don't know how to parse datestring if some pattern are duplicate in datetime formats. (Ex. parsing "1989-1999" with "yyyy-yyyy" is undefined behavior.)
+	- Maybe we could add priority to each node, so the parser will know which value to use.
