@@ -363,11 +363,21 @@ angular.module("datetime").factory("datetime", function($locale){
 		}
 	}
 
-	function makePositive(value, step) {
-		while (value <= 0) {
-			value += step;
+	// set the proper date value matching the weekday
+	function setDay(date, day) {
+		// we don't want to change month when changing date
+		var month = date.getMonth(),
+			diff = day - date.getDay();
+		// move to correct date
+		date.setDate(date.getDate() + diff);
+		// check month
+		if (date.getMonth() != month) {
+			if (diff > 0) {
+				date.setDate(date.getDate() - 7);
+			} else {
+				date.setDate(date.getDate() + 7);
+			}
 		}
-		return value;
 	}
 
 	function setDate(date, value, token) {
@@ -384,7 +394,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				date.setDate(value);
 				break;
 			case "day":
-				date.setDate(makePositive(date.getDate() + (value - (date.getDay() || 7)), 7));
+				setDay(date, value);
 				break;
 			case "hour":
 				date.setHours(value);
