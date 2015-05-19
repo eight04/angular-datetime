@@ -11,6 +11,13 @@
 	<link rel="stylesheet" href="https://rawgit.com/eight04/end2end/master/dist/end2end.css">
 
 	<script>
+		function shallow(o) {
+			var o2 = {}, key;
+			for (key in o) {
+				o2[key] = o[key];
+			}
+			return o2;
+		}
 		angular.module("App", ["datetime"]).controller("myDate", function($scope, datetime){
 			$scope.myDate = new Date();
 			$scope.createDate = function(){

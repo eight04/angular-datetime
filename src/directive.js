@@ -248,14 +248,15 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 					errorRange.start = 0;
 					errorRange.end = err.match.length;
 				} else {
-					range = getRange(element, parser.nodes, range.node);
 					if (err.code == "SELECT_INCOMPLETE") {
-						viewValue = parser.getText();
 						parser.parseNode(range.node, err.selected);
+						viewValue = parser.getText();
 						range.start = err.match.length;
 						range.end = "end";
 					} else if (err.code == "INCONSISTENT_INPUT") {
 						viewValue = err.properText;
+						range.start++;
+						range.end = range.start;
 					} else {
 						viewValue = parser.getText();
 						range.start = 0;

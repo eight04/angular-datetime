@@ -569,7 +569,6 @@ angular.module("datetime").factory("datetime", function($locale){
 
 		var parser = {
 			parse: function(text) {
-//				console.log("parse " + text);
 				var oldDate = parser.date,
 					date = new Date(oldDate.getTime()),
 					newText;
