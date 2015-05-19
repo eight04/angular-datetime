@@ -10,7 +10,7 @@
     "globals"
   ],
   "main": [
-    "datetime.js"
+    "dist/datetime.js"
   ],
   "keywords": [
     "angular",
