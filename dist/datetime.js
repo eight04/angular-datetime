@@ -2,7 +2,7 @@
 
 angular.module("datetime", []);
 
-angular.module("datetime").factory("datetime", function($locale){
+angular.module("datetime").factory("datetime", ["$locale", function($locale){
 	// Fetch date and time formats from $locale service
 	var formats = $locale.DATETIME_FORMATS;
 	// Valid format tokens. 1=sss, 2=''
@@ -659,9 +659,9 @@ angular.module("datetime").factory("datetime", function($locale){
 	}
 
 	return createParser;
-});
+}]);
 
-angular.module("datetime").directive("datetime", function(datetime, $log){
+angular.module("datetime").directive("datetime", ["datetime", "$log", function(datetime, $log){
 
 	function getInputSelectionIE(input) {
 		var bookmark = document.selection.createRange().getBookmark();
@@ -1074,4 +1074,4 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 		require: "?ngModel",
 		link: linkFunc
 	};
-});
+}]);

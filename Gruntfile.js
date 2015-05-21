@@ -13,16 +13,16 @@ module.exports = function(grunt) {
 				pushTo: "origin"
 			}
 		},
-		concat: {
-			js: {
-				src: ["src/main.js", "src/factory.js", "src/directive.js"],
-				dest: "dist/datetime.js"
-			}
-		},
 		watch: {
 			js: {
 				files: ["src/*.js"],
 				tasks: ["default"]
+			}
+		},
+		ngAnnotate: {
+			js: {
+				src: ["src/main.js", "src/factory.js", "src/directive.js"],
+				dest: "dist/datetime.js"
 			}
 		}
 	});
@@ -31,8 +31,9 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-bump');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-watch');
+	grunt.loadNpmTasks('grunt-ng-annotate');
 
 	// Default task(s).
-	grunt.registerTask('default', ["concat"]);
+	grunt.registerTask('default', ["ngAnnotate"]);
 
 };
