@@ -363,7 +363,7 @@ angular.module("datetime").factory("datetime", function($locale){
 	function setDay(date, day) {
 		// we don't want to change month when changing date
 		var month = date.getMonth(),
-			diff = day - date.getDay();
+			diff = day - (date.getDay() || 7);
 		// move to correct date
 		date.setDate(date.getDate() + diff);
 		// check month
@@ -591,6 +591,7 @@ angular.module("datetime").factory("datetime", function($locale){
 			parse: function(text) {
 				var oldDate = parser.date,
 					date = new Date(oldDate.getTime()),
+					oldText = parser.getText(),
 					newText;
 				try {
 					parseLoop(parser.nodes, text, date);
@@ -601,6 +602,7 @@ angular.module("datetime").factory("datetime", function($locale){
 							code: "INCONSISTENT_INPUT",
 							message: "Successfully parsed but the output text doesn't match the input",
 							text: text,
+							oldText: oldText,
 							properText: newText
 						};
 					}

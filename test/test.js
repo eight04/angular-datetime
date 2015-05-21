@@ -98,6 +98,9 @@ describe("datetime service", function(){
 			parser.parse("Tuesday, May 19, 2015");
 
 			expect(parser.getText()).toEqual("Tuesday, May 19, 2015");
+
+			parser.parse("Sunday, May 17, 2015");
+			parser.parse("Sunday, May 17, 2015");
 		});
 
 	});
