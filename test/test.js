@@ -104,4 +104,27 @@ describe("datetime service", function(){
 		});
 
 	});
+
+	describe("test initial value", function(){
+
+		var datetime, parser, date, $date;
+
+		it("Create parser", function(){
+			angular.mock.module("datetime");
+			angular.mock.inject(function(_datetime_, $filter){
+				datetime = _datetime_;
+				$date = $filter("date");
+			});
+			parser = datetime("fullDate");
+			date = new Date(parser.date.getTime());
+		});
+
+		it("getDate should match current date", function(){
+			expect(parser.getDate().getTime()).toEqual(date.getTime());
+		});
+
+		it("getText", function(){
+			expect(parser.getText()).toEqual($date(date, "fullDate"));
+		});
+	});
 });

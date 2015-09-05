@@ -660,11 +660,13 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				}
 				return text;
 			},
-			date: new Date(),
+			date: null,
 			format: format,
 			nodes: nodes,
 			error: null
 		};
+
+		parser.setDate(new Date());
 
 		return parser;
 	}
