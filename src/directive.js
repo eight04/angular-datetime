@@ -240,7 +240,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 			}
 
 			// Handle empty string
-			if (viewValue === "" && attrs.required === undefined) {
+			if (!viewValue && attrs.required === undefined) {
 				// Reset range
 				range.node = getInitialNode(parser.nodes);
 				range.start = 0;
@@ -294,14 +294,9 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 
 		ngModel.$formatters.push(function(modelValue){
 
-			if (modelValue === null && attrs.required === undefined) {
-				ngModel.$setValidity("datetime", true);
-				return "";
-			}
-
 			if (!modelValue) {
-				ngModel.$setValidity("datetime", false);
-				return undefined;
+				ngModel.$setValidity("datetime", attrs.required === undefined);
+				return "";
 			}
 			ngModel.$setValidity("datetime", true);
 			parser.setDate(modelValue);
@@ -334,7 +329,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 					e.preventDefault();
 
 					// Init value on focus
-					if (ngModel.$viewValue === "") {
+					if (!ngModel.$viewValue) {
 						ngModel.$setViewValue(parser.getText());
 						ngModel.$render();
 						scope.$apply();

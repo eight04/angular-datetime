@@ -18,8 +18,23 @@
 			}
 			return o2;
 		}
-		angular.module("App", ["datetime"]).controller("myDate", function($scope, datetime){
-			$scope.myDate = null;
+		angular.module("App", ["datetime"]).controller("myDate", function($scope, datetime, $locale){
+			$scope.myDate = {
+				demo: new Date,
+				date: null,
+				required: new Date,
+				other: new Date
+			};
+			$scope.formats = function(formats){
+				var swap = [], format, code;
+				for (format in formats) {
+					code = format.charCodeAt(0)
+					if (97 <= code && code <= 122) {
+						swap.push(format);
+					}
+				}
+				return swap;
+			}($locale.DATETIME_FORMATS);
 			$scope.createDate = function(){
 				return new Date();
 			}
@@ -38,61 +53,34 @@
 	<button class="btn-default" ng-click="myDate = createDate()">Set to now</button>
 -->
 	<p>To use the directive, add <code>datetime="date-format"</code> attribute to your input.</p>
-	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" class="form-control">
+	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate.demo" class="form-control">
 	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate"&gt;</code></pre>
 
 	<h3>Localizable formats</h3>
-	<div class="form-group">
-		<label for="medium">Medium</label>
-		<input type="text" datetime="medium" ng-model="myDate" class="form-control" id="medium">
-	</div>
-	<div class="form-group">
-		<label for="short">Short</label>
-		<input type="text" datetime="short" ng-model="myDate" class="form-control" id="short">
-	</div>
-	<div class="form-group">
-		<label for="fullDate">Full Date</label>
-		<input type="text" datetime="fullDate" ng-model="myDate" class="form-control" id="fullDate">
-	</div>
-	<div class="form-group">
-		<label for="longDate">Long Date</label>
-		<input type="text" datetime="longDate" ng-model="myDate" class="form-control" id="longDate">
-	</div>
-	<div class="form-group">
-		<label for="mediumDate">Medium Date</label>
-		<input type="text" datetime="mediumDate" ng-model="myDate" class="form-control" id="mediumDate">
-	</div>
-	<div class="form-group">
-		<label for="shortDate">Short Date</label>
-		<input type="text" datetime="shortDate" ng-model="myDate" class="form-control" id="shortDate">
-	</div>
-	<div class="form-group">
-		<label for="mediumTime">Medium Time</label>
-		<input type="text" datetime="mediumTime" ng-model="myDate" class="form-control" id="mediumTime">
-	</div>
-	<div class="form-group">
-		<label for="shortTime">Short Time</label>
-		<input type="text" datetime="shortTime" ng-model="myDate" class="form-control" id="shortTime">
+	<div class="form-group" ng-repeat="format in formats">
+		<label>
+			{{format}}
+			<input type="text" datetime="{{format}}" class="form-control" ng-model="myDate.date">
+		</label>
 	</div>
 
-	<pre class="code"><code>&lt;input type="text" datetime="medium" ng-model="myDate"&gt;
-&lt;input type="text" datetime="short" ng-model="myDate"&gt;
-&lt;input type="text" datetime="fullDate" ng-model="myDate"&gt;
-&lt;input type="text" datetime="longDate" ng-model="myDate"&gt;
-&lt;input type="text" datetime="mediumDate" ng-model="myDate"&gt;
-&lt;input type="text" datetime="shortDate" ng-model="myDate"&gt;
-&lt;input type="text" datetime="mediumTime" ng-model="myDate"&gt;
-&lt;input type="text" datetime="shortTime" ng-model="myDate"&gt;</code></pre>
+	<h3>Required</h3>
+	<div class="form-group" ng-repeat="format in formats">
+		<label>
+			{{format}}
+			<input type="text" datetime="{{format}}" class="form-control" ng-model="myDate.required" required>
+		</label>
+	</div>
 
 	<h3>Other tests</h3>
 	<div class="form-group">
 		<label for="duplicate-name">Duplicate name test</label>
-		<input type="text" datetime=",sss .sss" ng-model="myDate" class="form-control" id="duplicate-name">
+		<input type="text" datetime=",sss .sss" ng-model="myDate.other" class="form-control" id="duplicate-name">
 	</div>
 	<div class="form-group">
 		<label>
 			MySQL date part
-			<input type="text" class="form-control" datetime="yyyy-MM-dd" ng-model="myDate">
+			<input type="text" class="form-control" datetime="yyyy-MM-dd" ng-model="myDate.other">
 		</label>
 	</div>
 </body>
