@@ -238,6 +238,13 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 			if (!parser) {
 				return undefined;
 			}
+
+			// Handle empty string
+			if (viewValue === "" && attrs.required === undefined) {
+				ngModel.$setValidity("datetime", true);
+				return null;
+			}
+
 			try {
 				parser.parse(viewValue);
 			} catch (err) {
@@ -282,6 +289,12 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 		});
 
 		ngModel.$formatters.push(function(modelValue){
+			
+			if (modelValue === null && attrs.required === undefined) {
+				ngModel.$setValidity("datetime", true);
+				return "";
+			}
+
 			if (!modelValue) {
 				ngModel.$setValidity("datetime", false);
 				return undefined;
