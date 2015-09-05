@@ -21,7 +21,7 @@
 		angular.module("App", ["datetime"]).controller("myDate", function($scope, datetime, $locale){
 			$scope.myDate = {
 				demo: new Date,
-				date: null,
+				date: new Date,
 				required: new Date,
 				other: new Date
 			};
@@ -35,8 +35,17 @@
 				}
 				return swap;
 			}($locale.DATETIME_FORMATS);
-			$scope.createDate = function(){
-				return new Date();
+			$scope.reset = function(){
+				$scope.myDate.demo = new Date;
+				$scope.myDate.date = new Date;
+				$scope.myDate.required = new Date;
+				$scope.myDate.other = new Date;
+			}
+			$scope.clear = function(){
+				$scope.myDate.demo = null;
+				$scope.myDate.date = null;
+				$scope.myDate.required = null;
+				$scope.myDate.other = null;
 			}
 			var parser = datetime("yyyy-MM-dd");
 		});
@@ -48,10 +57,10 @@
 </head>
 <body class="container-sm" ng-controller="myDate">
 	<h2>Angular Datetime <small>Demo Page</small></h2>
-<!--
-	<code>ngModel: {{myDate}}</code>
-	<button class="btn-default" ng-click="myDate = createDate()">Set to now</button>
--->
+	<p>
+		<button class="btn-default" ng-click="reset()">Reset</button>
+		<button class="btn-default" ng-click="clear()">Clear</button>
+	</p>
 	<p>To use the directive, add <code>datetime="date-format"</code> attribute to your input.</p>
 	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate.demo" class="form-control">
 	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate"&gt;</code></pre>

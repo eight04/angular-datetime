@@ -228,7 +228,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 			};
 
 		ngModel.$render = function(){
-			element.val(ngModel.$viewValue);
+			element.val(ngModel.$viewValue || "");
 			if (document.activeElement == element[0]) {
 				selectRange(range);
 			}
