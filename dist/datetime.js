@@ -597,6 +597,15 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 					date = new Date(oldDate.getTime()),
 					oldText = parser.getText(),
 					newText;
+
+				if (!text) {
+					throw {
+						code: "EMPTY",
+						message: "The input is empty",
+						oldText: oldText
+					};
+				}
+
 				try {
 					parseLoop(parser.nodes, text, date);
 					parser.setDate(date);
