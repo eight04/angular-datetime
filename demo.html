@@ -19,7 +19,7 @@
 			return o2;
 		}
 		angular.module("App", ["datetime"]).controller("myDate", function($scope, datetime){
-			$scope.myDate = new Date();
+			$scope.myDate = null;
 			$scope.createDate = function(){
 				return new Date();
 			}
