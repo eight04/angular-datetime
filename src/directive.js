@@ -289,7 +289,25 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 
 			ngModel.$setValidity("datetime", true);
 			// Create new date to make Angular notice the difference.
-			return new Date(parser.getDate().getTime());
+			var date_obj = new Date(parser.getDate().getTime());
+
+			if (attrs.min !== undefined) {
+        if (new Date(attrs.min) > date_obj) {
+          ngModel.$setValidity("min", false);
+          return undefined;
+        } else {
+          ngModel.$setValidity("min", true);
+        }
+      }
+			if (attrs.max !== undefined) {
+        if (new Date(attrs.max) < date_obj) {
+          ngModel.$setValidity("max", false);
+          return undefined;
+        } else {
+          ngModel.$setValidity("max", true);
+        }
+      }
+      return date_obj;
 		});
 
 		ngModel.$formatters.push(function(modelValue){
