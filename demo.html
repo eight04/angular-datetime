@@ -23,7 +23,9 @@
 				demo: new Date,
 				date: new Date,
 				required: new Date,
-				other: new Date
+				other: new Date,
+				min: new Date(2010, 1, 1),
+				max: new Date(2019, 12, 31)
 			};
 			$scope.formats = function(formats){
 				var swap = [], format, code;
@@ -64,6 +66,24 @@
 	<p>To use the directive, add <code>datetime="date-format"</code> attribute to your input.</p>
 	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate.demo" class="form-control">
 	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate"&gt;</code></pre>
+
+	<h3>Min / Max</h3>
+	<p>Validation for min/max date.</p>
+	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate.demo" class="form-control" min="{{myDate.min + ''}}" max="{{myDate.max + ''}}">
+
+	<div class="form-group">
+		<label>
+			Min
+			<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate.min" class="form-control">
+		</label>
+	</div>
+
+	<div class="form-group">
+		<label>
+			Max
+			<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate.max" class="form-control">
+		</label>
+	</div>
 
 	<h3>Localizable formats</h3>
 	<div class="form-group" ng-repeat="format in formats">
