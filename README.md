@@ -80,6 +80,6 @@ Parsing errors
 * TEXT_TOOLONG
 * INCONSISTENT_INPUT
 
-Known Issues
+Known issues
 ------------
 * 2 digit year 'yy' is ambiguous when converting datestring back to date object (Ex. 14 -> 2014, 1914, ...). You should avoid it.
