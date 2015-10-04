@@ -226,12 +226,40 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 				end: 0
 			};
 
+		attrs.$observe("min", function(){
+			validMinMax(parser.getDate());
+		});
+
+		attrs.$observe("max", function(){
+			validMinMax(parser.getDate());
+		})
+
 		ngModel.$render = function(){
 			element.val(ngModel.$viewValue || "");
 			if (document.activeElement == element[0]) {
 				selectRange(range);
 			}
 		};
+
+		function validMinMax(date_obj) {
+			if (attrs.min !== undefined) {
+				if (new Date(attrs.min) > date_obj) {
+					ngModel.$setValidity("min", false);
+					return false;
+				} else {
+					ngModel.$setValidity("min", true);
+				}
+			}
+			if (attrs.max !== undefined) {
+				if (new Date(attrs.max) < date_obj) {
+					ngModel.$setValidity("max", false);
+					return false;
+				} else {
+					ngModel.$setValidity("max", true);
+				}
+			}
+			return true;
+		}
 
 		ngModel.$parsers.push(function(viewValue){
 			if (!parser) {
@@ -289,24 +317,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 			ngModel.$setValidity("datetime", true);
 			// Create new date to make Angular notice the difference.
 			var date_obj = new Date(parser.getDate().getTime());
-
-			if (attrs.min !== undefined) {
-				if (new Date(attrs.min) > date_obj) {
-					ngModel.$setValidity("min", false);
-					return undefined;
-				} else {
-					ngModel.$setValidity("min", true);
-				}
-			}
-			if (attrs.max !== undefined) {
-				if (new Date(attrs.max) < date_obj) {
-					ngModel.$setValidity("max", false);
-					return undefined;
-				} else {
-					ngModel.$setValidity("max", true);
-				}
-			}
-			return date_obj;
+			return validMinMax(date_obj) ? date_obj : undefined;
 		});
 
 		ngModel.$formatters.push(function(modelValue){
