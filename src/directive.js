@@ -123,8 +123,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 		}
 		setInputSelection(range.element, {
 			start: range.start + range.node.offset,
-			end: range.end == "end" ? range.node.offset + range.node.viewValue.length :
-				range.end + range.node.offset
+			end: range.end == "end" ? range.node.offset + range.node.viewValue.length : range.end + range.node.offset
 		});
 	}
 
@@ -292,22 +291,22 @@ angular.module("datetime").directive("datetime", function(datetime, $log){
 			var date_obj = new Date(parser.getDate().getTime());
 
 			if (attrs.min !== undefined) {
-        if (new Date(attrs.min) > date_obj) {
-          ngModel.$setValidity("min", false);
-          return undefined;
-        } else {
-          ngModel.$setValidity("min", true);
-        }
-      }
+				if (new Date(attrs.min) > date_obj) {
+					ngModel.$setValidity("min", false);
+					return undefined;
+				} else {
+					ngModel.$setValidity("min", true);
+				}
+			}
 			if (attrs.max !== undefined) {
-        if (new Date(attrs.max) < date_obj) {
-          ngModel.$setValidity("max", false);
-          return undefined;
-        } else {
-          ngModel.$setValidity("max", true);
-        }
-      }
-      return date_obj;
+				if (new Date(attrs.max) < date_obj) {
+					ngModel.$setValidity("max", false);
+					return undefined;
+				} else {
+					ngModel.$setValidity("max", true);
+				}
+			}
+			return date_obj;
 		});
 
 		ngModel.$formatters.push(function(modelValue){
