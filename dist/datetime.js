@@ -917,6 +917,7 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", function(d
 			}
 		};
 
+		// FIXME: This won't update model value. If the model value is undefined, changing min/max limit doesn't make it become date object. If the model value is date object, changing min/max limit doesn't make it become undefined.
 		function validMinMax(date_obj) {
 			if (attrs.min !== undefined) {
 				if (new Date(attrs.min) > date_obj) {
@@ -991,9 +992,11 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", function(d
 			}
 
 			ngModel.$setValidity("datetime", true);
+
+			validMinMax(parser.getDate());
+
 			// Create new date to make Angular notice the difference.
-			var date_obj = new Date(parser.getDate().getTime());
-			return validMinMax(date_obj) ? date_obj : undefined;
+			return new Date(parser.getDate().getTime());
 		});
 
 		ngModel.$formatters.push(function(modelValue){
