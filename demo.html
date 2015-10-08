@@ -25,7 +25,8 @@
 				required: new Date,
 				other: new Date,
 				min: new Date(2010, 0, 1),
-				max: new Date(2019, 11, 31)
+				max: new Date(2019, 11, 31),
+				model: "2000-01-01 00:00:00"
 			};
 			$scope.formats = function(formats){
 				var swap = [], format, code;
@@ -42,12 +43,14 @@
 				$scope.myDate.date = new Date;
 				$scope.myDate.required = new Date;
 				$scope.myDate.other = new Date;
+				$scope.myDate.model = "2000-01-01 00:00:00";
 			}
 			$scope.clear = function(){
 				$scope.myDate.demo = null;
 				$scope.myDate.date = null;
 				$scope.myDate.required = null;
 				$scope.myDate.other = null;
+				$scope.myDate.model = null;
 			}
 
 			var parser = datetime("Z");
@@ -70,8 +73,9 @@
 	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate"&gt;</code></pre>
 
 	<h3>Min / Max</h3>
-	<p>Validation for min/max date.</p>
-	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate.demo" class="form-control" min="{{myDate.min + ''}}" max="{{myDate.max + ''}}">
+	<p>Validation for min/max date. The min/max attribute will be used to construct the date object.</p>
+	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate.demo" class="form-control" min="{{myDate.min.toISOString()}}" max="{{myDate.max.toISOString()}}">
+	<pre class="code" ng-non-bindable><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" min="Jan 1, 2010" max="Dec 31, 2019"&gt;</code></pre>
 
 	<div class="form-group">
 		<label>
@@ -87,19 +91,21 @@
 		</label>
 	</div>
 
+	<h3>Required</h3>
+	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate.demo" class="form-control" required>
+	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" required&gt;</code></pre>
+
+	<h3>Model format</h3>
+	<p>You need the model value to be a string?</p>
+	<input type="text" class="form-control" datetime="medium" ng-model="myDate.model" datetime-model="yyyy-MM-dd HH:mm:ss">
+	<pre class="output">myDate = {{myDate.model | json}}</pre>
+	<pre class="code"><code>&lt;input type="text" datetime="medium" datetime-model="yyyy-MM-dd HH:mm:ss" ng-model="myDate"&gt;</code></pre>
+
 	<h3>Localizable formats</h3>
 	<div class="form-group" ng-repeat="format in formats">
 		<label>
 			{{format}}
 			<input type="text" datetime="{{format}}" class="form-control" ng-model="myDate.date">
-		</label>
-	</div>
-
-	<h3>Required</h3>
-	<div class="form-group" ng-repeat="format in formats">
-		<label>
-			{{format}}
-			<input type="text" datetime="{{format}}" class="form-control" ng-model="myDate.required" required>
 		</label>
 	</div>
 
