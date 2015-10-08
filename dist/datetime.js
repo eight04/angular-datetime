@@ -900,13 +900,26 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 				end: 0
 			};
 
+		var validMin = function(value) {
+			return ngModel.$isEmpty(value) || angular.isUndefined(attrs.min) || value >= new Date(attrs.min);
+		};
+
+		var validMax = function(value) {
+			return ngModel.$isEmpty(value) || angular.isUndefined(attrs.max) || value <= new Date(attrs.max);
+		};
+
+		if (ngModel.$validators) {
+			ngModel.$validators.min = validMin;
+			ngModel.$validators.max = validMax;
+		}
+
 		attrs.$observe("min", function(){
 			validMinMax(parser.getDate());
 		});
 
 		attrs.$observe("max", function(){
 			validMinMax(parser.getDate());
-		})
+		});
 
 		ngModel.$render = function(){
 			element.val(ngModel.$viewValue || "");
@@ -915,25 +928,14 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 			}
 		};
 
-		// FIXME: This won't update model value. If the model value is undefined, changing min/max limit doesn't make it become date object. If the model value is date object, changing min/max limit doesn't make it become undefined.
-		function validMinMax(date_obj) {
-			if (angular.isDefined(attrs.min)) {
-				if (new Date(attrs.min) > date_obj) {
-					ngModel.$setValidity("min", false);
-					return false;
-				} else {
-					ngModel.$setValidity("min", true);
-				}
+		function validMinMax(date) {
+			if (ngModel.$validate) {
+				ngModel.$validate();
+			} else {
+				ngModel.$setValidity("min", validMin(date));
+				ngModel.$setValidity("max", validMax(date));
 			}
-			if (angular.isDefined(attrs.max)) {
-				if (new Date(attrs.max) < date_obj) {
-					ngModel.$setValidity("max", false);
-					return false;
-				} else {
-					ngModel.$setValidity("max", true);
-				}
-			}
-			return true;
+			return !ngModel.$error.min && !ngModel.$error.max;
 		}
 
 		ngModel.$parsers.push(function(viewValue){
@@ -991,10 +993,12 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 
 			ngModel.$setValidity("datetime", true);
 
-			validMinMax(parser.getDate());
-
-			// Create new date to make Angular notice the difference.
-			return new Date(parser.getDate().getTime());
+			if (ngModel.$validate || validMinMax(parser.getDate())) {
+				// Create new date to make Angular notice the difference.
+				return new Date(parser.getDate().getTime());
+			} else {
+				return undefined;
+			}
 		});
 
 		ngModel.$formatters.push(function(modelValue){
