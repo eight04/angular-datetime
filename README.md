@@ -2,6 +2,13 @@ angular-datetime
 ================
 This module includes a datetime directive and a parser service.
 
+From 1.x to 2.0
+---------------
+* Add `min`, `max`, `datetime-model` directive. Check demo for detail.
+* Support `$validators` in angular 1.3.x.
+* Update Eslint to 1.x.
+* Fix timezone token `Z`.
+
 From 0.x to 1.0
 ---------------
 * Added Karma test.
@@ -79,12 +86,6 @@ Parsing errors
 * REGEX_MISMATCH
 * TEXT_TOOLONG
 * INCONSISTENT_INPUT
-
-Todos
------
-* Support `Z` token (timezone).
-* Support `datetime-model=DATE_FORMAT` directive. Automatically convert date object into string with DATE_FORMAT.
-	- If multiple inputs refer to same model. Their `datetime-model` need to be the same.
 
 Known issues
 ------------
