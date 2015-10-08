@@ -4,7 +4,7 @@ This module includes a datetime directive and a parser service.
 
 From 1.x to 2.0
 ---------------
-* Add `min`, `max`, `datetime-model` directive. Check demo for detail.
+* Add `min`, `max`, `datetime-model` directive.
 * Support `$validators` in angular 1.3.x.
 * Update Eslint to 1.x.
 * Fix timezone token `Z`.
@@ -42,7 +42,7 @@ Bower:
 
 Usage examples
 --------------
-### datetime service ###
+### datetime service
 ```Javascript
 // Setup dependency
 angular.module("myApp", ["datetime"]);
@@ -71,9 +71,12 @@ angular.controller("myController", function(datetime){
 	}
 });
 ```
-### datetime directive ###
-```
+### datetime directive
+Check demo page for live example.
+```HTML
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate">
+<input type="text" datetime="yyyy-MM-dd" ng-model="myDate" min="Jan 1, 1990" max="Dec 31, 2050">
+<input type="text" datetime="yyyy-MM-dd" ng-model="myDate" datetime-model="yyyy-MM-ddTHH:mm:ss">
 ```
 
 Parsing errors
