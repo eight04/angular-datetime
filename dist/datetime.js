@@ -345,6 +345,9 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			case "week":
 				node.value = getWeek(date);
 				break;
+			case "timezone":
+				node.value = (date.getTimezoneOffset() > 0 ? "-" : "+") + num2str(Math.abs(date.getTimezoneOffset() / 60), 2, 2) + "00";
+				break;
 		}
 
 		if (node.value < 0) {
