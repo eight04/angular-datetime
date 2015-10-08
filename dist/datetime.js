@@ -886,7 +886,8 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 	}
 
 	function linkFunc(scope, element, attrs, ngModel) {
-		var parser = datetime(attrs.datetime),	// Create the parser
+		var parser = datetime(attrs.datetime),
+			modelParser = attrs.datetimeModel && datetime(attrs.datetimModel),
 			range = {
 				element: element,
 				node: getInitialNode(parser.nodes),
@@ -939,10 +940,6 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 		}
 
 		ngModel.$parsers.push(function(viewValue){
-			if (!parser) {
-				return undefined;
-			}
-
 			// Handle empty string
 			if (!viewValue && angular.isUndefined(attrs.required)) {
 				// Reset range
@@ -994,11 +991,15 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 			ngModel.$setValidity("datetime", true);
 
 			if (ngModel.$validate || validMinMax(parser.getDate())) {
-				// Create new date to make Angular notice the difference.
-				return new Date(parser.getDate().getTime());
-			} else {
-				return undefined;
+				if (modelParser) {
+					return modelParser.setDate(parser.getDate()).getText();
+				} else {
+					// Create new date to make Angular notice the difference.
+					return new Date(parser.getDate().getTime());
+				}
 			}
+
+			return undefined;
 		});
 
 		ngModel.$formatters.push(function(modelValue){
@@ -1007,9 +1008,14 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 				ngModel.$setValidity("datetime", angular.isUndefined(attrs.required));
 				return "";
 			}
+
 			ngModel.$setValidity("datetime", true);
-			parser.setDate(modelValue);
-			return parser.getText();
+
+			if (modelParser) {
+				modelValue = modelParser.setText(modelValue).getDate();
+			}
+
+			return parser.setDate(modelValue).getText();
 		});
 
 		function addNodeValue(node, diff) {
