@@ -80,6 +80,11 @@ Parsing errors
 * TEXT_TOOLONG
 * INCONSISTENT_INPUT
 
+Todos
+-----
+* Support `Z` token (timezone).
+* Support `datetime-model=DATE_FORMAT` directive. Automatically convert date object into string with DATE_FORMAT.
+
 Known issues
 ------------
 * 2 digit year 'yy' is ambiguous when converting datestring back to date object (Ex. 14 -> 2014, 1914, ...). You should avoid it.
