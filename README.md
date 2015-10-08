@@ -84,6 +84,7 @@ Todos
 -----
 * Support `Z` token (timezone).
 * Support `datetime-model=DATE_FORMAT` directive. Automatically convert date object into string with DATE_FORMAT.
+	- If multiple inputs refer to same model. Their `datetime-model` need to be the same.
 
 Known issues
 ------------
