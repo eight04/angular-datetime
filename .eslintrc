@@ -4,7 +4,8 @@
 	},
 	"rules": {
 		"no-use-before-define": [2, "nofunc"],
-		"quotes": [2, "double", "avoid-escape"]
+		"quotes": [2, "double", "avoid-escape"],
+		"angular/timeout-service": 0
 	},
 	"extends": [
 		"eslint:recommended",

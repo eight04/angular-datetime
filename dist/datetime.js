@@ -1,5 +1,3 @@
-"use strict";
-
 angular.module("datetime", []);
 
 angular.module("datetime").factory("datetime", ["$locale", function($locale){
@@ -225,15 +223,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			pos = 0,
 			match;
 
-		while (true) {
-			match = tokenRE.exec(format);
-
-			if (!match) {
-				if (pos < format.length) {
-					nodes.push(createNode("string", format.substring(pos)));
-				}
-				break;
-			}
+		while ((match = tokenRE.exec(format))) {
 
 			if (match.index > pos) {
 				nodes.push(createNode("string", format.substring(pos, match.index)));
@@ -251,6 +241,10 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				}
 				pos = tokenRE.lastIndex;
 			}
+		}
+
+		if (pos < format.length) {
+			nodes.push(createNode("string", format.substring(pos)));
 		}
 
 		// Build relationship between nodes
@@ -456,7 +450,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				if (text.lastIndexOf(p.value, pos) != pos) {
 					throw {
 						code: "TEXT_MISMATCH",
-						message: 'Pattern value mismatch',
+						message: "Pattern value mismatch",
 						text: text,
 						node: p,
 						pos: pos
@@ -677,10 +671,11 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 	return createParser;
 }]);
 
-angular.module("datetime").directive("datetime", ["datetime", "$log", function(datetime, $log){
+angular.module("datetime").directive("datetime", ["datetime", "$log", "$document", function(datetime, $log, $document){
+	var doc = $document[0];
 
 	function getInputSelectionIE(input) {
-		var bookmark = document.selection.createRange().getBookmark();
+		var bookmark = doc.selection.createRange().getBookmark();
 		var range = input.createTextRange();
 		var range2 = range.duplicate();
 
@@ -705,7 +700,7 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", function(d
 			};
 		}
 
-		if (document.selection) {
+		if (doc.selection) {
 			return getInputSelectionIE(input);
 		}
 	}
@@ -915,14 +910,14 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", function(d
 
 		ngModel.$render = function(){
 			element.val(ngModel.$viewValue || "");
-			if (document.activeElement == element[0]) {
+			if (doc.activeElement == element[0]) {
 				selectRange(range);
 			}
 		};
 
 		// FIXME: This won't update model value. If the model value is undefined, changing min/max limit doesn't make it become date object. If the model value is date object, changing min/max limit doesn't make it become undefined.
 		function validMinMax(date_obj) {
-			if (attrs.min !== undefined) {
+			if (angular.isDefined(attrs.min)) {
 				if (new Date(attrs.min) > date_obj) {
 					ngModel.$setValidity("min", false);
 					return false;
@@ -930,7 +925,7 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", function(d
 					ngModel.$setValidity("min", true);
 				}
 			}
-			if (attrs.max !== undefined) {
+			if (angular.isDefined(attrs.max)) {
 				if (new Date(attrs.max) < date_obj) {
 					ngModel.$setValidity("max", false);
 					return false;
@@ -947,7 +942,7 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", function(d
 			}
 
 			// Handle empty string
-			if (!viewValue && attrs.required === undefined) {
+			if (!viewValue && angular.isUndefined(attrs.required)) {
 				// Reset range
 				range.node = getInitialNode(parser.nodes);
 				range.start = 0;
@@ -1005,7 +1000,7 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", function(d
 		ngModel.$formatters.push(function(modelValue){
 
 			if (!modelValue) {
-				ngModel.$setValidity("datetime", attrs.required === undefined);
+				ngModel.$setValidity("datetime", angular.isUndefined(attrs.required));
 				return "";
 			}
 			ngModel.$setValidity("datetime", true);

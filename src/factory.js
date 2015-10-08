@@ -221,15 +221,7 @@ angular.module("datetime").factory("datetime", function($locale){
 			pos = 0,
 			match;
 
-		while (true) {
-			match = tokenRE.exec(format);
-
-			if (!match) {
-				if (pos < format.length) {
-					nodes.push(createNode("string", format.substring(pos)));
-				}
-				break;
-			}
+		while ((match = tokenRE.exec(format))) {
 
 			if (match.index > pos) {
 				nodes.push(createNode("string", format.substring(pos, match.index)));
@@ -247,6 +239,10 @@ angular.module("datetime").factory("datetime", function($locale){
 				}
 				pos = tokenRE.lastIndex;
 			}
+		}
+
+		if (pos < format.length) {
+			nodes.push(createNode("string", format.substring(pos)));
 		}
 
 		// Build relationship between nodes
@@ -452,7 +448,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				if (text.lastIndexOf(p.value, pos) != pos) {
 					throw {
 						code: "TEXT_MISMATCH",
-						message: 'Pattern value mismatch',
+						message: "Pattern value mismatch",
 						text: text,
 						node: p,
 						pos: pos
