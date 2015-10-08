@@ -214,7 +214,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 
 	function linkFunc(scope, element, attrs, ngModel) {
 		var parser = datetime(attrs.datetime),
-			modelParser = attrs.datetimeModel && datetime(attrs.datetimModel),
+			modelParser = attrs.datetimeModel && datetime(attrs.datetimeModel),
 			range = {
 				element: element,
 				node: getInitialNode(parser.nodes),
@@ -339,7 +339,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 			ngModel.$setValidity("datetime", true);
 
 			if (modelParser) {
-				modelValue = modelParser.setText(modelValue).getDate();
+				modelValue = modelParser.parse(modelValue).getDate();
 			}
 
 			return parser.setDate(modelValue).getText();
