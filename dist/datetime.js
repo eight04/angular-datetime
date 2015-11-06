@@ -650,6 +650,24 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			getDate: function(){
 				return parser.date;
 			},
+            // method added to get local date string
+            getLocalDate: function () {
+                var now = parser.date,
+                tzo = -now.getTimezoneOffset(),
+                dif = tzo >= 0 ? '+' : '-',
+                pad = function (num) {
+                    var norm = Math.abs(Math.floor(num));
+                    return (norm < 10 ? '0' : '') + norm;
+                };
+                        return now.getFullYear()
+                            + '-' + pad(now.getMonth() + 1)
+                            + '-' + pad(now.getDate())
+                            + 'T' + pad(now.getHours())
+                            + ':' + pad(now.getMinutes())
+                            + ':' + pad(now.getSeconds())
+                            + dif + pad(tzo / 60)
+                            + ':' + pad(tzo % 60);
+            },			
 			getText: function(){
 				var i, text = "";
 				for (i = 0; i < parser.nodes.length; i++) {
