@@ -648,9 +648,9 @@ angular.module("datetime").factory("datetime", function($locale){
 			getDate: function(){
 				return parser.date;
 			},
-            getLocalDate: function () {
+            getLocalDate: function (offset) {
                 var now = parser.date,
-                tzo = -now.getTimezoneOffset(),
+                tzo = (-offset)  || (-now.getTimezoneOffset()),
                 dif = tzo >= 0 ? '+' : '-',
                 pad = function (num) {
                     var norm = Math.abs(Math.floor(num));
