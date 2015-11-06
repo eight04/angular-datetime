@@ -648,6 +648,23 @@ angular.module("datetime").factory("datetime", function($locale){
 			getDate: function(){
 				return parser.date;
 			},
+            getLocalDate: function (offset) {
+                var now = parser.date,
+                tzo = (-offset)  || (-now.getTimezoneOffset()),
+                dif = tzo >= 0 ? '+' : '-',
+                pad = function (num) {
+                    var norm = Math.abs(Math.floor(num));
+                    return (norm < 10 ? '0' : '') + norm;
+                };
+                        return now.getFullYear()
+                            + '-' + pad(now.getMonth() + 1)
+                            + '-' + pad(now.getDate())
+                            + 'T' + pad(now.getHours())
+                            + ':' + pad(now.getMinutes())
+                            + ':' + pad(now.getSeconds())
+                            + dif + pad(tzo / 60)
+                            + ':' + pad(tzo % 60);
+            },
 			getText: function(){
 				var i, text = "";
 				for (i = 0; i < parser.nodes.length; i++) {
