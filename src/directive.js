@@ -320,7 +320,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 			if (ngModel.$validate || validMinMax(parser.getDate())) {
 				var date = parser.getDate();
 
-				if (attrs.useUtc !== undefined) {
+				if (attrs.datetimeUtc !== undefined) {
 					date = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000)
 				}
 
@@ -348,7 +348,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				modelValue = modelParser.parse(modelValue).getDate();
 			}
 
-			if (attrs.useUtc !== undefined) {
+			if (attrs.datetimeUtc !== undefined) {
 				modelValue = new Date(modelValue.getTime() + modelValue.getTimezoneOffset() * 60 * 1000);
 			}
 

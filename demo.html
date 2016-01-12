@@ -85,10 +85,10 @@
 	<pre class="output">myDate = {{myDateString | json}}</pre>
 	<pre class="code"><code>&lt;input type="text" datetime="medium" datetime-model="yyyy-MM-dd HH:mm:ss" ng-model="myDateString"&gt;</code></pre>
 
-	<h3>Show UTC</h3>
-	<p>By the default, angular-datetime will format view value in local timezone. Add <code>use-utc</code> attribute to show UTC time to users.</p>
-	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" class="form-control" use-utc>
-	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" use-utc&gt;</code></pre>
+	<h3>Show UTC time</h3>
+	<p>By the default, angular-datetime will format view value in local timezone. Add <code>datetime-utc</code> attribute to show UTC time to users.</p>
+	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" class="form-control" datetime-utc>
+	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" datetime-utc&gt;</code></pre>
 
 	<h3>Localizable formats</h3>
 	<p>The parser supports localizable formats in angular.</p>
