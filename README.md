@@ -94,7 +94,13 @@ Known issues
 ------------
 * 2 digit year 'yy' is ambiguous when converting datestring back to date object (Ex. 14 -> 2014, 1914, ...). You should avoid it.
 
+Todos
+-----
+* Errors throwed by angular-datetime should have its own type.
+
 Changelog
 ---------
-* Version 2.0.1 (Jan 1, 2016)
+* Version 2.1.0 (Jan 12, 2016):
+	- Add `datetime-utc` option.
+* Version 2.0.1 (Jan 1, 2016):
 	- Add MIT License
