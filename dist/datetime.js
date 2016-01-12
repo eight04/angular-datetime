@@ -991,11 +991,17 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 			ngModel.$setValidity("datetime", true);
 
 			if (ngModel.$validate || validMinMax(parser.getDate())) {
+				var date = parser.getDate();
+
+				if (attrs.useUtc) {
+					date = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000)
+				}
+
 				if (modelParser) {
-					return modelParser.setDate(parser.getDate()).getText();
+					return modelParser.setDate(date).getText();
 				} else {
 					// Create new date to make Angular notice the difference.
-					return new Date(parser.getDate().getTime());
+					return new Date(date.getTime());
 				}
 			}
 
@@ -1013,6 +1019,10 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 
 			if (modelParser) {
 				modelValue = modelParser.parse(modelValue).getDate();
+			}
+
+			if (attrs.useUtc) {
+				modelValue = new Date(modelValue.getTime() + modelValue.getTimezoneOffset() * 60 * 1000);
 			}
 
 			return parser.setDate(modelValue).getText();
