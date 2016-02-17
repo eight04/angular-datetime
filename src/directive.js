@@ -284,12 +284,20 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 
 				ngModel.$setValidity("datetime", false);
 
-				if (err.code == "NUMBER_TOOSHORT") {
+				if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL") {
 					errorRange.node = err.node;
 					errorRange.start = 0;
 					errorRange.end = err.match.length;
 				} else {
-					if (err.code == "SELECT_INCOMPLETE") {
+					if (err.code == "LEADING_ZERO") {
+						viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
+						if (err.match.length >= err.node.token.maxLength) {
+							selectRange(range, "next");
+						} else {
+							range.start += err.properValue.length - err.match.length + 1;
+							range.end = range.start;
+						}
+					} else if (err.code == "SELECT_INCOMPLETE") {
 						parser.parseNode(range.node, err.selected);
 						viewValue = parser.getText();
 						range.start = err.match.length;
@@ -298,6 +306,10 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 						viewValue = err.properText;
 						range.start++;
 						range.end = range.start;
+					// } else if (err.code == "NUMBER_TOOLARGE") {
+						// viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
+						// range.start = 0;
+						// range.end = "end";
 					} else {
 						viewValue = parser.getText();
 						range.start = 0;

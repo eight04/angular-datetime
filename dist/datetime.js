@@ -199,7 +199,6 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			s.push(days[i]);
 		}
 		s.push(days[0]);
-//		console.log(s);
 		return s;
 	}
 
@@ -481,9 +480,44 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 					};
 				}
 
+				if (value.length > p.token.minLength && value[0] == "0") {
+					throw {
+						code: "LEADING_ZERO",
+						message: "The number has too many leading zero",
+						text: text,
+						node: p,
+						pos: pos,
+						match: value,
+						properValue: num2str(+value, p.token.minLength, p.token.maxLength)
+					};
+				}
+
 				if (value.length > p.token.maxLength) {
 					value = value.substr(0, p.token.maxLength);
 				}
+
+				if (+value < p.token.min) {
+					throw {
+						code: "NUMBER_TOOSMALL",
+						message: "The number is too small",
+						text: text,
+						node: p,
+						pos: pos,
+						match: value
+					};
+				}
+
+				// if (+value > p.token.max) {
+					// throw {
+						// code: "NUMBER_TOOLARGE",
+						// message: "The number is too large",
+						// text: text,
+						// node: p,
+						// pos: pos,
+						// match: value,
+						// properValue: num2str(p.token.max, p.token.minLength, p.token.maxLength)
+					// };
+				// }
 
 				p.value = +value;
 				p.viewValue = value;
@@ -559,7 +593,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 					setDate(date, nodes[i].value, nodes[i].token);
 				}
 			} catch (err) {
-				if (err.code == "NUMBER_TOOSHORT") {
+				if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL" || err.code == "LEADING_ZERO") {
 					errorBuff = err;
 					pos += err.match.length;
 				} else {
@@ -957,12 +991,20 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 
 				ngModel.$setValidity("datetime", false);
 
-				if (err.code == "NUMBER_TOOSHORT") {
+				if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL") {
 					errorRange.node = err.node;
 					errorRange.start = 0;
 					errorRange.end = err.match.length;
 				} else {
-					if (err.code == "SELECT_INCOMPLETE") {
+					if (err.code == "LEADING_ZERO") {
+						viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
+						if (err.match.length >= err.node.token.maxLength) {
+							selectRange(range, "next");
+						} else {
+							range.start += err.properValue.length - err.match.length + 1;
+							range.end = range.start;
+						}
+					} else if (err.code == "SELECT_INCOMPLETE") {
 						parser.parseNode(range.node, err.selected);
 						viewValue = parser.getText();
 						range.start = err.match.length;
@@ -971,6 +1013,10 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 						viewValue = err.properText;
 						range.start++;
 						range.end = range.start;
+					// } else if (err.code == "NUMBER_TOOLARGE") {
+						// viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
+						// range.start = 0;
+						// range.end = "end";
 					} else {
 						viewValue = parser.getText();
 						range.start = 0;

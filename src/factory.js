@@ -197,7 +197,6 @@ angular.module("datetime").factory("datetime", function($locale){
 			s.push(days[i]);
 		}
 		s.push(days[0]);
-//		console.log(s);
 		return s;
 	}
 
@@ -479,9 +478,44 @@ angular.module("datetime").factory("datetime", function($locale){
 					};
 				}
 
+				if (value.length > p.token.minLength && value[0] == "0") {
+					throw {
+						code: "LEADING_ZERO",
+						message: "The number has too many leading zero",
+						text: text,
+						node: p,
+						pos: pos,
+						match: value,
+						properValue: num2str(+value, p.token.minLength, p.token.maxLength)
+					};
+				}
+
 				if (value.length > p.token.maxLength) {
 					value = value.substr(0, p.token.maxLength);
 				}
+
+				if (+value < p.token.min) {
+					throw {
+						code: "NUMBER_TOOSMALL",
+						message: "The number is too small",
+						text: text,
+						node: p,
+						pos: pos,
+						match: value
+					};
+				}
+
+				// if (+value > p.token.max) {
+					// throw {
+						// code: "NUMBER_TOOLARGE",
+						// message: "The number is too large",
+						// text: text,
+						// node: p,
+						// pos: pos,
+						// match: value,
+						// properValue: num2str(p.token.max, p.token.minLength, p.token.maxLength)
+					// };
+				// }
 
 				p.value = +value;
 				p.viewValue = value;
@@ -557,7 +591,7 @@ angular.module("datetime").factory("datetime", function($locale){
 					setDate(date, nodes[i].value, nodes[i].token);
 				}
 			} catch (err) {
-				if (err.code == "NUMBER_TOOSHORT") {
+				if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL" || err.code == "LEADING_ZERO") {
 					errorBuff = err;
 					pos += err.match.length;
 				} else {
