@@ -17,6 +17,9 @@ module.exports = function(grunt) {
 			js: {
 				files: ["src/*.js"],
 				tasks: ["default"]
+			},
+			grunt: {
+				files: ["Gruntfile.js"]
 			}
 		},
 		ngAnnotate: {
@@ -24,6 +27,9 @@ module.exports = function(grunt) {
 				src: ["src/main.js", "src/factory.js", "src/directive.js"],
 				dest: "dist/datetime.js"
 			}
+		},
+		eslint: {
+			target: ["src/*.js"]
 		}
 	});
 
@@ -32,8 +38,9 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks("grunt-contrib-concat");
 	grunt.loadNpmTasks("grunt-contrib-watch");
 	grunt.loadNpmTasks("grunt-ng-annotate");
+	grunt.loadNpmTasks("grunt-eslint");
 
 	// Default task(s).
-	grunt.registerTask("default", ["ngAnnotate"]);
+	grunt.registerTask("default", ["eslint", "ngAnnotate"]);
 
 };
