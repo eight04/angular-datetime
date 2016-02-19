@@ -55,9 +55,14 @@
 	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" class="form-control">
 	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate"&gt;</code></pre>
 
+	<h3>Default value</h3>
+	<p>The initial value of the date. Try to focus this field after clearing.</p>
+	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" class="form-control" default="Jan 1, 2000">
+	<pre class="code" ng-non-bindable><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" class="form-control" default="Jan 1, 2000"></code></pre>
+
 	<h3>Min / Max</h3>
 	<p>Validation for min/max date. The min/max attribute will be used to construct the date object.</p>
-	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" class="form-control" min="{{min.toISOString()}}" max="{{max.toISOString()}}">
+	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" class="form-control" min="{{min.toUTCString()}}" max="{{max.toUTCString()}}">
 	<pre class="code" ng-non-bindable><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" min="Jan 1, 2010" max="Dec 31, 2019"&gt;</code></pre>
 
 	<div class="form-group">

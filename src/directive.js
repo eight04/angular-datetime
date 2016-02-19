@@ -332,8 +332,8 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 			if (ngModel.$validate || validMinMax(parser.getDate())) {
 				var date = parser.getDate();
 
-				if (attrs.datetimeUtc !== undefined) {
-					date = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000)
+				if (angular.isDefined(attrs.datetimeUtc)) {
+					date = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000);
 				}
 
 				if (modelParser) {
@@ -360,7 +360,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				modelValue = modelParser.parse(modelValue).getDate();
 			}
 
-			if (attrs.datetimeUtc !== undefined) {
+			if (angular.isDefined(attrs.datetimeUtc)) {
 				modelValue = new Date(modelValue.getTime() + modelValue.getTimezoneOffset() * 60 * 1000);
 			}
 
@@ -394,6 +394,9 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 
 					// Init value on focus
 					if (!ngModel.$viewValue) {
+						if (angular.isDefined(attrs["default"])) {
+							parser.setDate(new Date(attrs["default"]));
+						}
 						ngModel.$setViewValue(parser.getText());
 						ngModel.$render();
 						scope.$apply();
