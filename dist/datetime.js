@@ -991,7 +991,7 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 
 				ngModel.$setValidity("datetime", false);
 
-				if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL") {
+				if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL" && err.match.length < err.node.token.maxLength) {
 					errorRange.node = err.node;
 					errorRange.start = 0;
 					errorRange.end = err.match.length;
