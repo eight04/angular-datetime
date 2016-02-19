@@ -478,18 +478,6 @@ angular.module("datetime").factory("datetime", function($locale){
 					};
 				}
 
-				if (value.length > p.token.minLength && value[0] == "0") {
-					throw {
-						code: "LEADING_ZERO",
-						message: "The number has too many leading zero",
-						text: text,
-						node: p,
-						pos: pos,
-						match: value,
-						properValue: num2str(+value, p.token.minLength, p.token.maxLength)
-					};
-				}
-
 				if (value.length > p.token.maxLength) {
 					value = value.substr(0, p.token.maxLength);
 				}
@@ -502,6 +490,18 @@ angular.module("datetime").factory("datetime", function($locale){
 						node: p,
 						pos: pos,
 						match: value
+					};
+				}
+
+				if (value.length > p.token.minLength && value[0] == "0") {
+					throw {
+						code: "LEADING_ZERO",
+						message: "The number has too many leading zero",
+						text: text,
+						node: p,
+						pos: pos,
+						match: value,
+						properValue: num2str(+value, p.token.minLength, p.token.maxLength)
 					};
 				}
 
