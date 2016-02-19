@@ -6,7 +6,8 @@
 		"no-use-before-define": [2, "nofunc"],
 		"quotes": [2, "double", "avoid-escape"],
 		"angular/timeout-service": 0,
-		"semi": [2, "always"]
+		"semi": [2, "always"],
+		"dot-notation": [2, {"allowKeywords": false}]
 	},
 	"extends": [
 		"eslint:recommended",
