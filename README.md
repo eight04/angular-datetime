@@ -75,8 +75,10 @@ angular.controller("myController", function(datetime){
 Check demo page for live example.
 ```HTML
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate">
+<input type="text" datetime="yyyy-MM-dd" ng-model="myDate" required>
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" min="Jan 1, 1990" max="Dec 31, 2050">
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" datetime-model="yyyy-MM-ddTHH:mm:ss">
+<input type="text" datetime="yyyy-MM-dd" ng-model="myDate" default="Jan 1, 2000">
 ```
 
 Parsing errors
@@ -84,6 +86,8 @@ Parsing errors
 * TEXT_MISMATCH
 * NUMBER_MISMATCH
 * NUMBER_TOOSHORT
+* NUMBER_TOOSMALL
+* LEADING_ZERO
 * SELECT_MISMATCH
 * SELECT_INCOMPLETE
 * REGEX_MISMATCH
@@ -102,7 +106,11 @@ Todos
 
 Changelog
 ---------
-* Version 2.1.0 (Jan 12, 2016):
+* 2.2.0 (Feb 23, 2016)
+	- Add new error type "LEADING_ZERO", "NUMBER_TOOSMALL".
+	- Use the behavior introduced in #18.
+	- Add `default` attribute.
+* 2.1.0 (Jan 12, 2016)
 	- Add `datetime-utc` option.
-* Version 2.0.1 (Jan 1, 2016):
+* 2.0.1 (Jan 1, 2016)
 	- Add MIT License
