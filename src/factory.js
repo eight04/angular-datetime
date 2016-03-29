@@ -557,7 +557,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				break;
 
 			case "regex":
-				m = p.regex.exec(text.substr(pos));
+				m = node.token.regex.exec(text.substr(pos));
 				if (!m || m.index != 0) {
 					throw {
 						code: "REGEX_MISMATCH",
