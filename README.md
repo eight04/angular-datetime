@@ -106,6 +106,8 @@ Todos
 
 Changelog
 ---------
+* 2.2.1 (Mar 31, 2016)
+	- Fix reference error with "Z" token. See [#20](https://github.com/eight04/angular-datetime/pull/20)
 * 2.2.0 (Feb 23, 2016)
 	- Add new error type "LEADING_ZERO", "NUMBER_TOOSMALL".
 	- Use the behavior introduced in #18.
