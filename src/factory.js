@@ -182,7 +182,7 @@ angular.module("datetime").factory("datetime", function($locale){
 		"Z": {
 			name: "timezone",
 			type: "regex",
-			regex: /[+-]\d{4}/
+			regex: /[+-]\d{2}:?\d{2}/
 		},
 		"string": {
 			name: "string",
@@ -337,7 +337,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				node.value = getWeek(date);
 				break;
 			case "timezone":
-				node.value = (date.getTimezoneOffset() > 0 ? "-" : "+") + num2str(Math.abs(date.getTimezoneOffset() / 60), 2, 2) + "00";
+				node.value = (date.getTimezoneOffset() > 0 ? "-" : "+") + num2str(Math.abs(date.getTimezoneOffset() / 60), 2, 2) + ":00";
 				break;
 		}
 
