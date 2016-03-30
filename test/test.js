@@ -11,14 +11,16 @@ var formats = [
 	"mediumTime",
 	"shortTime",
 	",sss .sss",
-	"yyyy-MM-dd"
+	"yyyy-MM-dd",
+	"Z"
 ];
 
 describe("datetime service", function(){
 
 	angular.forEach(formats, function(format){
 		describe("Format: " + format, function(){
-			var datetime, $date, parser, date, viewValue, modelValue;
+			var datetime, $date, parser, date, viewValue, modelValue,
+				$rootScope, element;
 
 			beforeEach(angular.mock.module("datetime"));
 
@@ -27,6 +29,11 @@ describe("datetime service", function(){
 				$date = $filter("date");
 			}));
 
+			beforeEach(angular.mock.inject(function($compile, _$rootScope_){
+				$rootScope = _$rootScope_;
+				element = $compile("<input type='text' datetime='{{format}}' ng-model='date'>")($rootScope);
+			}));
+			
 			it("test viewValue", function(){
 				parser = datetime(format);
 				date = new Date();
@@ -126,5 +133,40 @@ describe("datetime service", function(){
 		it("getText", function(){
 			expect(parser.getText()).toEqual($date(date, "fullDate"));
 		});
+	});
+});
+
+describe("datetime directive", function(){
+	var $rootScope, $date, $compile;
+	
+	beforeEach(angular.mock.module("datetime"));
+	
+	beforeEach(angular.mock.inject(function(_$compile_, _$rootScope_, $filter){
+		$rootScope = _$rootScope_;
+		$date = $filter("date");
+		$compile = _$compile_;
+	}));
+	
+	angular.forEach(formats, function(format){
+		it(format, function(){
+			$rootScope.format = format;
+			$rootScope.date = new Date;
+			
+			var element = $compile("<input type='text' datetime='{{format}}' ng-model='date'>")($rootScope);
+			
+			$rootScope.$digest();
+			
+			expect(element.val()).toEqual($date($rootScope.date, format));
+		});
+	});
+	
+	it("timezone and utc", function(){
+		$rootScope.date = new Date;
+		
+		var element = $compile("<input type='text' datetime='Z' ng-model='date' datetime-utc>")($rootScope);
+		
+		$rootScope.$digest();
+		
+		expect(element.val()).toEqual("+0000");
 	});
 });
