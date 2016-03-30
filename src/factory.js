@@ -613,7 +613,26 @@ angular.module("datetime").factory("datetime", function($locale){
 			throw errorBuff;
 		}
 	}
+	
+	function offsetDate(date, timezone) {
+		var hour = +timezone.substr(1, 2),
+			min = +timezone.substr(3, 2),
+			sig = (timezone[0] + "1"),
+			offset = (hour * 60 + min) * sig;
+			
+		return new Date(date.getTime() + (offset - -date.getTimezoneOffset()) * 60 * 1000);
+	}
 
+	function updateText(parser, date){
+		var i, node;
+		for (i = 0; i < parser.nodes.length; i++) {
+			node = parser.nodes[i];
+
+			setText(node, date, node.token);
+		}
+		calcOffset(parser.nodes);
+	}
+	
 	function createParser(format) {
 
 		format = getFormat(format);
@@ -669,20 +688,16 @@ angular.module("datetime").factory("datetime", function($locale){
 			},
 			setDate: function(date){
 				parser.date = date;
-
-				var i, node;
-				for (i = 0; i < parser.nodes.length; i++) {
-					node = parser.nodes[i];
-
-					setText(node, date, node.token);
-				}
-				calcOffset(parser.nodes);
+				updateText(parser, date);				
 				return parser;
 			},
 			getDate: function(){
 				return parser.date;
 			},
-			getText: function(){
+			getText: function(timezone){
+				if (timezone) {
+					updateText(parser, offsetDate(parser.date, timezone));
+				}
 				var i, text = "";
 				for (i = 0; i < parser.nodes.length; i++) {
 					text += parser.nodes[i].viewValue;
