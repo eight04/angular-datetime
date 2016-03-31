@@ -614,6 +614,15 @@ angular.module("datetime").factory("datetime", function($locale){
 		}
 	}
 	
+	function deOffsetDate(date, timezone) {
+		var hour = +timezone.substr(1, 2),
+			min = +timezone.substr(3, 2),
+			sig = (timezone[0] + "1"),
+			offset = (hour * 60 + min) * sig;
+		
+		return new Date(date.getTime() + (-date.getTimezoneOffset() - offset) * 60 * 1000);
+	}
+	
 	function offsetDate(date, timezone) {
 		var hour = +timezone.substr(1, 2),
 			min = +timezone.substr(3, 2),
@@ -683,7 +692,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				// de-offset and save to model
 				parser.date = date;
 				if (parser.timezone) {
-					parser.model = deOffsetDate(date, timezone);
+					parser.model = deOffsetDate(date, parser.timezone);
 				} else {
 					parser.model = new Date(date.getTime());
 				}
@@ -727,7 +736,7 @@ angular.module("datetime").factory("datetime", function($locale){
 			},
 			setTimezone: function(timezone){
 				parser.timezone = timezone;
-			}
+			},
 			date: null,
 			model: null,
 			format: format,
