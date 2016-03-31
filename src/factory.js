@@ -2,7 +2,7 @@ angular.module("datetime").factory("datetime", function($locale){
 	// Fetch date and time formats from $locale service
 	var formats = $locale.DATETIME_FORMATS;
 	// Valid format tokens. 1=sss, 2=''
-	var tokenRE = /yyyy|yy|y|M{1,4}|dd?|EEEE?|HH?|hh?|mm?|ss?|([.,])sss|a|Z|ww|w|'(([^']+|'')*)'/g;
+	var tokenRE = /yyyy|yy|y|M{1,4}|dd?|EEEE?|HH?|hh?|mm?|ss?|([.,])sss|a|Z{1,2}|ww|w|'(([^']+|'')*)'/g;
 	// Token definition
 	var definedTokens = {
 		"y": {
@@ -184,6 +184,11 @@ angular.module("datetime").factory("datetime", function($locale){
 			type: "regex",
 			regex: /[+-]\d{4}/
 		},
+		"ZZ": {
+			name: "timezoneWithColon",
+			type: "regex",
+			regex: /[+-]\d{2}:\d{2}/
+		},
 		"string": {
 			name: "string",
 			type: "static"
@@ -338,6 +343,9 @@ angular.module("datetime").factory("datetime", function($locale){
 				break;
 			case "timezone":
 				node.value = (date.getTimezoneOffset() > 0 ? "-" : "+") + num2str(Math.abs(date.getTimezoneOffset() / 60), 2, 2) + "00";
+				break;
+			case "timezoneWithColon":
+				node.value = (date.getTimezoneOffset() > 0 ? "-" : "+") + num2str(Math.abs(date.getTimezoneOffset() / 60), 2, 2) + ":00";
 				break;
 		}
 
