@@ -754,6 +754,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				parser.timezoneNode = node;
 				break;
 			}
+			node = node.next;
 		}
 		
 		parser.setDate(new Date());
