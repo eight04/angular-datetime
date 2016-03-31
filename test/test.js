@@ -91,9 +91,11 @@ describe("datetime service", function(){
 
 		it("Tuesday, May 19, 2015", function(){
 			parser = datetime("fullDate");
+			parser.parse("Tuesday, May 5, 2015");
 			try {
 				parser.parse("Tuesday, May 1, 2015");
 			} catch (er) {
+				console.log(er.code);
 				expect(er.properText).toEqual("Friday, May 1, 2015");
 			}
 			parser.parse("Friday, May 1, 2015");
@@ -105,6 +107,14 @@ describe("datetime service", function(){
 			parser.parse("Tuesday, May 19, 2015");
 
 			expect(parser.getText()).toEqual("Tuesday, May 19, 2015");
+			
+			try {
+				parser.parse("Monday, May 19, 2015");
+			} catch (er) {
+				expect(er.properText).toEqual("Monday, May 18, 2015");
+			}
+			
+			parser.parse("Monday, May 18, 2015");
 
 			parser.parse("Sunday, May 17, 2015");
 			parser.parse("Sunday, May 17, 2015");
