@@ -95,7 +95,6 @@ describe("datetime service", function(){
 			try {
 				parser.parse("Tuesday, May 1, 2015");
 			} catch (er) {
-				console.log(er.code);
 				expect(er.properText).toEqual("Friday, May 1, 2015");
 			}
 			parser.parse("Friday, May 1, 2015");

@@ -189,6 +189,15 @@ angular.module("datetime").factory("datetime", function($locale){
 			type: "static"
 		}
 	};
+	
+	var SYS_TIMEZONE = (function(){
+		var offset = -(new Date).getTimezoneOffset(),
+			sign = offset >= 0 ? "+" : "-",
+			absOffset = Math.abs(offset),
+			hour = Math.floor(absOffset / 60),
+			min = absOffset % 60;
+		return sign + num2str(hour, 2, 2) + num2str(min, 2, 2);
+	})();
 
 	// Push Sunday to the end
 	function fixDay(days) {
@@ -301,10 +310,14 @@ angular.module("datetime").factory("datetime", function($locale){
 		return num;
 	}
 
-	function setText(node, date, token) {
+	function setText(node, date, token, timezone) {
 		switch (token.name) {
 			case "year":
 				node.value = date.getFullYear();
+				// it is possible
+				if (node.value < 0) {
+					node.value = 0;
+				}
 				break;
 			case "month":
 				node.value = date.getMonth() + 1;
@@ -337,12 +350,8 @@ angular.module("datetime").factory("datetime", function($locale){
 				node.value = getWeek(date);
 				break;
 			case "timezone":
-				node.value = (date.getTimezoneOffset() > 0 ? "-" : "+") + num2str(Math.abs(date.getTimezoneOffset() / 60), 2, 2) + "00";
+				node.value = timezone || SYS_TIMEZONE;
 				break;
-		}
-
-		if (node.value < 0) {
-			node.value = 0;
 		}
 
 		switch (token.type) {
@@ -632,12 +641,12 @@ angular.module("datetime").factory("datetime", function($locale){
 		return new Date(date.getTime() + (offset - -date.getTimezoneOffset()) * 60 * 1000);
 	}
 
-	function updateText(nodes, date){
+	function updateText(nodes, date, timezone){
 		var i, node;
 		for (i = 0; i < nodes.length; i++) {
 			node = nodes[i];
 
-			setText(node, date, node.token);
+			setText(node, date, node.token, timezone);
 		}
 		calcOffset(nodes);
 	}
@@ -666,7 +675,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				try {
 					parseLoop(parser.nodes, text, date);
 					// parser.setDate(date);
-					updateText(parser.nodes, date);
+					updateText(parser.nodes, date, parser.timezoneNode && parser.timezoneNode.viewValue);
 					newText = parser.getText();
 					if (text != newText) {
 						throw {
@@ -680,7 +689,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				} catch (err) {
 					// Should we reset date object if failed to parse?
 					// parser.setDate(oldDate);
-					updateText(parser.nodes, date);
+					updateText(parser.nodes, date, parser.timezone);
 					throw err;
 				}
 				
@@ -718,7 +727,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				} else {
 					parser.date = new Date(date.getTime());
 				}
-				updateText(parser.nodes, parser.date);
+				updateText(parser.nodes, parser.date, parser.timezone);
 				return parser;
 			},
 			getDate: function(){
@@ -726,7 +735,7 @@ angular.module("datetime").factory("datetime", function($locale){
 			},
 			getText: function(timezone){
 				if (timezone) {
-					updateText(parser.nodes, offsetDate(parser.model, timezone));
+					updateText(parser.nodes, offsetDate(parser.model, timezone), timezone);
 				}
 				var i, text = "";
 				for (i = 0; i < parser.nodes.length; i++) {
