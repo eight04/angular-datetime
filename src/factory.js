@@ -623,14 +623,14 @@ angular.module("datetime").factory("datetime", function($locale){
 		return new Date(date.getTime() + (offset - -date.getTimezoneOffset()) * 60 * 1000);
 	}
 
-	function updateText(parser, date){
+	function updateText(nodes, date){
 		var i, node;
-		for (i = 0; i < parser.nodes.length; i++) {
-			node = parser.nodes[i];
+		for (i = 0; i < nodes.length; i++) {
+			node = nodes[i];
 
 			setText(node, date, node.token);
 		}
-		calcOffset(parser.nodes);
+		calcOffset(nodes);
 	}
 	
 	function createParser(format) {
@@ -656,7 +656,8 @@ angular.module("datetime").factory("datetime", function($locale){
 
 				try {
 					parseLoop(parser.nodes, text, date);
-					parser.setDate(date);
+					// parser.setDate(date);
+					updateText(parser.nodes, date);
 					newText = parser.getText();
 					if (text != newText) {
 						throw {
@@ -669,9 +670,24 @@ angular.module("datetime").factory("datetime", function($locale){
 					}
 				} catch (err) {
 					// Should we reset date object if failed to parse?
-					parser.setDate(oldDate);
+					// parser.setDate(oldDate);
+					updateText(parser.nodes, date);
 					throw err;
 				}
+				
+				// check if Z token exists
+				if (parser.timezoneNode) {
+					parser.setTimezone(parser.timezoneNode.viewValue);
+				}
+
+				// de-offset and save to model
+				parser.date = date;
+				if (parser.timezone) {
+					parser.model = deOffsetDate(date, timezone);
+				} else {
+					parser.model = new Date(date.getTime());
+				}
+				
 				return parser;
 			},
 			parseNode: function(node, text) {
@@ -687,16 +703,21 @@ angular.module("datetime").factory("datetime", function($locale){
 				return parser;
 			},
 			setDate: function(date){
-				parser.date = date;
-				updateText(parser, date);				
+				parser.model = new Date(date.getTime());
+				if (parser.timezone) {
+					parser.date = offsetDate(date, parser.timezone);
+				} else {
+					parser.date = new Date(date.getTime());
+				}
+				updateText(parser.nodes, parser.date);
 				return parser;
 			},
 			getDate: function(){
-				return parser.date;
+				return parser.model;
 			},
 			getText: function(timezone){
 				if (timezone) {
-					updateText(parser, offsetDate(parser.date, timezone));
+					updateText(parser.nodes, offsetDate(parser.model, timezone));
 				}
 				var i, text = "";
 				for (i = 0; i < parser.nodes.length; i++) {
@@ -704,14 +725,30 @@ angular.module("datetime").factory("datetime", function($locale){
 				}
 				return text;
 			},
+			setTimezone: function(timezone){
+				parser.timezone = timezone;
+			}
 			date: null,
+			model: null,
 			format: format,
 			nodes: nodes,
-			error: null
+			error: null,
+			timezone: null,
+			timezoneNode: null
 		};
 
+		// get timezone node
+		// FIXME: what if there are multiple timezone node?
+		var node = parser.nodes[0];
+		while (node) {
+			if (node.token.name == "timezone") {
+				parser.timezoneNode = node;
+				break;
+			}
+		}
+		
 		parser.setDate(new Date());
-
+		
 		return parser;
 	}
 
