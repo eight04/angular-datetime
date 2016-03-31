@@ -15,6 +15,32 @@ var formats = [
 	"Z"
 ];
 
+function randomTimezone(){
+	var offset = Math.floor(Math.random() * 24 * 60) - 12 * 60,
+		sign = offset >= 0 ? "+" : "-",
+		absOffset = Math.abs(offset),
+		hour = Math.floor(absOffset / 60),
+		min = absOffset % 60,
+		text = sign + num2str(hour, 2, 2) + num2str(min, 2, 2);
+	return {
+		time: offset * 60 * 1000,
+		text: text
+	};
+}
+
+function num2str(num, minLength, maxLength) {
+	var i;
+	num = "" + num;
+	if (num.length > maxLength) {
+		num = num.substr(num.length - maxLength);
+	} else if (num.length < minLength) {
+		for (i = num.length; i < minLength; i++) {
+			num = "0" + num;
+		}
+	}
+	return num;
+}
+
 describe("datetime service", function(){
 
 	angular.forEach(formats, function(format){
@@ -142,6 +168,38 @@ describe("datetime service", function(){
 		it("getText", function(){
 			expect(parser.getText()).toEqual($date(date, "fullDate"));
 		});
+	});
+	
+	describe("test timezone", function(){
+		var datetime, parser, date, $date;
+
+		it("Create parser", function(){
+			angular.mock.module("datetime");
+			angular.mock.inject(function(_datetime_, $filter){
+				datetime = _datetime_;
+				$date = $filter("date");
+			});
+			parser = datetime("fullDate");
+			date = new Date(parser.date.getTime());
+		});
+		
+		it("utc time + offset should be equal if the local time is the same", function(){
+			var r1 = randomTimezone(),
+				r2 = randomTimezone(),
+				text = parser.getText(),
+				t1, t2;
+			
+			parser.setTimezone(r1.text);
+			parser.parse(text);
+			t1 = parser.getDate().getTime();
+			
+			parser.setTimezone(r2.text);
+			parser.parse(text);
+			t2 = parser.getDate().getTime();
+			
+			expect(t1 + r1.time).toEqual(t2 + r2.time);
+		});
+
 	});
 });
 
