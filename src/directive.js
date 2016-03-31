@@ -227,6 +227,13 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				start: 0,
 				end: 0
 			};
+			
+		if (angular.isDefined(attrs.datetimeUtc)) {
+			parser.setTimezone("+0000");
+			if (modelParser) {
+				modelParser.setTimezone("+0000");
+			}
+		}
 
 		var validMin = function(value) {
 			return ngModel.$isEmpty(value) || angular.isUndefined(attrs.min) || value >= new Date(attrs.min);
@@ -332,9 +339,9 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 			if (ngModel.$validate || validMinMax(parser.getDate())) {
 				var date = parser.getDate();
 
-				if (angular.isDefined(attrs.datetimeUtc)) {
-					date = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000);
-				}
+				// if (angular.isDefined(attrs.datetimeUtc)) {
+					// date = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000);
+				// }
 
 				if (modelParser) {
 					return modelParser.setDate(date).getText();
@@ -360,9 +367,9 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				modelValue = modelParser.parse(modelValue).getDate();
 			}
 
-			if (angular.isDefined(attrs.datetimeUtc)) {
-				modelValue = new Date(modelValue.getTime() + modelValue.getTimezoneOffset() * 60 * 1000);
-			}
+			// if (angular.isDefined(attrs.datetimeUtc)) {
+				// modelValue = new Date(modelValue.getTime() + modelValue.getTimezoneOffset() * 60 * 1000);
+			// }
 
 			return parser.setDate(modelValue).getText();
 		});
