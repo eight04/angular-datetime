@@ -754,6 +754,7 @@ angular.module("datetime").factory("datetime", function($locale){
 					throw err;
 				}
 				setDate(date, node.value, node.token);
+				updateText(parser.nodes, date, parser.timezone);
 				if (parser.timezone) {
 					parser.model = deOffsetDate(date, parser.timezone);
 				} else {
