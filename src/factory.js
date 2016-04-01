@@ -609,12 +609,18 @@ angular.module("datetime").factory("datetime", function($locale){
 	}
 
 	function addDate(date, token, diff) {
+		var value;
 		switch (token.name) {
 			case "year":
 				date.setFullYear(date.getFullYear() + diff);
 				break;
 			case "month":
-				date.setMonth(date.getMonth() + diff);
+				value = date.getMonth() + diff;
+				date.setMonth(value);
+				// date overflow
+				if (date.getMonth() != value) {
+					date.setDate(0);
+				}
 				break;
 			case "date":
 			case "day":
@@ -657,6 +663,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL" || err.code == "LEADING_ZERO") {
 					errorBuff = err;
 					pos += err.match.length;
+					continue;
 				} else {
 					throw err;
 				}
@@ -673,10 +680,6 @@ angular.module("datetime").factory("datetime", function($locale){
 			}
 		}
 		
-		if (dateBuff) {
-			setDate(date, dateBuff.value, dateBuff.token);
-		}
-
 		if (text.length > pos) {
 			throw {
 				code: "TEXT_TOOLONG",
@@ -688,6 +691,10 @@ angular.module("datetime").factory("datetime", function($locale){
 
 		if (errorBuff) {
 			throw errorBuff;
+		}
+		
+		if (dateBuff) {
+			setDate(date, dateBuff.value, dateBuff.token);
 		}
 	}
 	
