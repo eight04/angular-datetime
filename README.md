@@ -2,20 +2,6 @@ angular-datetime
 ================
 This module includes a datetime directive and a parser service.
 
-From 1.x to 2.0
----------------
-* Add `min`, `max`, `datetime-model` directive.
-* Support `$validators` in angular 1.3.x.
-* Update Eslint to 1.x.
-* Fix timezone token `Z`.
-
-From 0.x to 1.0
----------------
-* Added Karma test.
-* Changed source structure.
-* Now you can chain parser's methods.
-* Parsing error won't mess up modelValue anymore.
-
 Features
 --------
 * This module includes:
@@ -27,6 +13,12 @@ Features
 	- A parser, which can parse date string into date object with defined format.
 	- A formatter, which can convert date object into date string without Angular builtin date filter.
 * Support IE8.
+
+Date string format
+------------------
+Apart from [the formats provided officially](https://docs.angularjs.org/api/ng/filter/date), angular-datetime support some new tokens:
+
+* ZZ - represent timezone with colon (e.g. +08:00)
 
 Demo
 ----
@@ -59,6 +51,10 @@ angular.controller("myController", function(datetime){
 	// Parse a date string
 	parser.parse("2015-01-30");
 	parser.getDate();	// -> DateTime object
+	
+	// Set working timezone. Changing timezone will not affect date object but
+	// date string (i.e. parser.getText()).
+	parser.setTimezone("+0800");
 
 	// Other properties
 	parser.format;	// -> "yyyy-MM-dd"
@@ -76,6 +72,7 @@ Check demo page for live example.
 ```HTML
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate">
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" required>
+<input type="text" datetime="yyyy-MM-dd" ng-model="myDate" datetime-utc>
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" min="Jan 1, 1990" max="Dec 31, 2050">
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" datetime-model="yyyy-MM-ddTHH:mm:ss">
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" default="Jan 1, 2000">
@@ -104,8 +101,30 @@ Todos
 * Put some error handler into factory?
 * Day node should give different proper values depends on month when NUMBER_TOOLARGE.
 
+Breaking changes
+----------------
+* 3.0
+	* Add new token `ZZ`. It should be compatible with older version in most situation. Contributed by  MartinNuc.
+	* Now you can specify timezone in parser.
+* 2.0
+	* Add `min`, `max`, `datetime-model` directive.
+	* Support `$validators` in angular 1.3.x.
+	* Update Eslint to 1.x.
+	* Fix timezone token `Z`.
+* 1.0
+	* Added Karma test.
+	* Changed source structure.
+	* Now you can chain parser's methods.
+	* Parsing error won't mess up modelValue anymore.
+
 Changelog
 ---------
+* 3.0.0 (Apr 1, 2016)
+	- Add token `ZZ`. [#24](https://github.com/eight04/angular-datetime/pull/24)
+	- Fix datetime-utc issue. [#21](https://github.com/eight04/angular-datetime/issues/21)
+	- Add `parser.setTimezone`. [#22](https://github.com/eight04/angular-datetime/issues/22)
+	- Use PhantomJS for testing.
+	- Change Angular dependency to ^1.2.0.
 * 2.2.1 (Mar 31, 2016)
 	- Fix reference error with "Z" token. See [#20](https://github.com/eight04/angular-datetime/pull/20)
 * 2.2.0 (Feb 23, 2016)
