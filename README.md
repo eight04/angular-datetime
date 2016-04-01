@@ -109,6 +109,7 @@ Changelog
 	- Add `parser.setTimezone`. [#22](https://github.com/eight04/angular-datetime/issues/22)
 	- Use PhantomJS for testing.
 	- Change Angular dependency to ^1.2.0.
+	- Fix [date overflow bug](http://stackoverflow.com/questions/14680396/the-date-getmonth-method-has-bug).
 * 2.2.1 (Mar 31, 2016)
 	- Fix reference error with "Z" token. See [#20](https://github.com/eight04/angular-datetime/pull/20)
 * 2.2.0 (Feb 23, 2016)
