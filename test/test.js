@@ -15,6 +15,32 @@ var formats = [
 	"Z"
 ];
 
+function randomTimezone(){
+	var offset = Math.floor(Math.random() * 24 * 60) - 12 * 60,
+		sign = offset >= 0 ? "+" : "-",
+		absOffset = Math.abs(offset),
+		hour = Math.floor(absOffset / 60),
+		min = absOffset % 60,
+		text = sign + num2str(hour, 2, 2) + num2str(min, 2, 2);
+	return {
+		time: offset * 60 * 1000,
+		text: text
+	};
+}
+
+function num2str(num, minLength, maxLength) {
+	var i;
+	num = "" + num;
+	if (num.length > maxLength) {
+		num = num.substr(num.length - maxLength);
+	} else if (num.length < minLength) {
+		for (i = num.length; i < minLength; i++) {
+			num = "0" + num;
+		}
+	}
+	return num;
+}
+
 describe("datetime service", function(){
 
 	angular.forEach(formats, function(format){
@@ -91,6 +117,7 @@ describe("datetime service", function(){
 
 		it("Tuesday, May 19, 2015", function(){
 			parser = datetime("fullDate");
+			parser.parse("Tuesday, May 5, 2015");
 			try {
 				parser.parse("Tuesday, May 1, 2015");
 			} catch (er) {
@@ -105,6 +132,14 @@ describe("datetime service", function(){
 			parser.parse("Tuesday, May 19, 2015");
 
 			expect(parser.getText()).toEqual("Tuesday, May 19, 2015");
+			
+			try {
+				parser.parse("Monday, May 19, 2015");
+			} catch (er) {
+				expect(er.properText).toEqual("Monday, May 18, 2015");
+			}
+			
+			parser.parse("Monday, May 18, 2015");
 
 			parser.parse("Sunday, May 17, 2015");
 			parser.parse("Sunday, May 17, 2015");
@@ -133,6 +168,38 @@ describe("datetime service", function(){
 		it("getText", function(){
 			expect(parser.getText()).toEqual($date(date, "fullDate"));
 		});
+	});
+	
+	describe("test timezone", function(){
+		var datetime, parser, date, $date;
+
+		it("Create parser", function(){
+			angular.mock.module("datetime");
+			angular.mock.inject(function(_datetime_, $filter){
+				datetime = _datetime_;
+				$date = $filter("date");
+			});
+			parser = datetime("fullDate");
+			date = new Date(parser.date.getTime());
+		});
+		
+		it("utc time + offset should be equal if the local time is the same", function(){
+			var r1 = randomTimezone(),
+				r2 = randomTimezone(),
+				text = parser.getText(),
+				t1, t2;
+			
+			parser.setTimezone(r1.text);
+			parser.parse(text);
+			t1 = parser.getDate().getTime();
+			
+			parser.setTimezone(r2.text);
+			parser.parse(text);
+			t2 = parser.getDate().getTime();
+			
+			expect(t1 + r1.time).toEqual(t2 + r2.time);
+		});
+
 	});
 });
 
@@ -173,19 +240,23 @@ describe("datetime directive", function(){
 	it("should allow : when using Z:Z token", function(){
 		$rootScope.date = new Date;
 
-		var element = $compile("<input type='text' datetime='ZZ' ng-model='date'>")($rootScope);
+		var element = $compile("<input type='text' datetime='ZZ' ng-model='date'>")($rootScope),
+			value;
 
 		$rootScope.$digest();
+		
+		value = element.val();
 
-		var timezoneOffset = -new Date().getTimezoneOffset() / 60;
-		var isNegative = timezoneOffset < 0;
-
-		// add leading zeros
-		if (timezoneOffset < 10) {
-			timezoneOffset = (isNegative ? "-0" : "+0") + Math.abs(timezoneOffset);
-		}
-
-		expect(element.val()).toEqual(timezoneOffset + ":00");
+		expect(value.substr(0, 3) + value.substr(3, 2)).toEqual($date($rootScope.date, "Z"));
 	});
 
+	it("datetime-model", function(){
+		var date = new Date;
+		$rootScope.dateString = $date(date, "yyyy-MM-dd HH:mm:ss");
+		var element = $compile("<input type='text' datetime='medium' datetime-model='yyyy-MM-dd HH:mm:ss' ng-model='dateString'>")($rootScope);
+		
+		$rootScope.$digest();
+		
+		expect(element.val()).toEqual($date(date, "medium"));
+	});
 });
