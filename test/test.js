@@ -149,9 +149,15 @@ describe("datetime service", function(){
 			parser.parse("Monday, May 18, 2015");
 
 			parser.parse("Sunday, May 17, 2015");
-			parser.parse("Sunday, May 17, 2015");
+			parser.parse("Sunday, May 17, 2015");			
 		});
-
+		
+		it("31 date overflow", function(){
+			parser = datetime("medium");
+			
+			parser.parse("Mar 31, 2016 6:19:20 PM");
+			parser.parse("Apr 1, 2016 10:42:20 AM");
+		});
 	});
 
 	describe("test initial value", function(){
@@ -186,7 +192,7 @@ describe("datetime service", function(){
 				datetime = _datetime_;
 				$date = $filter("date");
 			});
-			parser = datetime("fullDate");
+			parser = datetime("medium");
 			date = new Date(parser.date.getTime());
 		});
 		
@@ -195,7 +201,7 @@ describe("datetime service", function(){
 				r2 = randomTimezone(),
 				text = parser.getText(),
 				t1, t2;
-			
+				
 			parser.setTimezone(r1.text);
 			parser.parse(text);
 			t1 = parser.getDate().getTime();
