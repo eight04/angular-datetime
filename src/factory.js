@@ -427,7 +427,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				// http://stackoverflow.com/questions/14680396/the-date-getmonth-method-has-bug
 				date.setMonth(value - 1);
 				// handle date overflow
-				if (date.getMonth() != value - 1) {
+				if (date.getMonth() == value) {
 					date.setDate(0);
 				}
 				break;
@@ -618,7 +618,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				value = date.getMonth() + diff;
 				date.setMonth(value);
 				// date overflow
-				if (date.getMonth() != value) {
+				if (date.getMonth() == value + 1) {
 					date.setDate(0);
 				}
 				break;
