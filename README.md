@@ -100,6 +100,7 @@ Todos
 * Errors throwed by angular-datetime should have its own type.
 * Put some error handler into factory?
 * Day node should give different proper values depends on month when NUMBER_TOOLARGE.
+* Refactor createParser.
 
 Changelog
 ---------
