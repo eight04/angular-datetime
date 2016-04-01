@@ -101,22 +101,6 @@ Todos
 * Put some error handler into factory?
 * Day node should give different proper values depends on month when NUMBER_TOOLARGE.
 
-Breaking changes
-----------------
-* 3.0
-	* Add new token `ZZ`. It should be compatible with older version in most situation. Contributed by  MartinNuc.
-	* Now you can specify timezone in parser.
-* 2.0
-	* Add `min`, `max`, `datetime-model` directive.
-	* Support `$validators` in angular 1.3.x.
-	* Update Eslint to 1.x.
-	* Fix timezone token `Z`.
-* 1.0
-	* Added Karma test.
-	* Changed source structure.
-	* Now you can chain parser's methods.
-	* Parsing error won't mess up modelValue anymore.
-
 Changelog
 ---------
 * 3.0.0 (Apr 1, 2016)
@@ -135,3 +119,14 @@ Changelog
 	- Add `datetime-utc` option.
 * 2.0.1 (Jan 1, 2016)
 	- Add MIT License
+* 2.0
+	- Add `min`, `max`, `datetime-model` directive.
+	- Support `$validators` in angular 1.3.x.
+	- Update Eslint to 1.x.
+	- Fix timezone token `Z`.
+* 1.0
+	- Added Karma test.
+	- Changed source structure.
+	- Now you can chain parser's methods.
+	- Parsing error won't mess up modelValue anymore.
+
