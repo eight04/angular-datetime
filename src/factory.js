@@ -449,6 +449,7 @@ angular.module("datetime").factory("datetime", function($locale){
 		}
 	}
 
+	// Parse text[pos:] by node.token definition. Extract result into node.value, node.viewValue
 	function parseNode(node, text, pos) {
 		var p = node, m, match, value, j;
 		switch (p.token.type) {
@@ -582,6 +583,40 @@ angular.module("datetime").factory("datetime", function($locale){
 		}
 	}
 
+	function addDate(date, token, diff) {
+		switch (token.name) {
+			case "year":
+				date.setFullYear(date.getFullYear() + diff);
+				break;
+			case "month":
+				date.setMonth(date.getMonth() + diff);
+				break;
+			case "date":
+			case "day":
+				date.setDate(date.getDate() + diff);
+				break;
+			case "hour":
+			case "hour12":
+				date.setHours(date.getHours() + diff);
+				break;
+			case "ampm":
+				date.setHours(date.getHours() + diff * 12);
+				break;
+			case "minute":
+				date.setMinutes(date.getMinutes() + diff);
+				break;
+			case "second":
+				date.setSeconds(date.getSeconds() + diff);
+				break;
+			case "millisecond":
+				date.setMilliseconds(date.getMilliseconds() + diff);
+				break;
+			case "week":
+				date.setDate(date.getDate() + diff * 7);
+				break;
+		}
+	}
+
 	// Main parsing loop. Loop through nodes, parse text, update date model.
 	function parseLoop(nodes, text, date) {
 		var i, pos, errorBuff, baseDate, compareDate;
@@ -708,17 +743,30 @@ angular.module("datetime").factory("datetime", function($locale){
 				
 				return parser;
 			},
-			parseNode: function(node, text) {
-				var date = new Date(parser.date.getTime());
+			nodeParseValue: function(node, text) {
+				var date = parser.date,
+					oldValue = node.value,
+					oldViewValue = node.viewValue;
 				try {
 					parseNode(node, text, 0);
+					calcOffset(parser.nodes);
 				} catch (err) {
-					parser.setDate(parser.date);
+					node.value = oldValue;
+					node.viewValue = oldViewValue;
 					throw err;
 				}
 				setDate(date, node.value, node.token);
-				// parser.setDate(date);
-				parser.date = date;
+				if (parser.timezone) {
+					parser.model = deOffsetDate(date, parser.timezone);
+				} else {
+					parser.model = new Date(date.getTime());
+				}
+				return parser;
+			},
+			nodeAddValue: function(node, diff) {
+				var date = parser.date;
+				addDate(date, node.token, diff);
+				updateText(parser.nodes, date, parser.timezone);
 				if (parser.timezone) {
 					parser.model = deOffsetDate(date, parser.timezone);
 				} else {

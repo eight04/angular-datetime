@@ -64,40 +64,6 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 		return node;
 	}
 
-	function addDate(date, token, diff) {
-		switch (token.name) {
-			case "year":
-				date.setFullYear(date.getFullYear() + diff);
-				break;
-			case "month":
-				date.setMonth(date.getMonth() + diff);
-				break;
-			case "date":
-			case "day":
-				date.setDate(date.getDate() + diff);
-				break;
-			case "hour":
-			case "hour12":
-				date.setHours(date.getHours() + diff);
-				break;
-			case "ampm":
-				date.setHours(date.getHours() + diff * 12);
-				break;
-			case "minute":
-				date.setMinutes(date.getMinutes() + diff);
-				break;
-			case "second":
-				date.setSeconds(date.getSeconds() + diff);
-				break;
-			case "millisecond":
-				date.setMilliseconds(date.getMilliseconds() + diff);
-				break;
-			case "week":
-				date.setDate(date.getDate() + diff * 7);
-				break;
-		}
-	}
-
 	function getLastNode(node, direction) {
 		var lastNode;
 
@@ -305,7 +271,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 							range.end = range.start;
 						}
 					} else if (err.code == "SELECT_INCOMPLETE") {
-						parser.parseNode(range.node, err.selected);
+						parser.nodeParseValue(range.node, err.selected);
 						viewValue = parser.getText();
 						range.start = err.match.length;
 						range.end = "end";
@@ -374,22 +340,6 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 			return parser.setDate(modelValue).getText();
 		});
 
-		function addNodeValue(node, diff) {
-			var date, viewValue;
-
-			date = new Date(parser.date.getTime());
-			addDate(date, node.token, diff);
-			parser.setDate(date);
-			viewValue = parser.getText();
-			ngModel.$setViewValue(viewValue);
-
-			range.start = 0;
-			range.end = "end";
-			ngModel.$render();
-
-			scope.$apply();
-		}
-
 		var waitForClick;
 		element.on("focus keydown keypress mousedown click", function(e){
 			switch (e.type) {
@@ -442,12 +392,22 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 						case 38:
 							// Up
 							e.preventDefault();
-							addNodeValue(range.node, 1);
+							parser.nodeAddValue(range.node, 1);
+							ngModel.$setViewValue(parser.getText());
+							range.start = 0;
+							range.end = "end";
+							ngModel.$render();
+							scope.$apply();
 							break;
 						case 40:
 							// Down
 							e.preventDefault();
-							addNodeValue(range.node, -1);
+							parser.nodeAddValue(range.node, -1);
+							ngModel.$setViewValue(parser.getText());
+							range.start = 0;
+							range.end = "end";
+							ngModel.$render();
+							scope.$apply();
 							break;
 						case 36:
 							// Home
