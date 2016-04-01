@@ -426,6 +426,10 @@ angular.module("datetime").factory("datetime", function($locale){
 			case "month":
 				// http://stackoverflow.com/questions/14680396/the-date-getmonth-method-has-bug
 				date.setMonth(value - 1);
+				// handle date overflow
+				if (date.getMonth() != value - 1) {
+					date.setDate(0);
+				}
 				break;
 			case "date":
 				date.setDate(value);
@@ -638,13 +642,9 @@ angular.module("datetime").factory("datetime", function($locale){
 		}
 	}
 	
-	function setMonthDate(date, monthVal, dateVal) {
-		date.setMonth(monthVal - 1, dateVal);
-	}
-
 	// Main parsing loop. Loop through nodes, parse text, update date model.
 	function parseLoop(nodes, text, date) {
-		var i, pos, errorBuff, oldViewValue, monthBuff, dateBuff;
+		var i, pos, errorBuff, oldViewValue, dateBuff;
 
 		pos = 0;
 		// baseDate = new Date(date.getTime());
@@ -664,32 +664,17 @@ angular.module("datetime").factory("datetime", function($locale){
 			pos += nodes[i].viewValue.length;
 			
 			if (oldViewValue != nodes[i].viewValue) {
-				// Month and date must be set together
-				// http://stackoverflow.com/questions/14680396/the-date-getmonth-method-has-bug#comment20523989_14680430
-				if (nodes[i].token.name == "month") {
-					if (angular.isDefined(dateBuff)) {
-						setMonthDate(date, nodes[i].value, dateBuff);
-					} else {
-						monthBuff = nodes[i];
-					}
-				} else if (nodes[i].token.name == "date") {
-					if (angular.isDefined(monthBuff)) {
-						setMonthDate(date, monthBuff, nodes[i].value);
-					} else {
-						dateBuff = nodes[i];
-					}
+				// Buff date
+				if (nodes[i].token.name == "date") {
+					dateBuff = nodes[i];
 				} else {
 					setDate(date, nodes[i].value, nodes[i].token);
 				}
 			}
 		}
 		
-		if (angular.isDefined(monthBuff)) {
-			do {
-				date.setMonth(monthBuff - 1);
-			} while (date.getMonth() != monthBuff - 1);
-		} else if (angular.isDefined(dateBuff)) {
-			date.setDate(dateBuff);
+		if (dateBuff) {
+			setDate(date, dateBuff.value, dateBuff.token);
 		}
 
 		if (text.length > pos) {
