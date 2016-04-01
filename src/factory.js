@@ -822,7 +822,11 @@ angular.module("datetime").factory("datetime", function($locale){
 				return text;
 			},
 			setTimezone: function(timezone){
-				parser.timezone = timezone;
+				if (timezone && timezone != parser.timezone) {
+					parser.timezone = timezone;
+					parser.date = offsetDate(parser.model, timezone);
+					updateText(parser.nodes, parser.date, timezone);
+				}
 			},
 			date: null,
 			model: null,
