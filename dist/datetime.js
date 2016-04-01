@@ -4,7 +4,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 	// Fetch date and time formats from $locale service
 	var formats = $locale.DATETIME_FORMATS;
 	// Valid format tokens. 1=sss, 2=''
-	var tokenRE = /yyyy|yy|y|M{1,4}|dd?|EEEE?|HH?|hh?|mm?|ss?|([.,])sss|a|Z|ww|w|'(([^']+|'')*)'/g;
+	var tokenRE = /yyyy|yy|y|M{1,4}|dd?|EEEE?|HH?|hh?|mm?|ss?|([.,])sss|a|Z{1,2}|ww|w|'(([^']+|'')*)'/g;
 	// Token definition
 	var definedTokens = {
 		"y": {
@@ -181,6 +181,11 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			type: "regex",
 			regex: /[+-]\d{4}/
 		},
+		"ZZ": {
+			name: "timezoneWithColon",
+			type: "regex",
+			regex: /[+-]\d{2}:\d{2}/
+		},
 		"string": {
 			name: "string",
 			type: "static"
@@ -309,6 +314,20 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 		}
 		return num;
 	}
+	
+	function insertColon(timezone) {
+		if (timezone[3] == ":") {
+			return timezone;
+		}
+		return timezone.substr(0, 3) + ":" + timezone.substr(3, 2);
+	}
+	
+	function removeColon(timezone) {
+		if (timezone[3] != ":") {
+			return timezone;
+		}
+		return timezone.substr(0, 3) + timezone.substr(4, 2);
+	}
 
 	function setText(node, date, token, timezone) {
 		switch (token.name) {
@@ -350,7 +369,10 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				node.value = getWeek(date);
 				break;
 			case "timezone":
-				node.value = timezone || SYS_TIMEZONE;
+				node.value = removeColon(timezone || SYS_TIMEZONE);
+				break;
+			case "timezoneWithColon":
+				node.value = insertColon(timezone || SYS_TIMEZONE);
 				break;
 		}
 
@@ -659,6 +681,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 	}
 	
 	function deOffsetDate(date, timezone) {
+		timezone = removeColon(timezone);
 		var hour = +timezone.substr(1, 2),
 			min = +timezone.substr(3, 2),
 			sig = (timezone[0] + "1"),
@@ -668,6 +691,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 	}
 	
 	function offsetDate(date, timezone) {
+		timezone = removeColon(timezone);
 		var hour = +timezone.substr(1, 2),
 			min = +timezone.substr(3, 2),
 			sig = (timezone[0] + "1"),
@@ -789,6 +813,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				return parser.model;
 			},
 			getText: function(timezone){
+				// FIXME: getting text from different timezone shouldn't change original text.
 				if (timezone) {
 					updateText(parser.nodes, offsetDate(parser.model, timezone), timezone);
 				}
@@ -810,10 +835,9 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 		};
 
 		// get timezone node
-		// FIXME: what if there are multiple timezone node?
 		var node = parser.nodes[0];
 		while (node) {
-			if (node.token.name == "timezone") {
+			if (node.token.name == "timezone" || node.token.name == "timezoneWithColon") {
 				parser.timezoneNode = node;
 				break;
 			}
