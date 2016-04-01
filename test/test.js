@@ -15,6 +15,13 @@ var formats = [
 	"Z"
 ];
 
+function insertColon(timezone) {
+	if (timezone[3] == ":") {
+		return timezone;
+	}
+	return timezone.substr(0, 3) + ":" + timezone.substr(3, 2);
+}
+
 function randomTimezone(){
 	var offset = Math.floor(Math.random() * 24 * 60) - 12 * 60,
 		sign = offset >= 0 ? "+" : "-",
@@ -245,9 +252,7 @@ describe("datetime directive", function(){
 
 		$rootScope.$digest();
 		
-		value = element.val();
-
-		expect(value.substr(0, 3) + value.substr(3, 2)).toEqual($date($rootScope.date, "Z"));
+		expect(element.val()).toEqual(insertColon($date($rootScope.date, "Z")));
 	});
 
 	it("datetime-model", function(){
