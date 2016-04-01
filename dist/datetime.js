@@ -426,7 +426,12 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				date.setFullYear(value);
 				break;
 			case "month":
+				// http://stackoverflow.com/questions/14680396/the-date-getmonth-method-has-bug
 				date.setMonth(value - 1);
+				// handle date overflow
+				if (date.getMonth() != value - 1) {
+					date.setDate(0);
+				}
 				break;
 			case "date":
 				date.setDate(value);
@@ -638,24 +643,18 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				break;
 		}
 	}
-
+	
 	// Main parsing loop. Loop through nodes, parse text, update date model.
 	function parseLoop(nodes, text, date) {
-		var i, pos, errorBuff, baseDate, compareDate;
+		var i, pos, errorBuff, oldViewValue, dateBuff;
 
 		pos = 0;
-		baseDate = new Date(date.getTime());
+		// baseDate = new Date(date.getTime());
 
 		for (i = 0; i < nodes.length; i++) {
+			oldViewValue = nodes[i].viewValue;
 			try {
 				parseNode(nodes[i], text, pos);
-				pos += nodes[i].viewValue.length;
-
-				compareDate = new Date(baseDate.getTime());
-				setDate(compareDate, nodes[i].value, nodes[i].token);
-				if (compareDate.getTime() != baseDate.getTime()) {
-					setDate(date, nodes[i].value, nodes[i].token);
-				}
 			} catch (err) {
 				if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL" || err.code == "LEADING_ZERO") {
 					errorBuff = err;
@@ -664,6 +663,20 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 					throw err;
 				}
 			}
+			pos += nodes[i].viewValue.length;
+			
+			if (oldViewValue != nodes[i].viewValue) {
+				// Buff date
+				if (nodes[i].token.name == "date") {
+					dateBuff = nodes[i];
+				} else {
+					setDate(date, nodes[i].value, nodes[i].token);
+				}
+			}
+		}
+		
+		if (dateBuff) {
+			setDate(date, dateBuff.value, dateBuff.token);
 		}
 
 		if (text.length > pos) {
@@ -733,7 +746,6 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 
 				try {
 					parseLoop(parser.nodes, text, date);
-					// parser.setDate(date);
 					updateText(parser.nodes, date, parser.timezoneNode && parser.timezoneNode.viewValue);
 					newText = parser.getText();
 					if (text != newText) {
@@ -748,7 +760,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				} catch (err) {
 					// Should we reset date object if failed to parse?
 					// parser.setDate(oldDate);
-					updateText(parser.nodes, date, parser.timezone);
+					updateText(parser.nodes, oldDate, parser.timezone);
 					throw err;
 				}
 				
