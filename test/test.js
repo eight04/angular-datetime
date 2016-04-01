@@ -153,7 +153,7 @@ describe("datetime directive", function(){
 			$rootScope.date = new Date;
 			
 			var element = $compile("<input type='text' datetime='{{format}}' ng-model='date'>")($rootScope);
-			
+
 			$rootScope.$digest();
 			
 			expect(element.val()).toEqual($date($rootScope.date, format));
@@ -169,4 +169,23 @@ describe("datetime directive", function(){
 		
 		expect(element.val()).toEqual("+0000");
 	});
+
+	it("should allow : when using Z:Z token", function(){
+		$rootScope.date = new Date;
+
+		var element = $compile("<input type='text' datetime='ZZ' ng-model='date'>")($rootScope);
+
+		$rootScope.$digest();
+
+		var timezoneOffset = -new Date().getTimezoneOffset() / 60;
+		var isNegative = timezoneOffset < 0;
+
+		// add leading zeros
+		if (timezoneOffset < 10) {
+			timezoneOffset = (isNegative ? "-0" : "+0") + Math.abs(timezoneOffset);
+		}
+
+		expect(element.val()).toEqual(timezoneOffset + ":00");
+	});
+
 });

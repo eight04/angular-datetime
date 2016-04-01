@@ -30,6 +30,11 @@ module.exports = function(grunt) {
 		},
 		eslint: {
 			target: ["src/*.js"]
+		},
+		karma: {
+			unit: {
+				configFile: 'karma.conf.js'
+			}
 		}
 	});
 
@@ -39,8 +44,10 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks("grunt-contrib-watch");
 	grunt.loadNpmTasks("grunt-ng-annotate");
 	grunt.loadNpmTasks("grunt-eslint");
+	grunt.loadNpmTasks('grunt-karma');
 
 	// Default task(s).
 	grunt.registerTask("default", ["eslint", "ngAnnotate"]);
+	grunt.registerTask('test', ['ngAnnotate', 'karma']);
 
 };
