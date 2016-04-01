@@ -236,4 +236,14 @@ describe("datetime directive", function(){
 		
 		expect(element.val()).toEqual("+0000");
 	});
+	
+	it("datetime-model", function(){
+		var date = new Date;
+		$rootScope.dateString = $date(date, "yyyy-MM-dd HH:mm:ss");
+		var element = $compile("<input type='text' datetime='medium' datetime-model='yyyy-MM-dd HH:mm:ss' ng-model='dateString'>")($rootScope);
+		
+		$rootScope.$digest();
+		
+		expect(element.val()).toEqual($date(date, "medium"));
+	});
 });
