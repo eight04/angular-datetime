@@ -214,7 +214,10 @@ angular.module("datetime").factory("datetime", function($locale){
 			token: definedTokens[token],
 			value: value,
 			viewValue: value || "",
-			offset: 0
+			offset: 0,
+			next: null,
+			prev: null,
+			id: null
 		};
 	}
 
