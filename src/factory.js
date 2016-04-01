@@ -145,11 +145,6 @@ angular.module("datetime").factory("datetime", function($locale){
 			name: "second",
 			type: "number"
 		},
-		"milliPrefix": {
-			name: "milliPrefix",
-			type: "regex",
-			regex: /[,.]/
-		},
 		"sss": {
 			minLength: 3,
 			maxLength: 3,
@@ -804,7 +799,6 @@ angular.module("datetime").factory("datetime", function($locale){
 			model: null,
 			format: format,
 			nodes: nodes,
-			error: null,
 			timezone: null,
 			timezoneNode: null
 		};
