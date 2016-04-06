@@ -446,7 +446,21 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 					break;
 
 				case "keypress":
-					if (isPrintableKey(e)) {
+					var nextSeparatorKeyCode;
+					// check for separator only when there is a next node which is static string
+					if (range.node.next && range.node.next.token.name === 'string' && range.node.next.token.type === 'static') {
+						nextSeparatorKeyCode = range.node.next.viewValue.charCodeAt(0);
+					}
+
+					if (e.keyCode === nextSeparatorKeyCode) {
+						e.preventDefault();
+						if (!ngModel.$error.datetime) {
+							selectRange(range, "next");
+						} else {
+							selectRange(errorRange);
+						}
+					}
+					else if (isPrintableKey(e)) {
 						setTimeout(function(){
 							range = getRange(element, parser.nodes, range.node);
 							if (isRangeAtEnd(range)) {
