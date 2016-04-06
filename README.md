@@ -103,6 +103,8 @@ Todos
 
 Changelog
 ---------
+* next
+    - jump on the next segment on pressing next separator key
 * 3.0.1 (Apr 9, 2016)
 	- Fix validator and datetime-model bug. [#27](https://github.com/eight04/angular-datetime/issues/27)
 * 3.0.0 (Apr 1, 2016)
