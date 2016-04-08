@@ -1079,11 +1079,23 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 		}
 
 		var validMin = function(value) {
-			return ngModel.$isEmpty(value) || angular.isUndefined(attrs.min) || value >= new Date(attrs.min);
+			if (ngModel.$isEmpty(value) || angular.isUndefined(attrs.min)) {
+				return true;
+			}
+			if (!angular.isDate(value)) {
+				value = modelParser.getDate();
+			}
+			return value >= new Date(attrs.min);
 		};
 
 		var validMax = function(value) {
-			return ngModel.$isEmpty(value) || angular.isUndefined(attrs.max) || value <= new Date(attrs.max);
+			if (ngModel.$isEmpty(value) || angular.isUndefined(attrs.max)) {
+				return true;
+			}
+			if (!angular.isDate(value)) {
+				value = modelParser.getDate();
+			}
+			return value <= new Date(attrs.max);
 		};
 
 		if (ngModel.$validators) {
@@ -1182,10 +1194,6 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 			if (ngModel.$validate || validMinMax(parser.getDate())) {
 				var date = parser.getDate();
 
-				// if (angular.isDefined(attrs.datetimeUtc)) {
-					// date = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000);
-				// }
-
 				if (modelParser) {
 					return modelParser.setDate(date).getText();
 				} else {
@@ -1209,10 +1217,6 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 			if (modelParser) {
 				modelValue = modelParser.parse(modelValue).getDate();
 			}
-
-			// if (angular.isDefined(attrs.datetimeUtc)) {
-				// modelValue = new Date(modelValue.getTime() + modelValue.getTimezoneOffset() * 60 * 1000);
-			// }
 
 			return parser.setDate(modelValue).getText();
 		});
