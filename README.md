@@ -22,9 +22,8 @@ Apart from [the formats provided officially](https://docs.angularjs.org/api/ng/f
 
 Demo
 ----
-Check out the [Demo page][demo].
-
-[demo]: https://rawgit.com/eight04/angular-datetime/master/demo.html
+* With Angular 1.2.x: <https://rawgit.com/eight04/angular-datetime/master/example/demo.html>
+* With Angular 1.5.x: <https://rawgit.com/eight04/angular-datetime/master/example/demo-angular-1.5.html>
 
 Install
 -------
@@ -104,6 +103,8 @@ Todos
 
 Changelog
 ---------
+* 3.0.1 (Apr 9, 2016)
+	- Fix validator and datetime-model bug. [#27](https://github.com/eight04/angular-datetime/issues/27)
 * 3.0.0 (Apr 1, 2016)
 	- Add token `ZZ`. [#24](https://github.com/eight04/angular-datetime/pull/24)
 	- Fix datetime-utc issue. [#21](https://github.com/eight04/angular-datetime/issues/21)
