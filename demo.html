@@ -16,6 +16,7 @@
 			$scope.data = {
 				myDate: new Date,
 				myDateString: "2000-01-01 00:00:00",
+				myDateString2: "2000-01-01T00:00:00+08:00",
 				min: new Date(2010, 0, 1),
 				max: new Date(2019, 11, 31)
 			};
@@ -127,6 +128,13 @@
 		<label>
 			UTC timezone
 			<input type="text" class="form-control" datetime="yyyy-MM-dd HH:mm:ssZ" ng-model="data.myDate" datetime-utc>
+		</label>
+	</div>
+	<div class="form-group">
+		<label>
+			datetime-model with min/max
+			<input type="text" class="form-control" datetime="yyyy-MM-dd" datetime-model="yyyy-MM-ddTHH:mm:ssZZ" ng-model="data.myDateString2" min="Jan 1, 2016">
+			<pre class="code"><code>{{data.myDateString2 | json}}</code></pre>
 		</label>
 	</div>
 </body>
