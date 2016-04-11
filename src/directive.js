@@ -193,7 +193,12 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				start: 0,
 				end: 0
 			};
-			
+		var datetimeSeparator;
+
+		if (angular.isDefined(attrs.datetimeSeparator)) {
+			datetimeSeparator = attrs.datetimeSeparator;
+		}
+
 		if (angular.isDefined(attrs.datetimeUtc)) {
 			parser.setTimezone("+0000");
 			if (modelParser) {
@@ -466,7 +471,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 						nextSeparatorKeyCode = range.node.next.viewValue.charCodeAt(0);
 					}
 
-					if (e.keyCode === nextSeparatorKeyCode) {
+					if (e.keyCode === nextSeparatorKeyCode || e.keyCode == datetimeSeparator.charCodeAt(0)) {
 						e.preventDefault();
 						if (!ngModel.$error.datetime) {
 							selectRange(range, "next");
