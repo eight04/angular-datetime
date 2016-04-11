@@ -263,11 +263,13 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 			}
 
 			ngModel.$setValidity("tooShort", true);
-			delete err.node.suggestedValue;
 
 			try {
 				parser.parse(viewValue);
 			} catch (err) {
+				if (err.node) {
+					delete err.node.suggestedValue;
+				}
 				$log.error(err);
 
 				ngModel.$setValidity("datetime", false);
