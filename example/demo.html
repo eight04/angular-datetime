@@ -135,5 +135,12 @@
 			<pre class="code"><code>{{data.myDateString2 | json}}</code></pre>
 		</label>
 	</div>
+	<h3>Custom separator</h3>
+	<p>Used to jump on the next segment when pressing separator key. In this example angular-datetime will jump on the next segment when pressing `.` or `,`.</p>
+	<div class="form-group">
+		<label>
+			<input type="text" class="form-control" datetime="dd.MM.yyyy" ng-model="data.myDate" datetime-separator=",">
+		</label>
+	</div>
 </body>
 </html>

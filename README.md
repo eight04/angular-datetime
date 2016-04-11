@@ -75,6 +75,7 @@ Check demo page for live example.
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" min="Jan 1, 1990" max="Dec 31, 2050">
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" datetime-model="yyyy-MM-ddTHH:mm:ss">
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" default="Jan 1, 2000">
+<input type="text" datetime="dd.MM.yyyy" ng-model="myDate" datetime-separator=",">
 ```
 
 Parsing errors
@@ -105,6 +106,7 @@ Changelog
 ---------
 * next
     - jump on the next segment on pressing next separator key
+    - customizable separator key
 * 3.0.1 (Apr 9, 2016)
 	- Fix validator and datetime-model bug. [#27](https://github.com/eight04/angular-datetime/issues/27)
 * 3.0.0 (Apr 1, 2016)
