@@ -192,8 +192,14 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				node: null,
 				start: 0,
 				end: 0
-			};
-			
+			},
+			lastError;
+		var datetimeSeparator;
+
+		if (angular.isDefined(attrs.datetimeSeparator)) {
+			datetimeSeparator = attrs.datetimeSeparator;
+		}
+
 		if (angular.isDefined(attrs.datetimeUtc)) {
 			parser.setTimezone("+0000");
 			if (modelParser) {
@@ -262,9 +268,12 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				return null;
 			}
 
+			ngModel.$setValidity("tooShort", true);
+
 			try {
 				parser.parse(viewValue);
 			} catch (err) {
+				lastError = err;
 				$log.error(err);
 
 				ngModel.$setValidity("datetime", false);
@@ -311,6 +320,8 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 
 				return undefined;
 			}
+
+			lastError = null;
 
 			ngModel.$setValidity("datetime", true);
 
@@ -446,7 +457,29 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 					break;
 
 				case "keypress":
-					if (isPrintableKey(e)) {
+					var nextSeparatorKeyCode;
+					// check for separator only when there is a next node which is static string
+					if (range.node.next && range.node.next.token.name === "string" && range.node.next.token.type === "static") {
+						nextSeparatorKeyCode = range.node.next.viewValue.charCodeAt(0);
+					}
+
+					if (e.keyCode === nextSeparatorKeyCode || (datetimeSeparator && e.keyCode == datetimeSeparator.charCodeAt(0))) {
+						e.preventDefault();
+						if (!ngModel.$error.datetime) {
+							selectRange(range, "next");
+						}
+						else if (lastError && lastError.code == "NUMBER_TOOSHORT") {
+							parser.nodeParseValue(lastError.node, lastError.properValue);
+							ngModel.$setViewValue(parser.getText());
+							ngModel.$setValidity("tooShort", true);
+							ngModel.$render();
+							scope.$apply();
+							selectRange(range, "next");
+						} else {
+							selectRange(errorRange);
+						}
+					}
+					else if (isPrintableKey(e)) {
 						setTimeout(function(){
 							range = getRange(element, parser.nodes, range.node);
 							if (isRangeAtEnd(range)) {
