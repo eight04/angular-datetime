@@ -101,14 +101,13 @@ Todos
 * Put some error handler into factory?
 * Day node should give different proper values depends on month when NUMBER_TOOLARGE.
 * Refactor createParser.
-* Make datetime-separator be a set.
-* Make separator work in Firefox.
 
 Changelog
 ---------
-* next
-    - jump on the next segment on pressing next separator key
-    - customizable separator key
+* 3.1.0
+    - Jump on the next segment on pressing next separator key. ([#26](https://github.com/eight04/angular-datetime/pull/26))
+    - Add `datetime-separator` option.
+	- Now it will try to fix NUMBER_TOOSHORT error when pressing left/right/separator key.
 * 3.0.1 (Apr 9, 2016)
 	- Fix validator and datetime-model bug. [#27](https://github.com/eight04/angular-datetime/issues/27)
 * 3.0.0 (Apr 1, 2016)
