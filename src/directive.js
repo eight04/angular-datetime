@@ -459,7 +459,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				case "keypress":
 					var nextSeparatorKeyCode;
 					// check for separator only when there is a next node which is static string
-					if (range.node.next && range.node.next.token.name === 'string' && range.node.next.token.type === 'static') {
+					if (range.node.next && range.node.next.token.name === "string" && range.node.next.token.type === "static") {
 						nextSeparatorKeyCode = range.node.next.viewValue.charCodeAt(0);
 					}
 
