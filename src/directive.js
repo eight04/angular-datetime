@@ -192,7 +192,8 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				node: null,
 				start: 0,
 				end: 0
-			};
+			},
+			lastError;
 		var datetimeSeparator;
 
 		if (angular.isDefined(attrs.datetimeSeparator)) {
@@ -272,26 +273,15 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 			try {
 				parser.parse(viewValue);
 			} catch (err) {
-				if (err.node) {
-					delete err.node.suggestedValue;
-				}
+				lastError = err;
 				$log.error(err);
 
 				ngModel.$setValidity("datetime", false);
 
-				if (err.code == "NUMBER_TOOSMALL" && err.match.length < err.node.token.maxLength) {
+				if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL" && err.match.length < err.node.token.maxLength) {
 					errorRange.node = err.node;
 					errorRange.start = 0;
 					errorRange.end = err.match.length;
-				} else if (err.code == "NUMBER_TOOSHORT" && err.match.length < err.node.token.maxLength) {
-					// how many zeros we need to fulfil minLengthRequirement
-					var neededZeros = err.node.token.minLength - err.match.length;
-					// add leading zeros
-					var fixedValue = [viewValue.slice(0, err.pos), Array(neededZeros + 1).join("0"), viewValue.slice(err.pos)].join('')
-					// suggest correct value for node
-					err.node.suggestedValue = fixedValue;
-					// invalidate tooShort validator
-					ngModel.$setValidity("tooShort", false);
 				} else {
 					if (err.code == "LEADING_ZERO") {
 						viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
@@ -330,6 +320,8 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 
 				return undefined;
 			}
+
+			lastError = null;
 
 			ngModel.$setValidity("datetime", true);
 
@@ -476,19 +468,13 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 						if (!ngModel.$error.datetime) {
 							selectRange(range, "next");
 						}
-						else if (ngModel.$error.tooShort) { // for adding leading zeros for short string
-							if (range.node.suggestedValue) {
-								// apply suggested value and jump on next
-								parser.parse(range.node.suggestedValue); // try to apply suggested date
-								ngModel.$setViewValue(range.node.suggestedValue);
-								ngModel.$setValidity("tooShort", true);
-								ngModel.$render();
-								scope.$apply();
-								delete range.node.suggestedValue;
-								selectRange(range, "next");
-							} else {
-								selectRange(errorRange);
-							}
+						else if (lastError && lastError.code == "NUMBER_TOOSHORT") {
+							parser.nodeParseValue(lastError.node, lastError.properValue);
+							ngModel.$setViewValue(parser.getText());
+							ngModel.$setValidity("tooShort", true);
+							ngModel.$render();
+							scope.$apply();
+							selectRange(range, "next");
 						} else {
 							selectRange(errorRange);
 						}

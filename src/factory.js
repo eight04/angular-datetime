@@ -509,7 +509,8 @@ angular.module("datetime").factory("datetime", function($locale){
 						text: text,
 						node: p,
 						pos: pos,
-						match: value
+						match: value,
+						properValue: num2str(+value, p.token.minLength, p.token.maxLength)
 					};
 				}
 
