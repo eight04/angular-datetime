@@ -511,7 +511,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 						text: text,
 						node: p,
 						pos: pos,
-						match: value
+						match: value,
+						properValue: num2str(+value, p.token.minLength, p.token.maxLength)
 					};
 				}
 
@@ -1069,8 +1070,9 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 				node: null,
 				start: 0,
 				end: 0
-			};
-			
+			},
+			lastError;
+
 		if (angular.isDefined(attrs.datetimeUtc)) {
 			parser.setTimezone("+0000");
 			if (modelParser) {
@@ -1142,6 +1144,7 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 			try {
 				parser.parse(viewValue);
 			} catch (err) {
+				lastError = err;
 				$log.error(err);
 
 				ngModel.$setValidity("datetime", false);
@@ -1189,6 +1192,8 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 				return undefined;
 			}
 
+			lastError = null;
+
 			ngModel.$setValidity("datetime", true);
 
 			if (ngModel.$validate || validMinMax(parser.getDate())) {
@@ -1220,6 +1225,15 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 
 			return parser.setDate(modelValue).getText();
 		});
+		
+		function tryFixingLastError() {
+			if (lastError.properValue) {
+				parser.nodeParseValue(lastError.node, lastError.properValue);
+				ngModel.$setViewValue(parser.getText());
+				ngModel.$render();
+				scope.$apply();
+			}
+		}
 
 		var waitForClick;
 		element.on("focus keydown keypress mousedown click", function(e){
@@ -1255,6 +1269,9 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 						case 37:
 							// Left
 							e.preventDefault();
+							if (lastError) {
+								tryFixingLastError();
+							}
 							if (!ngModel.$error.datetime) {
 								selectRange(range, "prev");
 							} else {
@@ -1264,6 +1281,9 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 						case 39:
 							// Right
 							e.preventDefault();
+							if (lastError) {
+								tryFixingLastError();
+							}
 							if (!ngModel.$error.datetime) {
 								selectRange(range, "next");
 							} else {
@@ -1323,7 +1343,25 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 					break;
 
 				case "keypress":
-					if (isPrintableKey(e)) {
+					var separators = attrs.datetimeSeparator || "",
+						key = String.fromCharCode(e.keyCode || e.which);
+					// check for separator only when there is a next node which is static string
+					if (range.node.next && range.node.next.token.type === "static") {
+						separators += range.node.next.viewValue[0];
+					}
+
+					if (separators.indexOf(key) >= 0) {
+						e.preventDefault();
+						if (lastError) {
+							tryFixingLastError();
+						}
+						if (!ngModel.$error.datetime) {
+							selectRange(range, "next");
+						} else {
+							selectRange(errorRange);
+						}
+					}
+					else if (isPrintableKey(e)) {
 						setTimeout(function(){
 							range = getRange(element, parser.nodes, range.node);
 							if (isRangeAtEnd(range)) {
