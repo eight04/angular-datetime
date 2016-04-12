@@ -263,8 +263,6 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				return null;
 			}
 
-			ngModel.$setValidity("tooShort", true);
-
 			try {
 				parser.parse(viewValue);
 			} catch (err) {
@@ -349,6 +347,15 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 
 			return parser.setDate(modelValue).getText();
 		});
+		
+		function tryFixingLastError() {
+			if (lastError.properValue) {
+				parser.nodeParseValue(lastError.node, lastError.properValue);
+				ngModel.$setViewValue(parser.getText());
+				ngModel.$render();
+				scope.$apply();
+			}
+		}
 
 		var waitForClick;
 		element.on("focus keydown keypress mousedown click", function(e){
@@ -384,6 +391,9 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 						case 37:
 							// Left
 							e.preventDefault();
+							if (lastError) {
+								tryFixingLastError();
+							}
 							if (!ngModel.$error.datetime) {
 								selectRange(range, "prev");
 							} else {
@@ -393,6 +403,9 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 						case 39:
 							// Right
 							e.preventDefault();
+							if (lastError) {
+								tryFixingLastError();
+							}
 							if (!ngModel.$error.datetime) {
 								selectRange(range, "next");
 							} else {
@@ -461,15 +474,10 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 
 					if (separators.indexOf(key) >= 0) {
 						e.preventDefault();
-						if (!ngModel.$error.datetime) {
-							selectRange(range, "next");
+						if (lastError) {
+							tryFixingLastError();
 						}
-						else if (lastError && lastError.code == "NUMBER_TOOSHORT") {
-							parser.nodeParseValue(lastError.node, lastError.properValue);
-							ngModel.$setViewValue(parser.getText());
-							ngModel.$setValidity("tooShort", true);
-							ngModel.$render();
-							scope.$apply();
+						if (!ngModel.$error.datetime) {
 							selectRange(range, "next");
 						} else {
 							selectRange(errorRange);
