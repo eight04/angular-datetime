@@ -463,7 +463,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 						nextSeparatorKeyCode = range.node.next.viewValue.charCodeAt(0);
 					}
 
-					if (e.keyCode === nextSeparatorKeyCode || e.keyCode == datetimeSeparator.charCodeAt(0)) {
+					if (e.keyCode === nextSeparatorKeyCode || (datetimeSeparator && e.keyCode == datetimeSeparator.charCodeAt(0))) {
 						e.preventDefault();
 						if (!ngModel.$error.datetime) {
 							selectRange(range, "next");
