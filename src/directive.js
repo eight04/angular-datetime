@@ -194,11 +194,6 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				end: 0
 			},
 			lastError;
-		var datetimeSeparator;
-
-		if (angular.isDefined(attrs.datetimeSeparator)) {
-			datetimeSeparator = attrs.datetimeSeparator;
-		}
 
 		if (angular.isDefined(attrs.datetimeUtc)) {
 			parser.setTimezone("+0000");
@@ -457,13 +452,14 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 					break;
 
 				case "keypress":
-					var nextSeparatorKeyCode;
+					var separators = attrs.datetimeSeparator || "",
+						key = String.fromCharCode(e.keyCode || e.which);
 					// check for separator only when there is a next node which is static string
-					if (range.node.next && range.node.next.token.name === "string" && range.node.next.token.type === "static") {
-						nextSeparatorKeyCode = range.node.next.viewValue.charCodeAt(0);
+					if (range.node.next && range.node.next.token.type === "static") {
+						separators += range.node.next.viewValue[0];
 					}
 
-					if (e.keyCode === nextSeparatorKeyCode || (datetimeSeparator && e.keyCode == datetimeSeparator.charCodeAt(0))) {
+					if (separators.indexOf(key) >= 0) {
 						e.preventDefault();
 						if (!ngModel.$error.datetime) {
 							selectRange(range, "next");
