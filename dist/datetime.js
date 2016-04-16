@@ -1,5 +1,4 @@
 angular.module("datetime", []);
-
 angular.module("datetime").factory("datetime", ["$locale", function($locale){
 	// Fetch date and time formats from $locale service
 	var formats = $locale.DATETIME_FORMATS;
@@ -875,7 +874,6 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 
 	return createParser;
 }]);
-
 angular.module("datetime").directive("datetime", ["datetime", "$log", "$document", function(datetime, $log, $document){
 	var doc = $document[0];
 
