@@ -3,46 +3,51 @@
   "version": "3.1.0",
   "description": "A directive to add the behavior of datetime input on unsupported browsers",
   "keywords": [
-	"angular",
-	"datetime",
-	"input",
-	"time",
-	"parser"
+    "angular",
+    "datetime",
+    "input",
+    "time",
+    "parser"
   ],
+  "scripts": {
+    "test": "eslint src/*.js && karma start",
+    "build": "cat src/main.js src/factory.js src/directive.js | ng-annotate -a -o dist/datetime.js -",
+    "build:watch": "watch \"npm run build\" src",
+    "preversion": "npm test",
+    "version": "sync-version bower.json && git add .",
+    "postversion": "git push --follow-tags && npm publish"
+  },
   "homepage": "https://github.com/eight04/angular-datetime",
   "bugs": {
-	"url": "https://github.com/eight04/angular-datetime/issues",
-	"email": "eight04@gmail.com"
+    "url": "https://github.com/eight04/angular-datetime/issues",
+    "email": "eight04@gmail.com"
   },
   "license": "MIT",
   "author": "eight <eight04@gmail.com>",
   "main": "dist/datetime.js",
   "repository": {
-	"type": "git",
-	"url": "https://github.com/eight04/angular-datetime.git"
+    "type": "git",
+    "url": "https://github.com/eight04/angular-datetime.git"
   },
   "dependencies": {
-	"angular": "^1.2.0"
+    "angular": "^1.2.0"
   },
   "devDependencies": {
-	"angular-mocks": "^1.2.0",
+    "angular-mocks": "^1.2.0",
     "eslint": "^1.6.0",
     "eslint-config-angular": "^0.4.0",
     "eslint-plugin-angular": "^0.12.0",
     "eslint-plugin-jasmine": "^1.0.0",
-    "grunt": "^0.4.5",
-    "grunt-bump": "0.0.16",
-    "grunt-contrib-concat": "^0.5.1",
-    "grunt-contrib-watch": "^0.6.1",
-    "grunt-eslint": "^18.0.0",
-    "grunt-karma": "^0.12.2",
-    "grunt-ng-annotate": "^0.10.0",
+    "ix-cat": "^1.1.1",
     "jasmine-core": "^2.2.0",
     "karma": "^0.13.0",
     "karma-chrome-launcher": "^0.1.8",
     "karma-firefox-launcher": "^0.1.4",
     "karma-jasmine": "^0.3.5",
     "karma-phantomjs-launcher": "^1.0.0",
-    "phantomjs-prebuilt": "^2.1.7"
+    "ng-annotate": "^1.2.1",
+    "phantomjs-prebuilt": "^2.1.7",
+    "sync-version": "^0.1.0",
+    "watch": "^0.17.1"
   }
 }
