@@ -15,7 +15,8 @@
     "build:watch": "watch \"npm run build\" src",
     "preversion": "npm test && npm run build",
     "version": "sync-version bower.json && git add .",
-    "postversion": "git push --follow-tags && npm publish"
+    "postversion": "git push --follow-tags && npm publish",
+	"version:list": "sync-version -l bower.json"
   },
   "homepage": "https://github.com/eight04/angular-datetime",
   "bugs": {
