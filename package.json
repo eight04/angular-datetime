@@ -13,7 +13,7 @@
     "test": "eslint src/*.js && karma start",
     "build": "cat src/main.js src/factory.js src/directive.js | ng-annotate -a -o dist/datetime.js -",
     "build:watch": "watch \"npm run build\" src",
-    "preversion": "npm test",
+    "preversion": "npm test && npm run build",
     "version": "sync-version bower.json && git add .",
     "postversion": "git push --follow-tags && npm publish"
   },
