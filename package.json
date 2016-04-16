@@ -1,7 +1,31 @@
 {
-  "name": "angular-datetime",
+  "name": "angular-datetime-input",
   "version": "3.1.0",
+  "description": "A directive to add the behavior of datetime input on unsupported browsers",
+  "keywords": [
+	"angular",
+	"datetime",
+	"input",
+	"time",
+	"parser"
+  ],
+  "homepage": "https://github.com/eight04/angular-datetime",
+  "bugs": {
+	"url": "https://github.com/eight04/angular-datetime/issues",
+	"email": "eight04@gmail.com"
+  },
+  "license": "MIT",
+  "author": "eight <eight04@gmail.com>",
+  "main": "dist/datetime.js",
+  "repository": {
+	"type": "git",
+	"url": "https://github.com/eight04/angular-datetime.git"
+  },
+  "dependencies": {
+	"angular": "^1.2.0"
+  },
   "devDependencies": {
+	"angular-mocks": "^1.2.0",
     "eslint": "^1.6.0",
     "eslint-config-angular": "^0.4.0",
     "eslint-plugin-angular": "^0.12.0",
