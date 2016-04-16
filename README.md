@@ -30,6 +30,10 @@ Install
 Bower:
 
 	bower install angular-datetime --save
+	
+npm:
+
+	npm install angular-datetime-input --save
 
 Usage examples
 --------------
@@ -104,6 +108,8 @@ Todos
 
 Changelog
 ---------
+* 3.1.1 (Apr 17, 2016)
+	- Deploy to npmjs/angular-datetime-input.
 * 3.1.0
     - Jump on the next segment on pressing next separator key. ([#26](https://github.com/eight04/angular-datetime/pull/26))
     - Add `datetime-separator` option.
