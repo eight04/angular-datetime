@@ -193,12 +193,33 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				start: 0,
 				end: 0
 			},
-			lastError;
+			lastError, isUtc;
+			
+		function setUtc(val) {
+			if (val && !isUtc) {
+				isUtc = true;
+				parser.setTimezone("+0000");
+				if (modelParser) {
+					modelParser.setTimezone("+0000");
+				}
+				ngModel.$setViewValue(parser.getText());
+				ngModel.$render();
+			} else if (!val && isUtc) {
+				isUtc = false;
+				parser.setTimezone(null);
+				if (modelParser) {
+					modelParser.setTimezone(null);
+				}
+				ngModel.$setViewValue(parser.getText());
+				ngModel.$render();
+			}
+		}
 
 		if (angular.isDefined(attrs.datetimeUtc)) {
-			parser.setTimezone("+0000");
-			if (modelParser) {
-				modelParser.setTimezone("+0000");
+			if (attrs.datetimeUtc.length > 0) {
+				scope.$watch(attrs.datetimeUtc, setUtc);
+			} else {
+				setUtc(true);
 			}
 		}
 
