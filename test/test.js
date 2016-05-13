@@ -249,6 +249,23 @@ describe("datetime directive", function(){
 		
 		expect(element.val()).toEqual("+0000");
 	});
+	
+	it("dynamic datetime-utc", function(){
+		var date = $rootScope.date = new Date;
+		$rootScope.utc = true;
+		
+		var element = $compile("<input type='text' datetime='Z' ng-model='date' datetime-utc='utc'>")($rootScope);
+		
+		$rootScope.$digest();
+				
+		expect(element.val()).toEqual("+0000");
+		
+		$rootScope.utc = false;
+		
+		$rootScope.$digest();
+		
+		expect(element.val()).toEqual($date(date, "Z"));
+	});
 
 	it("should allow : when using Z:Z token", function(){
 		$rootScope.date = new Date;
