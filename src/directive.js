@@ -195,6 +195,11 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 			},
 			lastError, isUtc;
 			
+		function updateView() {
+			ngModel.$setViewValue(parser.getText());
+			ngModel.$render();
+		}
+		
 		function setUtc(val) {
 			if (val && !isUtc) {
 				isUtc = true;
@@ -202,16 +207,14 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				if (modelParser) {
 					modelParser.setTimezone("+0000");
 				}
-				ngModel.$setViewValue(parser.getText());
-				ngModel.$render();
+				scope.$evalAsync(updateView);
 			} else if (!val && isUtc) {
 				isUtc = false;
 				parser.setTimezone(null);
 				if (modelParser) {
 					modelParser.setTimezone(null);
 				}
-				ngModel.$setViewValue(parser.getText());
-				ngModel.$render();
+				scope.$evalAsync(updateView);
 			}
 		}
 
