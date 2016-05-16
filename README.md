@@ -108,6 +108,8 @@ Todos
 
 Changelog
 ---------
+* 3.2.0 (May 17, 2016)
+	- Support dynamic datetime-utc. [#29](https://github.com/eight04/angular-datetime/issues/29)
 * 3.1.1 (Apr 17, 2016)
 	- Deploy to npmjs/angular-datetime-input.
 	- Drop grunt.
