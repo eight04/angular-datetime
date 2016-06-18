@@ -227,7 +227,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 		}
 
 		var validMin = function(value) {
-			if (ngModel.$isEmpty(value) || angular.isUndefined(attrs.min)) {
+			if (ngModel.$isEmpty(value) || ngModel.$isEmpty(attrs.min)) {
 				return true;
 			}
 			if (!angular.isDate(value)) {
@@ -237,7 +237,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 		};
 
 		var validMax = function(value) {
-			if (ngModel.$isEmpty(value) || angular.isUndefined(attrs.max)) {
+			if (ngModel.$isEmpty(value) || ngModel.$isEmpty(attrs.max)) {
 				return true;
 			}
 			if (!angular.isDate(value)) {
