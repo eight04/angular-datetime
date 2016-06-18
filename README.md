@@ -108,6 +108,8 @@ Todos
 
 Changelog
 ---------
+* 3.2.1 (Jun 18, 2016)
+	- Fix a bug that empty `min`, `max` cause invalid date.
 * 3.2.0 (May 17, 2016)
 	- Support dynamic datetime-utc. [#29](https://github.com/eight04/angular-datetime/issues/29)
 * 3.1.1 (Apr 17, 2016)
