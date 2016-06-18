@@ -287,4 +287,30 @@ describe("datetime directive", function(){
 		
 		expect(element.val()).toEqual($date(date, "medium"));
 	});
+	
+	it("min & max", function(){
+		$rootScope.min = "2000-01-01";
+		$rootScope.max = "2020-01-01";
+		
+		var element = $compile("<input type='text' datetime='yyyy-MM-dd HH:mm:ss' ng-model='date' min='{{min}}' max='{{max}}'>")($rootScope);
+		
+		$rootScope.$digest();
+		
+		element.val("1999-01-01 00:00:00").triggerHandler("input");
+		$rootScope.$digest();
+		expect(element.hasClass("ng-invalid-min")).toEqual(true);
+		
+		element.val("2016-06-18 22:59:00").triggerHandler("input");
+		$rootScope.$digest();
+		expect(element.hasClass("ng-invalid")).toEqual(false);
+		
+		element.val("2021-01-01 00:00:00").triggerHandler("input");
+		$rootScope.$digest();
+		expect(element.hasClass("ng-invalid-max")).toEqual(true);
+		
+		$rootScope.min = null;
+		$rootScope.max = null;
+		$rootScope.$digest();
+		expect(element.hasClass("ng-invalid")).toEqual(false);
+	});
 });
