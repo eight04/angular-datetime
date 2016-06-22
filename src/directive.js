@@ -179,6 +179,10 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 	}
 
 	function linkFunc(scope, element, attrs, ngModel) {
+		if (ngModel === null) {
+			return false;
+		}
+
 		var parser = datetime(attrs.datetime),
 			modelParser = attrs.datetimeModel && datetime(attrs.datetimeModel),
 			range = {
