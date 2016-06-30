@@ -108,6 +108,8 @@ Todos
 
 Changelog
 ---------
+* 3.2.2 (Jun 30, 2016)
+	- Return false if there is no ngModel.
 * 3.2.1 (Jun 18, 2016)
 	- Fix a bug that empty `min`, `max` cause invalid date.
 * 3.2.0 (May 17, 2016)
