@@ -429,7 +429,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 						} else {
 							selectRange(errorRange);
 						}
-					} else if (e.keyCode == 39 || e.keyCode == 9) {
+					} else if (e.keyCode == 39 || e.keyCode == 9 && !e.shiftKey) {
 						// Right, Tab
 						e.preventDefault();
 						if (lastError) {
