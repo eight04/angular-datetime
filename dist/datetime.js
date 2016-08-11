@@ -1294,69 +1294,65 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 					}
 					break;
 				case "keydown":
-					switch (e.keyCode) {
-						case 37:
-							// Left
-							e.preventDefault();
-							if (lastError) {
-								tryFixingLastError();
-							}
-							if (!ngModel.$error.datetime) {
-								selectRange(range, "prev");
-							} else {
-								selectRange(errorRange);
-							}
-							break;
-						case 39:
-							// Right
-							e.preventDefault();
-							if (lastError) {
-								tryFixingLastError();
-							}
-							if (!ngModel.$error.datetime) {
-								selectRange(range, "next");
-							} else {
-								selectRange(errorRange);
-							}
-							break;
-						case 38:
-							// Up
-							e.preventDefault();
-							parser.nodeAddValue(range.node, 1);
-							ngModel.$setViewValue(parser.getText());
-							range.start = 0;
-							range.end = "end";
-							ngModel.$render();
-							scope.$apply();
-							break;
-						case 40:
-							// Down
-							e.preventDefault();
-							parser.nodeAddValue(range.node, -1);
-							ngModel.$setViewValue(parser.getText());
-							range.start = 0;
-							range.end = "end";
-							ngModel.$render();
-							scope.$apply();
-							break;
-						case 36:
-							// Home
-							e.preventDefault();
-							if (ngModel.$error.datetime) {
-								selectRange(errorRange);
-							} else {
-								selectRange(range, "prev", true);
-							}
-							break;
-						case 35:
-							// End
-							e.preventDefault();
-							if (ngModel.$error.datetime) {
-								selectRange(errorRange);
-							} else {
-								selectRange(range, "next", true);
-							}
-							break;
+					if (e.altKey || e.ctrlKey) {
+						break;
+					}
+					if (e.keyCode == 37 || e.keyCode == 9 && e.shiftKey) {
+						// Left, Shift + Tab
+						e.preventDefault();
+						if (lastError) {
+							tryFixingLastError();
+						}
+						if (!ngModel.$error.datetime) {
+							selectRange(range, "prev");
+						} else {
+							selectRange(errorRange);
+						}
+					} else if (e.keyCode == 39 || e.keyCode == 9) {
+						// Right, Tab
+						e.preventDefault();
+						if (lastError) {
+							tryFixingLastError();
+						}
+						if (!ngModel.$error.datetime) {
+							selectRange(range, "next");
+						} else {
+							selectRange(errorRange);
+						}
+					} else if (e.keyCode == 38) {
+						// Up
+						e.preventDefault();
+						parser.nodeAddValue(range.node, 1);
+						ngModel.$setViewValue(parser.getText());
+						range.start = 0;
+						range.end = "end";
+						ngModel.$render();
+						scope.$apply();
+					} else if (e.keyCode == 40) {
+						// Down
+						e.preventDefault();
+						parser.nodeAddValue(range.node, -1);
+						ngModel.$setViewValue(parser.getText());
+						range.start = 0;
+						range.end = "end";
+						ngModel.$render();
+						scope.$apply();
+					} else if (e.keyCode == 36) {
+						// Home
+						e.preventDefault();
+						if (ngModel.$error.datetime) {
+							selectRange(errorRange);
+						} else {
+							selectRange(range, "prev", true);
+						}
+					} else if (e.keyCode == 35) {
+						// End
+						e.preventDefault();
+						if (ngModel.$error.datetime) {
+							selectRange(errorRange);
+						} else {
+							selectRange(range, "next", true);
+						}
 					}
 					break;
 
