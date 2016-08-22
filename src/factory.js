@@ -222,6 +222,8 @@ angular.module("datetime").factory("datetime", function($locale){
 			offset: 0,
 			next: null,
 			prev: null,
+			nextEdit: null,
+			prevEdit: null,
 			id: null
 		};
 	}
@@ -261,7 +263,22 @@ angular.module("datetime").factory("datetime", function($locale){
 		for (i = 0; i < nodes.length; i++) {
 			nodes[i].next = nodes[i + 1] || null;
 			nodes[i].prev = nodes[i - 1] || null;
-			nodes[i].id = i;
+		}
+		
+		var edit = null;
+		for (i = 0; i < nodes.length; i++) {
+			nodes[i].prevEdit = edit;
+			if (nodes[i].token.type != "static") {
+				edit = nodes[i];
+			}
+		}
+		
+		edit = null;
+		for (i = nodes.length - 1; i >= 0; i--) {
+			nodes[i].nextEdit = edit;
+			if (nodes[i].token.type != "static" {
+				edit = nodes[i];
+			}
 		}
 
 		return nodes;
