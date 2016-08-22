@@ -268,7 +268,7 @@ angular.module("datetime").factory("datetime", function($locale){
 		var edit = null;
 		for (i = 0; i < nodes.length; i++) {
 			nodes[i].prevEdit = edit;
-			if (nodes[i].token.type != "static") {
+			if (nodes[i].token.type != "static" && nodes[i].token.type != "regex") {
 				edit = nodes[i];
 			}
 		}
@@ -276,7 +276,7 @@ angular.module("datetime").factory("datetime", function($locale){
 		edit = null;
 		for (i = nodes.length - 1; i >= 0; i--) {
 			nodes[i].nextEdit = edit;
-			if (nodes[i].token.type != "static" {
+			if (nodes[i].token.type != "static" && nodes[i].token.type != "regex") {
 				edit = nodes[i];
 			}
 		}
