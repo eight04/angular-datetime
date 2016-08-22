@@ -105,6 +105,7 @@ Todos
 * Put some error handler into factory?
 * Day node should give different proper values depends on month when NUMBER_TOOLARGE.
 * Refactor createParser.
+* Drop static, regex types and add editable attr.
 
 Changelog
 ---------
