@@ -55,13 +55,13 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 	}
 
 	function getNode(node, direction) {
+		if (!node || !isStatic(node)) {
+			return node;
+		}
 		if (!direction) {
 			direction = "next";
 		}
-		while (node && (node.token.type == "static" || node.token.type == "regex")) {
-			node = node[direction];
-		}
-		return node;
+		return node[direction + "Edit"];
 	}
 
 	function getLastNode(node, direction) {
