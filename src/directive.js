@@ -425,7 +425,9 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 							tryFixingLastError();
 						}
 						if (!ngModel.$error.datetime) {
-							selectRange(range, "prev");
+							if (e.keyCode != 9 || range.node.prevEdit) {
+								selectRange(range, "prev");
+							}
 						} else {
 							selectRange(errorRange);
 						}
@@ -436,7 +438,9 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 							tryFixingLastError();
 						}
 						if (!ngModel.$error.datetime) {
-							selectRange(range, "next");
+							if (e.keyCode != 9 || range.node.nextEdit) {
+								selectRange(range, "next");
+							}
 						} else {
 							selectRange(errorRange);
 						}
