@@ -418,29 +418,25 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 					if (e.altKey || e.ctrlKey) {
 						break;
 					}
-					if (e.keyCode == 37 || e.keyCode == 9 && e.shiftKey) {
+					if (e.keyCode == 37 || e.keyCode == 9 && e.shiftKey && range.node.prevEdit) {
 						// Left, Shift + Tab
 						e.preventDefault();
 						if (lastError) {
 							tryFixingLastError();
 						}
 						if (!ngModel.$error.datetime) {
-							if (e.keyCode != 9 || range.node.prevEdit) {
-								selectRange(range, "prev");
-							}
+							selectRange(range, "prev");
 						} else {
 							selectRange(errorRange);
 						}
-					} else if (e.keyCode == 39 || e.keyCode == 9 && !e.shiftKey) {
+					} else if (e.keyCode == 39 || e.keyCode == 9 && !e.shiftKey && range.node.nextEdit) {
 						// Right, Tab
 						e.preventDefault();
 						if (lastError) {
 							tryFixingLastError();
 						}
 						if (!ngModel.$error.datetime) {
-							if (e.keyCode != 9 || range.node.nextEdit) {
-								selectRange(range, "next");
-							}
+							selectRange(range, "next");
 						} else {
 							selectRange(errorRange);
 						}
