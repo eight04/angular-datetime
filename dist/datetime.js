@@ -219,11 +219,21 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 		return {
 			token: definedTokens[token],
 			value: value,
-			viewValue: value || "",
+			viewValue: value || "[" + definedTokens[token].name + "]",
 			offset: 0,
 			next: null,
 			prev: null,
-			id: null
+			nextEdit: null,
+			prevEdit: null,
+			init: false,
+			unset: function(){
+				if (this.token.type == "static" || this.token.type == "regex") {
+					return;
+				}
+				this.init = false;
+				this.value = null;
+				this.viewValue = "[" + this.token.name + "]";
+			}
 		};
 	}
 
@@ -262,7 +272,22 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 		for (i = 0; i < nodes.length; i++) {
 			nodes[i].next = nodes[i + 1] || null;
 			nodes[i].prev = nodes[i - 1] || null;
-			nodes[i].id = i;
+		}
+		
+		var edit = null;
+		for (i = 0; i < nodes.length; i++) {
+			nodes[i].prevEdit = edit;
+			if (nodes[i].token.type != "static" && nodes[i].token.type != "regex") {
+				edit = nodes[i];
+			}
+		}
+		
+		edit = null;
+		for (i = nodes.length - 1; i >= 0; i--) {
+			nodes[i].nextEdit = edit;
+			if (nodes[i].token.type != "static" && nodes[i].token.type != "regex") {
+				edit = nodes[i];
+			}
 		}
 
 		return nodes;
@@ -327,66 +352,69 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 		}
 		return timezone.substr(0, 3) + timezone.substr(4, 2);
 	}
-
-	function setText(node, date, token, timezone) {
+	
+	function getValue(date, token, timezone) {
+		// format value from @date according to @token.
+		var value;
 		switch (token.name) {
 			case "year":
-				node.value = date.getFullYear();
+				value = date.getFullYear();
 				// it is possible
-				if (node.value < 0) {
-					node.value = 0;
+				if (value < 0) {
+					value = 0;
 				}
 				break;
 			case "month":
-				node.value = date.getMonth() + 1;
+				value = date.getMonth() + 1;
 				break;
 			case "date":
-				node.value = date.getDate();
+				value = date.getDate();
 				break;
 			case "day":
-				node.value = date.getDay() || 7;
+				value = date.getDay() || 7;
 				break;
 			case "hour":
-				node.value = date.getHours();
+				value = date.getHours();
 				break;
 			case "hour12":
-				node.value = date.getHours() % 12 || 12;
+				value = date.getHours() % 12 || 12;
 				break;
 			case "ampm":
-				node.value = date.getHours() < 12 ? 1 : 2;
+				value = date.getHours() < 12 ? 1 : 2;
 				break;
 			case "minute":
-				node.value = date.getMinutes();
+				value = date.getMinutes();
 				break;
 			case "second":
-				node.value = date.getSeconds();
+				value = date.getSeconds();
 				break;
 			case "millisecond":
-				node.value = date.getMilliseconds();
+				value = date.getMilliseconds();
 				break;
 			case "week":
-				node.value = getWeek(date);
+				value = getWeek(date);
 				break;
 			case "timezone":
-				node.value = removeColon(timezone || SYS_TIMEZONE);
+				value = removeColon(timezone || SYS_TIMEZONE);
 				break;
 			case "timezoneWithColon":
-				node.value = insertColon(timezone || SYS_TIMEZONE);
+				value = insertColon(timezone || SYS_TIMEZONE);
 				break;
 		}
-
+		return value;
+	}
+	
+	function getViewValue(value, token) {
+		// format viewValue from @value and @token
 		switch (token.type) {
 			case "number":
-				node.viewValue = num2str(node.value, token.minLength, token.maxLength);
-				break;
+				return num2str(value, token.minLength, token.maxLength);
 			case "select":
-				node.viewValue = token.select[node.value - 1];
-				break;
-			default:
-				node.viewValue = node.value + "";
+				return token.select[value - 1];
 		}
+		return value + "";
 	}
-
+	
 	// set the proper date value matching the weekday
 	function setDay(date, day) {
 		// we don't want to change month when changing date
@@ -478,6 +506,12 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 	// Parse text[pos:] by node.token definition. Extract result into node.value, node.viewValue
 	function parseNode(node, text, pos) {
 		var p = node, m, match, value, j;
+		if (p.token.type != "static") {
+			if (text.indexOf("[" + node.token.name + "]", pos) == pos) {
+				p.unset();
+				return;
+			}
+		}
 		switch (p.token.type) {
 			case "static":
 				if (text.lastIndexOf(p.value, pos) != pos) {
@@ -608,6 +642,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				p.viewValue = m[0];
 				break;
 		}
+		p.init = true;
 	}
 
 	function addDate(date, token, diff) {
@@ -672,7 +707,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			}
 			pos += nodes[i].viewValue.length;
 			
-			if (oldViewValue != nodes[i].viewValue) {
+			if (oldViewValue != nodes[i].viewValue && nodes[i].init) {
 				// Buff date
 				if (nodes[i].token.name == "date") {
 					dateBuff = nodes[i];
@@ -719,15 +754,37 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			
 		return new Date(date.getTime() + (offset - -date.getTimezoneOffset()) * 60 * 1000);
 	}
-
-	function updateText(nodes, date, timezone){
-		var i, node;
+	
+	function applyDate(date, nodes, timezone){
+		// extract date to node values
+		var i;
 		for (i = 0; i < nodes.length; i++) {
-			node = nodes[i];
-
-			setText(node, date, node.token, timezone);
+			if (nodes[i].token.name == "string") {
+				continue;
+			}
+			if (nodes[i].init) {
+				nodes[i].value = getValue(date, nodes[i].token, timezone);
+				nodes[i].viewValue = getViewValue(nodes[i].value, nodes[i].token);
+			} else {
+				nodes[i].value = null;
+				nodes[i].viewValue = "[" + nodes[i].token.name + "]";
+			}
 		}
 		calcOffset(nodes);
+	}
+	
+	function getNodesText(date, nodes, timezone) {
+		var i, text = "";
+		for (i = 0; i < nodes.length; i++) {
+			if (nodes[i].token.name == "string") {
+				text += nodes[i].viewValue;
+			} else if (nodes[i].init) {
+				text += getViewValue(getValue(date, nodes[i].token, timezone), nodes[i].token);
+			} else {
+				text += "[" + nodes[i].token.name + "]";
+			}
+		}
+		return text;
 	}
 	
 	function createParser(format) {
@@ -753,8 +810,10 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 
 				try {
 					parseLoop(parser.nodes, text, date);
-					updateText(parser.nodes, date, parser.timezoneNode && parser.timezoneNode.viewValue);
-					newText = parser.getText();
+					calcOffset(parser.nodes);
+					
+					// check date consistency
+					newText = getNodesText(date, parser.nodes, parser.timezoneNode && parser.timezoneNode.viewValue);
 					if (text != newText) {
 						throw {
 							code: "INCONSISTENT_INPUT",
@@ -764,10 +823,10 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 							properText: newText
 						};
 					}
+					
 				} catch (err) {
 					// Should we reset date object if failed to parse?
-					// parser.setDate(oldDate);
-					updateText(parser.nodes, oldDate, parser.timezone);
+					applyDate(oldDate, parser.nodes, parser.timezone);
 					throw err;
 				}
 				
@@ -784,6 +843,19 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 					parser.model = new Date(date.getTime());
 				}
 				
+				// check uninit node
+				var i;
+				for (i = 0; i < parser.nodes.length; i++) {
+					if (!parser.nodes[i].init) {
+						throw {
+							code: "NOT_INIT",
+							message: "Some date parts are empty",
+							text: text,
+							node: parser.nodes[i]
+						};
+					}
+				}
+				
 				return parser;
 			},
 			nodeParseValue: function(node, text) {
@@ -798,8 +870,11 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 					node.viewValue = oldViewValue;
 					throw err;
 				}
+				if (!node.init) {
+					return;
+				}
 				setDate(date, node.value, node.token);
-				updateText(parser.nodes, date, parser.timezone);
+				applyDate(date, parser.nodes, parser.timezone);
 				if (parser.timezone) {
 					parser.model = deOffsetDate(date, parser.timezone);
 				} else {
@@ -809,8 +884,9 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			},
 			nodeAddValue: function(node, diff) {
 				var date = parser.date;
+				node.init = true;
 				addDate(date, node.token, diff);
-				updateText(parser.nodes, date, parser.timezone);
+				applyDate(date, parser.nodes, parser.timezone);
 				if (parser.timezone) {
 					parser.model = deOffsetDate(date, parser.timezone);
 				} else {
@@ -825,20 +901,26 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				} else {
 					parser.date = new Date(date.getTime());
 				}
-				updateText(parser.nodes, parser.date, parser.timezone);
+				// init all parts
+				var i;
+				for (i = 0; i < parser.nodes.length; i++) {
+					parser.nodes[i].init = true;
+				}
+				applyDate(parser.date, parser.nodes, parser.timezone);
 				return parser;
 			},
 			getDate: function(){
 				return parser.model;
 			},
 			getText: function(timezone){
-				// FIXME: getting text from different timezone shouldn't change original text.
-				if (timezone) {
-					updateText(parser.nodes, offsetDate(parser.model, timezone), timezone);
-				}
 				var i, text = "";
-				for (i = 0; i < parser.nodes.length; i++) {
-					text += parser.nodes[i].viewValue;
+				if (timezone) {
+					var date = offsetDate(parser.model, timezone);
+					text = getNodesText(date, parser.nodes, timezone);
+				} else {
+					for (i = 0; i < parser.nodes.length; i++) {
+						text += parser.nodes[i].viewValue;
+					}
 				}
 				return text;
 			},
@@ -849,8 +931,15 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				if (timezone != parser.timezone) {
 					parser.timezone = timezone;
 					parser.date = offsetDate(parser.model, timezone);
-					updateText(parser.nodes, parser.date, timezone);
+					applyDate(parser.date, parser.nodes, timezone);
 				}
+			},
+			unset: function(){
+				var i;
+				for (i = 0; i < nodes.length; i++) {
+					nodes[i].unset();
+				}
+				calcOffset(nodes);
 			},
 			date: null,
 			model: null,
@@ -934,13 +1023,13 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 	}
 
 	function getNode(node, direction) {
+		if (!node || !isStatic(node)) {
+			return node;
+		}
 		if (!direction) {
 			direction = "next";
 		}
-		while (node && (node.token.type == "static" || node.token.type == "regex")) {
-			node = node[direction];
-		}
-		return node;
+		return node[direction + "Edit"];
 	}
 
 	function getLastNode(node, direction) {
@@ -1170,60 +1259,88 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 				return null;
 			}
 
+			lastError = null;
+
 			try {
 				parser.parse(viewValue);
 			} catch (err) {
 				lastError = err;
-				$log.error(err);
+				
+				if (err.code != "NOT_INIT") {
+					$log.error(err);
 
-				ngModel.$setValidity("datetime", false);
-
-				if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL" && err.match.length < err.node.token.maxLength) {
-					errorRange.node = err.node;
-					errorRange.start = 0;
-					errorRange.end = err.match.length;
-				} else {
-					if (err.code == "LEADING_ZERO") {
-						viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
-						if (err.match.length >= err.node.token.maxLength) {
-							selectRange(range, "next");
-						} else {
-							range.start += err.properValue.length - err.match.length + 1;
-							range.end = range.start;
-						}
-					} else if (err.code == "SELECT_INCOMPLETE") {
-						parser.nodeParseValue(range.node, err.selected);
-						viewValue = parser.getText();
-						range.start = err.match.length;
-						range.end = "end";
-					} else if (err.code == "INCONSISTENT_INPUT") {
-						viewValue = err.properText;
-						range.start++;
-						range.end = range.start;
-					// } else if (err.code == "NUMBER_TOOLARGE") {
-						// viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
-						// range.start = 0;
-						// range.end = "end";
+					ngModel.$setValidity("datetime", false);
+					
+					if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL" && err.match.length < err.node.token.maxLength) {
+						errorRange.node = err.node;
+						errorRange.start = 0;
+						errorRange.end = err.match.length;
 					} else {
-						viewValue = parser.getText();
-						range.start = 0;
-						range.end = "end";
-					}
-					scope.$evalAsync(function(){
-						if (viewValue == ngModel.$viewValue) {
-							throw "angular-datetime crashed!";
+						if (err.code == "LEADING_ZERO") {
+							viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
+							if (err.match.length >= err.node.token.maxLength) {
+								selectRange(range, "next");
+							} else {
+								range.start += err.properValue.length - err.match.length + 1;
+								range.end = range.start;
+							}
+						} else if (err.code == "SELECT_INCOMPLETE") {
+							parser.nodeParseValue(range.node, err.selected);
+							viewValue = parser.getText();
+							range.start = err.match.length;
+							range.end = "end";
+						} else if (err.code == "INCONSISTENT_INPUT") {
+							viewValue = err.properText;
+							range.start++;
+							range.end = range.start;
+						// } else if (err.code == "NUMBER_TOOLARGE") {
+							// viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
+							// range.start = 0;
+							// range.end = "end";
+						} else {
+							if (err.node) {
+								err.node.unset();
+							}
+							viewValue = parser.getText();
+							range.start = 0;
+							range.end = "end";
 						}
-						ngModel.$setViewValue(viewValue);
-						ngModel.$render();
-					});
-				}
+						scope.$evalAsync(function(){
+							if (viewValue == ngModel.$viewValue) {
+								throw "angular-datetime crashed!";
+							}
+							ngModel.$setViewValue(viewValue);
+							ngModel.$render();
+						});
+					}
 
-				return undefined;
+					return undefined;
+				}
 			}
 
-			lastError = null;
-
-			ngModel.$setValidity("datetime", true);
+			// handle not init
+			var i, valid = true;
+			if (lastError) {
+				if (angular.isDefined(attrs.required)) {
+					valid = false;
+				} else {
+					for (i = 0; i < parser.nodes.length; i++) {
+						if (parser.nodes[i].token.type == "static" || parser.nodes[i].token.type == "regex") {
+							continue;
+						}
+						if (parser.nodes[i].init) {
+							valid = false;
+							break;
+						}
+					}
+				}
+			}
+			ngModel.$setValidity("datetime", valid);
+			
+			if (lastError) {
+				lastError = null;
+				return null;
+			}
 
 			if (ngModel.$validate || validMinMax(parser.getDate())) {
 				var date = parser.getDate();
@@ -1243,7 +1360,8 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 
 			if (!modelValue) {
 				ngModel.$setValidity("datetime", angular.isUndefined(attrs.required));
-				return "";
+				parser.unset();
+				return parser.getText();
 			}
 
 			ngModel.$setValidity("datetime", true);
@@ -1285,7 +1403,7 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 
 					if (!waitForClick) {
 						setTimeout(function(){
-							if (!ngModel.$error.datetime) {
+							if (!lastError) {
 								selectRange(range);
 							} else {
 								selectRange(errorRange);
@@ -1297,27 +1415,23 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 					if (e.altKey || e.ctrlKey) {
 						break;
 					}
-					if (e.keyCode == 37 || e.keyCode == 9 && e.shiftKey) {
+					if (e.keyCode == 37 || e.keyCode == 9 && e.shiftKey && range.node.prevEdit) {
 						// Left, Shift + Tab
 						e.preventDefault();
 						if (lastError) {
 							tryFixingLastError();
-						}
-						if (!ngModel.$error.datetime) {
-							selectRange(range, "prev");
-						} else {
 							selectRange(errorRange);
+						} else {
+							selectRange(range, "prev");
 						}
-					} else if (e.keyCode == 39 || e.keyCode == 9) {
+					} else if (e.keyCode == 39 || e.keyCode == 9 && !e.shiftKey && range.node.nextEdit) {
 						// Right, Tab
 						e.preventDefault();
 						if (lastError) {
 							tryFixingLastError();
-						}
-						if (!ngModel.$error.datetime) {
-							selectRange(range, "next");
-						} else {
 							selectRange(errorRange);
+						} else {
+							selectRange(range, "next");
 						}
 					} else if (e.keyCode == 38) {
 						// Up
@@ -1340,7 +1454,7 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 					} else if (e.keyCode == 36) {
 						// Home
 						e.preventDefault();
-						if (ngModel.$error.datetime) {
+						if (lastError) {
 							selectRange(errorRange);
 						} else {
 							selectRange(range, "prev", true);
@@ -1348,7 +1462,7 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 					} else if (e.keyCode == 35) {
 						// End
 						e.preventDefault();
-						if (ngModel.$error.datetime) {
+						if (lastError) {
 							selectRange(errorRange);
 						} else {
 							selectRange(range, "next", true);
@@ -1359,7 +1473,7 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 				case "click":
 					e.preventDefault();
 					waitForClick = false;
-					if (!ngModel.$error.datetime) {
+					if (!lastError) {
 						range = createRange(element, parser.nodes);
 						selectRange(range);
 					} else {
@@ -1379,11 +1493,9 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 						e.preventDefault();
 						if (lastError) {
 							tryFixingLastError();
-						}
-						if (!ngModel.$error.datetime) {
-							selectRange(range, "next");
-						} else {
 							selectRange(errorRange);
+						} else {
+							selectRange(range, "next");
 						}
 					}
 					else if (isPrintableKey(e)) {
