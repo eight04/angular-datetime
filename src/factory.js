@@ -224,7 +224,15 @@ angular.module("datetime").factory("datetime", function($locale){
 			prev: null,
 			nextEdit: null,
 			prevEdit: null,
-			init: false
+			init: false,
+			unset: function(){
+				if (this.token.type == "static" || this.token.type == "regex") {
+					return;
+				}
+				this.init = false;
+				this.value = null;
+				this.viewValue = "[" + this.token.name + "]";
+			}
 		};
 	}
 
@@ -499,9 +507,7 @@ angular.module("datetime").factory("datetime", function($locale){
 		var p = node, m, match, value, j;
 		if (p.token.type != "static") {
 			if (text.indexOf("[" + node.token.name + "]", pos) == pos) {
-				p.init = false;
-				p.value = null;
-				p.viewValue = "[" + node.token.name + "]";
+				p.unset();
 				return;
 			}
 		}
@@ -771,8 +777,10 @@ angular.module("datetime").factory("datetime", function($locale){
 		for (i = 0; i < nodes.length; i++) {
 			if (nodes[i].token.name == "string") {
 				text += nodes[i].viewValue;
-			} else {
+			} else if (nodes[i].init) {
 				text += getViewValue(getValue(date, nodes[i].token, timezone), nodes[i].token);
+			} else {
+				text += "[" + nodes[i].token.name + "]";
 			}
 		}
 		return text;
@@ -802,19 +810,6 @@ angular.module("datetime").factory("datetime", function($locale){
 				try {
 					parseLoop(parser.nodes, text, date);
 					calcOffset(parser.nodes);
-					
-					// check uninit node
-					var i;
-					for (i = 0; i < parser.nodes.length; i++) {
-						if (!parser.nodes[i].init) {
-							throw {
-								code: "NOT_INIT",
-								message: "Some date parts are empty",
-								text: text,
-								node: parser.nodes[i]
-							};
-						}
-					}
 					
 					// check date consistency
 					newText = getNodesText(date, parser.nodes, parser.timezoneNode && parser.timezoneNode.viewValue);
@@ -847,6 +842,19 @@ angular.module("datetime").factory("datetime", function($locale){
 					parser.model = new Date(date.getTime());
 				}
 				
+				// check uninit node
+				var i;
+				for (i = 0; i < parser.nodes.length; i++) {
+					if (!parser.nodes[i].init) {
+						throw {
+							code: "NOT_INIT",
+							message: "Some date parts are empty",
+							text: text,
+							node: parser.nodes[i]
+						};
+					}
+				}
+				
 				return parser;
 			},
 			nodeParseValue: function(node, text) {
@@ -875,6 +883,7 @@ angular.module("datetime").factory("datetime", function($locale){
 			},
 			nodeAddValue: function(node, diff) {
 				var date = parser.date;
+				node.init = true;
 				addDate(date, node.token, diff);
 				applyDate(date, parser.nodes, parser.timezone);
 				if (parser.timezone) {
@@ -923,6 +932,13 @@ angular.module("datetime").factory("datetime", function($locale){
 					parser.date = offsetDate(parser.model, timezone);
 					applyDate(parser.date, parser.nodes, timezone);
 				}
+			},
+			unset: function(){
+				var i;
+				for (i = 0; i < nodes.length; i++) {
+					nodes[i].unset();
+				}
+				calcOffset(nodes);
 			},
 			date: null,
 			model: null,

@@ -291,60 +291,88 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				return null;
 			}
 
+			lastError = null;
+
 			try {
 				parser.parse(viewValue);
 			} catch (err) {
 				lastError = err;
-				$log.error(err);
+				
+				if (err.code != "NOT_INIT") {
+					$log.error(err);
 
-				ngModel.$setValidity("datetime", false);
-
-				if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL" && err.match.length < err.node.token.maxLength) {
-					errorRange.node = err.node;
-					errorRange.start = 0;
-					errorRange.end = err.match.length;
-				} else {
-					if (err.code == "LEADING_ZERO") {
-						viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
-						if (err.match.length >= err.node.token.maxLength) {
-							selectRange(range, "next");
-						} else {
-							range.start += err.properValue.length - err.match.length + 1;
-							range.end = range.start;
-						}
-					} else if (err.code == "SELECT_INCOMPLETE") {
-						parser.nodeParseValue(range.node, err.selected);
-						viewValue = parser.getText();
-						range.start = err.match.length;
-						range.end = "end";
-					} else if (err.code == "INCONSISTENT_INPUT") {
-						viewValue = err.properText;
-						range.start++;
-						range.end = range.start;
-					// } else if (err.code == "NUMBER_TOOLARGE") {
-						// viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
-						// range.start = 0;
-						// range.end = "end";
+					ngModel.$setValidity("datetime", false);
+					
+					if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL" && err.match.length < err.node.token.maxLength) {
+						errorRange.node = err.node;
+						errorRange.start = 0;
+						errorRange.end = err.match.length;
 					} else {
-						viewValue = parser.getText();
-						range.start = 0;
-						range.end = "end";
-					}
-					scope.$evalAsync(function(){
-						if (viewValue == ngModel.$viewValue) {
-							throw "angular-datetime crashed!";
+						if (err.code == "LEADING_ZERO") {
+							viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
+							if (err.match.length >= err.node.token.maxLength) {
+								selectRange(range, "next");
+							} else {
+								range.start += err.properValue.length - err.match.length + 1;
+								range.end = range.start;
+							}
+						} else if (err.code == "SELECT_INCOMPLETE") {
+							parser.nodeParseValue(range.node, err.selected);
+							viewValue = parser.getText();
+							range.start = err.match.length;
+							range.end = "end";
+						} else if (err.code == "INCONSISTENT_INPUT") {
+							viewValue = err.properText;
+							range.start++;
+							range.end = range.start;
+						// } else if (err.code == "NUMBER_TOOLARGE") {
+							// viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
+							// range.start = 0;
+							// range.end = "end";
+						} else {
+							if (err.node) {
+								err.node.unset();
+							}
+							viewValue = parser.getText();
+							range.start = 0;
+							range.end = "end";
 						}
-						ngModel.$setViewValue(viewValue);
-						ngModel.$render();
-					});
-				}
+						scope.$evalAsync(function(){
+							if (viewValue == ngModel.$viewValue) {
+								throw "angular-datetime crashed!";
+							}
+							ngModel.$setViewValue(viewValue);
+							ngModel.$render();
+						});
+					}
 
-				return undefined;
+					return undefined;
+				}
 			}
 
-			lastError = null;
-
-			ngModel.$setValidity("datetime", true);
+			// handle not init
+			var i, valid = true;
+			if (lastError) {
+				if (angular.isDefined(attrs.required)) {
+					valid = false;
+				} else {
+					for (i = 0; i < parser.nodes.length; i++) {
+						if (parser.nodes[i].token.type == "static" || parser.nodes[i].token.type == "regex") {
+							continue;
+						}
+						if (parser.nodes[i].init) {
+							valid = false;
+							break;
+						}
+					}
+				}
+			}
+			ngModel.$setValidity("datetime", valid);
+			
+			if (lastError) {
+				lastError = null;
+				return null;
+			}
 
 			if (ngModel.$validate || validMinMax(parser.getDate())) {
 				var date = parser.getDate();
@@ -364,7 +392,8 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 
 			if (!modelValue) {
 				ngModel.$setValidity("datetime", angular.isUndefined(attrs.required));
-				return "";
+				parser.unset();
+				return parser.getText();
 			}
 
 			ngModel.$setValidity("datetime", true);
@@ -406,7 +435,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 
 					if (!waitForClick) {
 						setTimeout(function(){
-							if (!ngModel.$error.datetime) {
+							if (!lastError) {
 								selectRange(range);
 							} else {
 								selectRange(errorRange);
@@ -423,22 +452,18 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 						e.preventDefault();
 						if (lastError) {
 							tryFixingLastError();
-						}
-						if (!ngModel.$error.datetime) {
-							selectRange(range, "prev");
-						} else {
 							selectRange(errorRange);
+						} else {
+							selectRange(range, "prev");
 						}
 					} else if (e.keyCode == 39 || e.keyCode == 9 && !e.shiftKey && range.node.nextEdit) {
 						// Right, Tab
 						e.preventDefault();
 						if (lastError) {
 							tryFixingLastError();
-						}
-						if (!ngModel.$error.datetime) {
-							selectRange(range, "next");
-						} else {
 							selectRange(errorRange);
+						} else {
+							selectRange(range, "next");
 						}
 					} else if (e.keyCode == 38) {
 						// Up
@@ -461,7 +486,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 					} else if (e.keyCode == 36) {
 						// Home
 						e.preventDefault();
-						if (ngModel.$error.datetime) {
+						if (lastError) {
 							selectRange(errorRange);
 						} else {
 							selectRange(range, "prev", true);
@@ -469,7 +494,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 					} else if (e.keyCode == 35) {
 						// End
 						e.preventDefault();
-						if (ngModel.$error.datetime) {
+						if (lastError) {
 							selectRange(errorRange);
 						} else {
 							selectRange(range, "next", true);
@@ -480,7 +505,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				case "click":
 					e.preventDefault();
 					waitForClick = false;
-					if (!ngModel.$error.datetime) {
+					if (!lastError) {
 						range = createRange(element, parser.nodes);
 						selectRange(range);
 					} else {
@@ -500,11 +525,9 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 						e.preventDefault();
 						if (lastError) {
 							tryFixingLastError();
-						}
-						if (!ngModel.$error.datetime) {
-							selectRange(range, "next");
-						} else {
 							selectRange(errorRange);
+						} else {
+							selectRange(range, "next");
 						}
 					}
 					else if (isPrintableKey(e)) {
