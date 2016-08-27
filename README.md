@@ -106,6 +106,7 @@ Todos
 * Day node should give different proper values depends on month when NUMBER_TOOLARGE.
 * Refactor createParser.
 * Drop static, regex types and add editable attr.
+* Do min/max validators execute when clear the input?
 
 Changelog
 ---------
