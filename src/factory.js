@@ -213,12 +213,16 @@ angular.module("datetime").factory("datetime", function($locale){
 	function getFormat(format) {
 		return formats[format] || format;
 	}
+	
+	function placehold(token) {
+		return "(" + token.name + ")";
+	}
 
 	function createNode(token, value) {
 		return {
 			token: definedTokens[token],
 			value: value,
-			viewValue: value || "[" + definedTokens[token].name + "]",
+			viewValue: value || placehold(definedTokens[token]),
 			offset: 0,
 			next: null,
 			prev: null,
@@ -231,7 +235,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				}
 				this.init = false;
 				this.value = null;
-				this.viewValue = "[" + this.token.name + "]";
+				this.viewValue = placehold(this.token);
 			}
 		};
 	}
@@ -506,7 +510,7 @@ angular.module("datetime").factory("datetime", function($locale){
 	function parseNode(node, text, pos) {
 		var p = node, m, match, value, j;
 		if (p.token.type != "static") {
-			if (text.indexOf("[" + node.token.name + "]", pos) == pos) {
+			if (text.indexOf(placehold(node.token), pos) == pos) {
 				p.unset();
 				return;
 			}
@@ -766,7 +770,7 @@ angular.module("datetime").factory("datetime", function($locale){
 				nodes[i].viewValue = getViewValue(nodes[i].value, nodes[i].token);
 			} else {
 				nodes[i].value = null;
-				nodes[i].viewValue = "[" + nodes[i].token.name + "]";
+				nodes[i].viewValue = placehold(nodes[i].token);
 			}
 		}
 		calcOffset(nodes);
@@ -780,7 +784,7 @@ angular.module("datetime").factory("datetime", function($locale){
 			} else if (nodes[i].init) {
 				text += getViewValue(getValue(date, nodes[i].token, timezone), nodes[i].token);
 			} else {
-				text += "[" + nodes[i].token.name + "]";
+				text += placehold(nodes[i].token);
 			}
 		}
 		return text;
