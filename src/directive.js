@@ -411,6 +411,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				ngModel.$setViewValue(parser.getText());
 				ngModel.$render();
 				scope.$apply();
+				return true;
 			}
 		}
 
@@ -450,20 +451,18 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 					if (e.keyCode == 37 || e.keyCode == 9 && e.shiftKey && range.node.prevEdit) {
 						// Left, Shift + Tab
 						e.preventDefault();
-						if (lastError) {
-							tryFixingLastError();
-							selectRange(errorRange);
+						if (!lastError || tryFixingLastError()) {
+							selectRange(range, "prev");							
 						} else {
-							selectRange(range, "prev");
+							selectRange(errorRange);
 						}
 					} else if (e.keyCode == 39 || e.keyCode == 9 && !e.shiftKey && range.node.nextEdit) {
 						// Right, Tab
 						e.preventDefault();
-						if (lastError) {
-							tryFixingLastError();
-							selectRange(errorRange);
-						} else {
+						if (!lastError || tryFixingLastError()) {
 							selectRange(range, "next");
+						} else {
+							selectRange(errorRange);
 						}
 					} else if (e.keyCode == 38) {
 						// Up
@@ -523,11 +522,10 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 
 					if (separators.indexOf(key) >= 0) {
 						e.preventDefault();
-						if (lastError) {
-							tryFixingLastError();
-							selectRange(errorRange);
-						} else {
+						if (!lastError || tryFixingLastError()) {
 							selectRange(range, "next");
+						} else {
+							selectRange(errorRange);
 						}
 					}
 					else if (isPrintableKey(e)) {
