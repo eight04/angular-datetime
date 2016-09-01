@@ -110,6 +110,9 @@ Todos
 
 Changelog
 ---------
+* 4.0.0 (Sep 1, 2016)
+	- Change how parser work. It can represent "undefined" node now.
+	- Use tab key to navigate between different parts.
 * 3.2.2 (Jun 30, 2016)
 	- Return false if there is no ngModel.
 * 3.2.1 (Jun 18, 2016)
