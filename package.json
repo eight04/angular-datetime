@@ -1,6 +1,6 @@
 {
   "name": "angular-datetime-input",
-  "version": "3.2.2",
+  "version": "4.0.0",
   "description": "A directive to add the behavior of datetime input on unsupported browsers",
   "keywords": [
     "angular",
