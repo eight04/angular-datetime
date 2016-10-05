@@ -690,7 +690,7 @@ angular.module("datetime").factory("datetime", function($locale){
 	
 	// Main parsing loop. Loop through nodes, parse text, update date model.
 	function parseLoop(nodes, text, date) {
-		var i, pos, errorBuff, oldViewValue, dateBuff;
+		var i, pos, errorBuff, oldViewValue, dateBuff, dayBuff;
 
 		pos = 0;
 		// baseDate = new Date(date.getTime());
@@ -710,10 +710,16 @@ angular.module("datetime").factory("datetime", function($locale){
 			}
 			pos += nodes[i].viewValue.length;
 			
+			console.log(oldViewValue, nodes[i].viewValue);
+			
+			// FIXME: we should apply node.value by their priority, year > month > date > day ...
+			// datebuff and daybuff is a temporary fix
 			if (oldViewValue != nodes[i].viewValue && nodes[i].init) {
 				// Buff date
 				if (nodes[i].token.name == "date") {
 					dateBuff = nodes[i];
+				} else if (nodes[i].token.name == "day") {
+					dayBuff = nodes[i];
 				} else {
 					setDate(date, nodes[i].value, nodes[i].token);
 				}
@@ -735,6 +741,10 @@ angular.module("datetime").factory("datetime", function($locale){
 		
 		if (dateBuff) {
 			setDate(date, dateBuff.value, dateBuff.token);
+		}
+		
+		if (dayBuff) {
+			setDate(date, dayBuff.value, dayBuff.token);
 		}
 	}
 	
@@ -943,6 +953,16 @@ angular.module("datetime").factory("datetime", function($locale){
 					nodes[i].unset();
 				}
 				calcOffset(nodes);
+			},
+			isEmpty: function(){
+				// Return true if all nodes are empty
+				var i;
+				for (i = 0; i < nodes.length; i++) {
+					if (nodes[i].init && nodes[i].token.type != "static" && nodes[i].token.type != "regex") {
+						return false;
+					}
+				}
+				return true;
 			},
 			date: null,
 			model: null,
