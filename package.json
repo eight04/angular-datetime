@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "test": "eslint src/*.js && karma start",
-    "build": "cat src/main.js src/factory.js src/directive.js | ng-annotate -a -o dist/datetime.js -",
+    "build": "n-concat src/main.js src/*.js | ng-annotate -a -o dist/datetime.js -",
     "build:watch": "watch \"npm run build\" src",
     "preversion": "npm test && npm run build",
     "version": "sync-version bower.json && git add .",
@@ -39,7 +39,6 @@
     "eslint-config-angular": "^0.4.0",
     "eslint-plugin-angular": "^0.12.0",
     "eslint-plugin-jasmine": "^1.0.0",
-    "ix-cat": "^1.1.1",
     "jasmine-core": "^2.2.0",
     "karma": "^0.13.0",
     "karma-chrome-launcher": "^0.1.8",
@@ -47,6 +46,7 @@
     "karma-jasmine": "^0.3.5",
     "karma-phantomjs-launcher": "^1.0.0",
     "ng-annotate": "^1.2.1",
+    "npm-build-tools": "^2.2.5",
     "phantomjs-prebuilt": "^2.1.7",
     "sync-version": "^0.1.0",
     "watch": "^0.17.1"
