@@ -55,7 +55,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 	}
 
 	function getNode(node, direction) {
-		if (!node || !isStatic(node)) {
+		if (!node || node.token.mutable) {
 			return node;
 		}
 		if (!direction) {
@@ -94,10 +94,6 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 		});
 	}
 
-	function isStatic(node) {
-		return node.token.type == "static" || node.token.type == "regex";
-	}
-
 	function closerNode(range, next, prev) {
 		var offset = range.node.offset + range.start,
 			disNext = next.offset - offset,
@@ -111,7 +107,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 
 		range = getRange(element, nodes);
 
-		if (isStatic(range.node)) {
+		if (!range.node.token.mutable) {
 			next = getNode(range.node, "next");
 			prev = getNode(range.node, "prev");
 
@@ -269,6 +265,16 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				selectRange(range);
 			}
 		};
+		
+		ngModel.$isEmpty = function(value) {
+			if (!value) {
+				return true;
+			}
+			if (typeof value == "string") {
+				return parser.isEmpty(value);
+			}
+			return false;
+		};
 
 		function validMinMax(date) {
 			if (ngModel.$validate) {
@@ -281,98 +287,73 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 		}
 
 		ngModel.$parsers.push(function(viewValue){
-			// Handle empty string
-			if (!viewValue && angular.isUndefined(attrs.required)) {
-				// Reset range
-				range.node = getInitialNode(parser.nodes);
-				range.start = 0;
-				range.end = "end";
-				ngModel.$setValidity("datetime", true);
-				return null;
-			}
-
 			lastError = null;
 
 			try {
 				parser.parse(viewValue);
 			} catch (err) {
-				lastError = err;
-				
-				if (err.code != "NOT_INIT") {
-					$log.error(err);
-
-					ngModel.$setValidity("datetime", false);
-					
-					if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL" && err.match.length < err.node.token.maxLength) {
-						errorRange.node = err.node;
-						errorRange.start = 0;
-						errorRange.end = err.match.length;
+				if (err.code == "NOT_INIT" || err.code == "EMPTY") {
+					if (parser.isEmpty()) {
+						ngModel.$setValidity("datetime", true);
 					} else {
-						if (err.code == "LEADING_ZERO") {
-							viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
-							if (err.match.length >= err.node.token.maxLength) {
-								selectRange(range, "next");
-							} else {
-								range.start += err.properValue.length - err.match.length + 1;
-								range.end = range.start;
-							}
-						} else if (err.code == "SELECT_INCOMPLETE") {
-							parser.nodeParseValue(range.node, err.selected);
-							viewValue = parser.getText();
-							range.start = err.match.length;
-							range.end = "end";
-						} else if (err.code == "INCONSISTENT_INPUT") {
-							viewValue = err.properText;
-							range.start++;
-							range.end = range.start;
-						// } else if (err.code == "NUMBER_TOOLARGE") {
-							// viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
-							// range.start = 0;
-							// range.end = "end";
-						} else {
-							if (err.node) {
-								err.node.unset();
-							}
-							viewValue = parser.getText();
-							range.start = 0;
-							range.end = "end";
-						}
-						scope.$evalAsync(function(){
-							if (viewValue == ngModel.$viewValue) {
-								throw "angular-datetime crashed!";
-							}
-							ngModel.$setViewValue(viewValue);
-							ngModel.$render();
-						});
+						ngModel.$setValidity("datetime", false);
 					}
-
 					return undefined;
 				}
-			}
+				
+				lastError = err;
+				
+				$log.error(err);
 
-			// handle not init
-			var i, valid = true;
-			if (lastError) {
-				if (angular.isDefined(attrs.required)) {
-					valid = false;
-				} else {
-					for (i = 0; i < parser.nodes.length; i++) {
-						if (parser.nodes[i].token.type == "static" || parser.nodes[i].token.type == "regex") {
-							continue;
+				ngModel.$setValidity("datetime", false);
+				
+				if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL" && err.viewValue.length < err.node.token.maxLength) {
+					errorRange.node = err.node;
+					errorRange.start = 0;
+					errorRange.end = err.viewValue.length;
+				} else if (err.code != "NOT_INIT" && err.code != "EMPTY") {
+					if (err.code == "LEADING_ZERO") {
+						viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.viewValue.length);
+						if (err.viewValue.length >= err.node.token.maxLength) {
+							selectRange(range, "next");
+						} else {
+							range.start += err.properValue.length - err.viewValue.length + 1;
+							range.end = range.start;
 						}
-						if (parser.nodes[i].init) {
-							valid = false;
-							break;
+					} else if (err.code == "SELECT_INCOMPLETE") {
+						parser.nodeParseValue(range.node, err.selected);
+						viewValue = parser.getText();
+						range.start = err.viewValue.length;
+						range.end = "end";
+					} else if (err.code == "INCONSISTENT_INPUT") {
+						viewValue = err.properText;
+						range.start++;
+						range.end = range.start;
+					// } else if (err.code == "NUMBER_TOOLARGE") {
+						// viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
+						// range.start = 0;
+						// range.end = "end";
+					} else {
+						if (err.node) {
+							err.node.unset();
 						}
+						viewValue = parser.getText();
+						range.start = 0;
+						range.end = "end";
 					}
+					scope.$evalAsync(function(){
+						if (viewValue == ngModel.$viewValue) {
+							throw "angular-datetime crashed!";
+						}
+						ngModel.$setViewValue(viewValue);
+						ngModel.$render();
+					});
 				}
+
+				return undefined;
 			}
-			ngModel.$setValidity("datetime", valid);
 			
-			if (lastError) {
-				lastError = null;
-				return null;
-			}
+			ngModel.$setValidity("datetime", true);
 
 			if (ngModel.$validate || validMinMax(parser.getDate())) {
 				var date = parser.getDate();
@@ -390,13 +371,17 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 
 		ngModel.$formatters.push(function(modelValue){
 
+			ngModel.$setValidity("datetime", true);
+
 			if (!modelValue) {
-				ngModel.$setValidity("datetime", angular.isUndefined(attrs.required));
 				parser.unset();
+				// FIXME: input will be cleared if modelValue is empty and the input is required. This is a temporary fix.
+				scope.$evalAsync(function(){
+					ngModel.$setViewValue(parser.getText());
+					ngModel.$render();
+				});
 				return parser.getText();
 			}
-
-			ngModel.$setValidity("datetime", true);
 
 			if (modelParser) {
 				modelValue = modelParser.parse(modelValue).getDate();
