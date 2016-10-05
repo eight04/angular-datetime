@@ -1,4 +1,545 @@
 angular.module("datetime", []);
+
+angular.module("datetime").directive("datetime", ["datetime", "$log", "$document", function(datetime, $log, $document){
+	var doc = $document[0];
+
+	function getInputSelectionIE(input) {
+		var bookmark = doc.selection.createRange().getBookmark();
+		var range = input.createTextRange();
+		var range2 = range.duplicate();
+
+		range.moveToBookmark(bookmark);
+		range2.setEndPoint("EndToStart", range);
+
+		var start = range2.text.length;
+		var end = start + range.text.length;
+		return {
+			start: start,
+			end: end
+		};
+	}
+
+	function getInputSelection(input) {
+		input = input[0];
+
+		if (input.selectionStart != undefined && input.selectionEnd != undefined) {
+			return {
+				start: input.selectionStart,
+				end: input.selectionEnd
+			};
+		}
+
+		if (doc.selection) {
+			return getInputSelectionIE(input);
+		}
+	}
+
+	function getInitialNode(nodes) {
+		return getNode(nodes[0]);
+	}
+
+	function setInputSelectionIE(input, range) {
+		var select = input.createTextRange();
+		select.moveStart("character", range.start);
+		select.collapse();
+		select.moveEnd("character", range.end - range.start);
+		select.select();
+	}
+
+	function setInputSelection(input, range) {
+		input = input[0];
+
+		if (input.setSelectionRange) {
+			input.setSelectionRange(range.start, range.end);
+		} else if (input.createTextRange) {
+			setInputSelectionIE(input, range);
+		}
+	}
+
+	function getNode(node, direction) {
+		if (!node || node.token.mutable) {
+			return node;
+		}
+		if (!direction) {
+			direction = "next";
+		}
+		return node[direction + "Edit"];
+	}
+
+	function getLastNode(node, direction) {
+		var lastNode;
+
+		do {
+			lastNode = node;
+			node = getNode(node[direction], direction);
+		} while (node);
+
+		return lastNode;
+	}
+
+	function selectRange(range, direction, toEnd) {
+		if (!range.node) {
+			return;
+		}
+		if (direction) {
+			range.start = 0;
+			range.end = "end";
+			if (toEnd) {
+				range.node = getLastNode(range.node, direction);
+			} else {
+				range.node = getNode(range.node[direction], direction) || range.node;
+			}
+		}
+		setInputSelection(range.element, {
+			start: range.start + range.node.offset,
+			end: range.end == "end" ? range.node.offset + range.node.viewValue.length : range.end + range.node.offset
+		});
+	}
+
+	function closerNode(range, next, prev) {
+		var offset = range.node.offset + range.start,
+			disNext = next.offset - offset,
+			disPrev = offset - (prev.offset + prev.viewValue.length);
+
+		return disNext <= disPrev ? next : prev;
+	}
+
+	function createRange(element, nodes) {
+		var prev, next, range;
+
+		range = getRange(element, nodes);
+
+		if (!range.node.token.mutable) {
+			next = getNode(range.node, "next");
+			prev = getNode(range.node, "prev");
+
+			if (!next && !prev) {
+				range.node = nodes[0];
+				range.end = 0;
+			} else if (!next || !prev) {
+				range.node = next || prev;
+			} else {
+				range.node = closerNode(range, next, prev);
+			}
+		}
+
+		range.start = 0;
+		range.end = "end";
+
+		return range;
+	}
+
+	function getRange(element, nodes, node) {
+		var selection = getInputSelection(element), i, range;
+		for (i = 0; i < nodes.length; i++) {
+			if (!range && nodes[i].offset + nodes[i].viewValue.length >= selection.start || i == nodes.length - 1) {
+				range = {
+					element: element,
+					node: nodes[i],
+					start: selection.start - nodes[i].offset,
+					end: selection.start - nodes[i].offset
+				};
+				break;
+			}
+		}
+
+		if (node && range.node.next == node && range.start + range.node.offset == range.node.next.offset) {
+			range.node = range.node.next;
+			range.start = range.end = 0;
+		}
+
+		return range;
+	}
+
+	function isRangeCollapse(range) {
+		return range.start == range.end ||
+			range.start == range.node.viewValue.length && range.end == "end";
+	}
+
+	function isRangeAtEnd(range) {
+		var maxLength, length;
+		if (!isRangeCollapse(range)) {
+			return false;
+		}
+		maxLength = range.node.token.maxLength;
+		length = range.node.viewValue.length;
+		if (maxLength && length < maxLength) {
+			return false;
+		}
+		return range.start == length;
+	}
+
+	function isPrintableKey(e) {
+		var keyCode = e.charCode || e.keyCode;
+		return keyCode >= 48 && keyCode <= 57 ||
+			keyCode >= 65 && keyCode <= 90 ||
+			keyCode >= 97 && keyCode <= 122;
+	}
+
+	function linkFunc(scope, element, attrs, ngModel) {
+		if (ngModel === null) {
+			return false;
+		}
+
+		var parser = datetime(attrs.datetime),
+			modelParser = attrs.datetimeModel && datetime(attrs.datetimeModel),
+			range = {
+				element: element,
+				node: getInitialNode(parser.nodes),
+				start: 0,
+				end: "end"
+			},
+			errorRange = {
+				element: element,
+				node: null,
+				start: 0,
+				end: 0
+			},
+			lastError, isUtc;
+			
+		function updateView() {
+			ngModel.$setViewValue(parser.getText());
+			ngModel.$render();
+		}
+		
+		function setUtc(val) {
+			if (val && !isUtc) {
+				isUtc = true;
+				parser.setTimezone("+0000");
+				if (modelParser) {
+					modelParser.setTimezone("+0000");
+				}
+				scope.$evalAsync(updateView);
+			} else if (!val && isUtc) {
+				isUtc = false;
+				parser.setTimezone(null);
+				if (modelParser) {
+					modelParser.setTimezone(null);
+				}
+				scope.$evalAsync(updateView);
+			}
+		}
+
+		if (angular.isDefined(attrs.datetimeUtc)) {
+			if (attrs.datetimeUtc.length > 0) {
+				scope.$watch(attrs.datetimeUtc, setUtc);
+			} else {
+				setUtc(true);
+			}
+		}
+
+		var validMin = function(value) {
+			if (ngModel.$isEmpty(value) || ngModel.$isEmpty(attrs.min)) {
+				return true;
+			}
+			if (!angular.isDate(value)) {
+				value = modelParser.getDate();
+			}
+			return value >= new Date(attrs.min);
+		};
+
+		var validMax = function(value) {
+			if (ngModel.$isEmpty(value) || ngModel.$isEmpty(attrs.max)) {
+				return true;
+			}
+			if (!angular.isDate(value)) {
+				value = modelParser.getDate();
+			}
+			return value <= new Date(attrs.max);
+		};
+
+		if (ngModel.$validators) {
+			ngModel.$validators.min = validMin;
+			ngModel.$validators.max = validMax;
+		}
+
+		attrs.$observe("min", function(){
+			validMinMax(parser.getDate());
+		});
+
+		attrs.$observe("max", function(){
+			validMinMax(parser.getDate());
+		});
+
+		ngModel.$render = function(){
+			element.val(ngModel.$viewValue || "");
+			if (doc.activeElement == element[0]) {
+				selectRange(range);
+			}
+		};
+		
+		ngModel.$isEmpty = function(value) {
+			if (!value) {
+				return true;
+			}
+			if (typeof value == "string") {
+				return parser.isEmpty(value);
+			}
+			return false;
+		};
+
+		function validMinMax(date) {
+			if (ngModel.$validate) {
+				ngModel.$validate();
+			} else {
+				ngModel.$setValidity("min", validMin(date));
+				ngModel.$setValidity("max", validMax(date));
+			}
+			return !ngModel.$error.min && !ngModel.$error.max;
+		}
+
+		ngModel.$parsers.push(function(viewValue){
+			lastError = null;
+
+			try {
+				parser.parse(viewValue);
+			} catch (err) {
+				if (err.code == "NOT_INIT" || err.code == "EMPTY") {
+					if (parser.isEmpty()) {
+						ngModel.$setValidity("datetime", true);
+					} else {
+						ngModel.$setValidity("datetime", false);
+					}
+					return undefined;
+				}
+				
+				lastError = err;
+				
+				$log.error(err);
+
+				ngModel.$setValidity("datetime", false);
+				
+				if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL" && err.viewValue.length < err.node.token.maxLength) {
+					errorRange.node = err.node;
+					errorRange.start = 0;
+					errorRange.end = err.viewValue.length;
+				} else if (err.code != "NOT_INIT" && err.code != "EMPTY") {
+					if (err.code == "LEADING_ZERO") {
+						viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.viewValue.length);
+						if (err.viewValue.length >= err.node.token.maxLength) {
+							selectRange(range, "next");
+						} else {
+							range.start += err.properValue.length - err.viewValue.length + 1;
+							range.end = range.start;
+						}
+					} else if (err.code == "SELECT_INCOMPLETE") {
+						parser.nodeParseValue(range.node, err.selected);
+						viewValue = parser.getText();
+						range.start = err.viewValue.length;
+						range.end = "end";
+					} else if (err.code == "INCONSISTENT_INPUT") {
+						viewValue = err.properText;
+						range.start++;
+						range.end = range.start;
+					// } else if (err.code == "NUMBER_TOOLARGE") {
+						// viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
+						// range.start = 0;
+						// range.end = "end";
+					} else {
+						if (err.node) {
+							err.node.unset();
+						}
+						viewValue = parser.getText();
+						range.start = 0;
+						range.end = "end";
+					}
+					scope.$evalAsync(function(){
+						if (viewValue == ngModel.$viewValue) {
+							throw "angular-datetime crashed!";
+						}
+						ngModel.$setViewValue(viewValue);
+						ngModel.$render();
+					});
+				}
+
+				return undefined;
+			}
+			
+			ngModel.$setValidity("datetime", true);
+
+			if (ngModel.$validate || validMinMax(parser.getDate())) {
+				var date = parser.getDate();
+
+				if (modelParser) {
+					return modelParser.setDate(date).getText();
+				} else {
+					// Create new date to make Angular notice the difference.
+					return new Date(date.getTime());
+				}
+			}
+
+			return undefined;
+		});
+
+		ngModel.$formatters.push(function(modelValue){
+
+			ngModel.$setValidity("datetime", true);
+
+			if (!modelValue) {
+				parser.unset();
+				// FIXME: input will be cleared if modelValue is empty and the input is required. This is a temporary fix.
+				scope.$evalAsync(function(){
+					ngModel.$setViewValue(parser.getText());
+					ngModel.$render();
+				});
+				return parser.getText();
+			}
+
+			if (modelParser) {
+				modelValue = modelParser.parse(modelValue).getDate();
+			}
+
+			return parser.setDate(modelValue).getText();
+		});
+		
+		function tryFixingLastError() {
+			if (lastError.properValue) {
+				parser.nodeParseValue(lastError.node, lastError.properValue);
+				ngModel.$setViewValue(parser.getText());
+				ngModel.$render();
+				scope.$apply();
+				return true;
+			}
+		}
+
+		var waitForClick;
+		element.on("focus keydown keypress mousedown click", function(e){
+			switch (e.type) {
+				case "mousedown":
+					waitForClick = true;
+					break;
+				case "focus":
+					e.preventDefault();
+
+					// Init value on focus
+					if (!ngModel.$viewValue) {
+						if (angular.isDefined(attrs["default"])) {
+							parser.setDate(new Date(attrs["default"]));
+						}
+						ngModel.$setViewValue(parser.getText());
+						ngModel.$render();
+						scope.$apply();
+					}
+
+					if (!waitForClick) {
+						setTimeout(function(){
+							if (!lastError) {
+								selectRange(range);
+							} else {
+								selectRange(errorRange);
+							}
+						});
+					}
+					break;
+				case "keydown":
+					if (e.altKey || e.ctrlKey) {
+						break;
+					}
+					if (e.keyCode == 37 || e.keyCode == 9 && e.shiftKey && range.node.prevEdit) {
+						// Left, Shift + Tab
+						e.preventDefault();
+						if (!lastError || tryFixingLastError()) {
+							selectRange(range, "prev");							
+						} else {
+							selectRange(errorRange);
+						}
+					} else if (e.keyCode == 39 || e.keyCode == 9 && !e.shiftKey && range.node.nextEdit) {
+						// Right, Tab
+						e.preventDefault();
+						if (!lastError || tryFixingLastError()) {
+							selectRange(range, "next");
+						} else {
+							selectRange(errorRange);
+						}
+					} else if (e.keyCode == 38) {
+						// Up
+						e.preventDefault();
+						parser.nodeAddValue(range.node, 1);
+						ngModel.$setViewValue(parser.getText());
+						range.start = 0;
+						range.end = "end";
+						ngModel.$render();
+						scope.$apply();
+					} else if (e.keyCode == 40) {
+						// Down
+						e.preventDefault();
+						parser.nodeAddValue(range.node, -1);
+						ngModel.$setViewValue(parser.getText());
+						range.start = 0;
+						range.end = "end";
+						ngModel.$render();
+						scope.$apply();
+					} else if (e.keyCode == 36) {
+						// Home
+						e.preventDefault();
+						if (lastError) {
+							selectRange(errorRange);
+						} else {
+							selectRange(range, "prev", true);
+						}
+					} else if (e.keyCode == 35) {
+						// End
+						e.preventDefault();
+						if (lastError) {
+							selectRange(errorRange);
+						} else {
+							selectRange(range, "next", true);
+						}
+					}
+					break;
+
+				case "click":
+					e.preventDefault();
+					waitForClick = false;
+					if (!lastError) {
+						range = createRange(element, parser.nodes);
+						selectRange(range);
+					} else {
+						selectRange(errorRange);
+					}
+					break;
+
+				case "keypress":
+					var separators = attrs.datetimeSeparator || "",
+						key = String.fromCharCode(e.keyCode || e.which);
+					// check for separator only when there is a next node which is static string
+					if (range.node.next && range.node.next.token.type === "static") {
+						separators += range.node.next.viewValue[0];
+					}
+
+					if (separators.indexOf(key) >= 0) {
+						e.preventDefault();
+						if (!lastError || tryFixingLastError()) {
+							selectRange(range, "next");
+						} else {
+							selectRange(errorRange);
+						}
+					}
+					else if (isPrintableKey(e)) {
+						setTimeout(function(){
+							range = getRange(element, parser.nodes, range.node);
+							if (isRangeAtEnd(range)) {
+								range.node = getNode(range.node.next) || range.node;
+								range.start = 0;
+								range.end = "end";
+								selectRange(range);
+							}
+						});
+					}
+					break;
+
+			}
+		});
+
+	}
+
+	return {
+		restrict: "A",
+		require: "?ngModel",
+		link: linkFunc
+	};
+}]);
+
 angular.module("datetime").factory("datetime", ["$locale", function($locale){
 	// Fetch date and time formats from $locale service
 	var formats = $locale.DATETIME_FORMATS;
@@ -12,7 +553,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 1,
 			max: 9999,
 			name: "year",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"yy": {
 			minLength: 2,
@@ -20,7 +562,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 1,
 			max: 99,
 			name: "year",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"yyyy": {
 			minLength: 4,
@@ -28,17 +571,20 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 1,
 			max: 9999,
 			name: "year",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"MMMM": {
 			name: "month",
 			type: "select",
-			select: formats.MONTH
+			select: formats.MONTH,
+			mutable: true
 		},
 		"MMM": {
 			name: "month",
 			type: "select",
-			select: formats.SHORTMONTH
+			select: formats.SHORTMONTH,
+			mutable: true
 		},
 		"MM": {
 			minLength: 2,
@@ -46,7 +592,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 1,
 			max: 12,
 			name: "month",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"M": {
 			minLength: 1,
@@ -54,7 +601,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 1,
 			max: 12,
 			name: "month",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"dd": {
 			minLength: 2,
@@ -62,7 +610,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 1,
 			max: 31,
 			name: "date",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"d": {
 			minLength: 1,
@@ -70,17 +619,20 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 1,
 			max: 31,
 			name: "date",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"EEEE": {
 			name: "day",
 			type: "select",
-			select: fixDay(formats.DAY)
+			select: fixDay(formats.DAY),
+			mutable: true
 		},
 		"EEE": {
 			name: "day",
 			type: "select",
-			select: fixDay(formats.SHORTDAY)
+			select: fixDay(formats.SHORTDAY),
+			mutable: true
 		},
 		"HH": {
 			minLength: 2,
@@ -88,7 +640,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 0,
 			max: 23,
 			name: "hour",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"H": {
 			minLength: 1,
@@ -96,7 +649,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 0,
 			max: 23,
 			name: "hour",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"hh": {
 			minLength: 2,
@@ -104,7 +658,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 1,
 			max: 12,
 			name: "hour12",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"h": {
 			minLength: 1,
@@ -112,7 +667,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 1,
 			max: 12,
 			name: "hour12",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"mm": {
 			minLength: 2,
@@ -120,7 +676,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 0,
 			max: 59,
 			name: "minute",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"m": {
 			minLength: 1,
@@ -128,7 +685,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 0,
 			max: 59,
 			name: "minute",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"ss": {
 			minLength: 2,
@@ -136,7 +694,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 0,
 			max: 59,
 			name: "second",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"s": {
 			minLength: 1,
@@ -144,7 +703,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 0,
 			max: 59,
 			name: "second",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"sss": {
 			minLength: 3,
@@ -152,12 +712,14 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 0,
 			max: 999,
 			name: "millisecond",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"a": {
 			name: "ampm",
 			type: "select",
-			select: formats.AMPMS
+			select: formats.AMPMS,
+			mutable: true
 		},
 		"ww": {
 			minLength: 2,
@@ -165,7 +727,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 0,
 			max: 53,
 			name: "week",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"w": {
 			minLength: 1,
@@ -173,7 +736,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			min: 0,
 			max: 53,
 			name: "week",
-			type: "number"
+			type: "number",
+			mutable: true
 		},
 		"Z": {
 			name: "timezone",
@@ -218,70 +782,99 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 	function placehold(token) {
 		return "(" + token.name + ")";
 	}
-
-	function createNode(token, value) {
-		return {
-			token: definedTokens[token],
-			value: value,
-			viewValue: value || placehold(definedTokens[token]),
-			offset: 0,
-			next: null,
-			prev: null,
-			nextEdit: null,
-			prevEdit: null,
-			init: false,
-			unset: function(){
-				if (this.token.type == "static" || this.token.type == "regex") {
-					return;
-				}
-				this.init = false;
-				this.value = null;
-				this.viewValue = placehold(this.token);
-			}
-		};
+	
+	function Node(token) {
+		this.token = token;
+		this.value = null;
+		this.viewValue = token.value || placehold(token);
+		this.offset = 0;
+		this.next = null;
+		this.prev = null;
+		this.nextEdit = null;
+		this.prevEdit = null;
+		this.empty = true;
 	}
-
-	// Parse format to nodes
-	function createNodes(format) {
-		var nodes = [],
+	
+	Node.prototype.unset = function() {
+		if (!this.token.mutable) {
+			return;
+		}
+		this.empty = true;
+		this.value = null;
+		this.viewValue = placehold(this.token);
+		
+		// Update offset
+		var node = this.next;
+		while (node) {
+			node.offset = node.prev.offset + node.prev.viewValue.length;
+			node = node.next;
+		}
+	};
+	
+	// Split format into multiple tokens
+	function createTokens(format) {
+		var tokens = [],
 			pos = 0,
 			match;
-
+			
 		while ((match = tokenRE.exec(format))) {
-
 			if (match.index > pos) {
-				nodes.push(createNode("string", format.substring(pos, match.index)));
+				// doesn't match any token, static string
+				tokens.push(angular.extend({
+					value: format.substring(pos, match.index)
+				}, definedTokens.string));
 				pos = match.index;
-			}
+			} 
 
 			if (match.index == pos) {
 				if (match[1]) {
-					nodes.push(createNode("string", match[1]));
-					nodes.push(createNode("sss"));
+					// sss
+					tokens.push(angular.extend({
+						value: match[1]
+					}, definedTokens.string));
+					tokens.push(definedTokens.sss);
 				} else if (match[2]) {
-					nodes.push(createNode("string", match[2].replace("''", "'")));
+					// escaped string
+					tokens.push(angular.extend({
+						value: match[2].replace("''", "'")
+					}, definedTokens.string));
 				} else {
-					nodes.push(createNode(match[0]));
+					// other tokens
+					tokens.push(definedTokens[match[0]]);
 				}
 				pos = tokenRE.lastIndex;
 			}
 		}
-
+		
 		if (pos < format.length) {
-			nodes.push(createNode("string", format.substring(pos)));
+			tokens.push(angular.extend({
+				value: format.substring(pos)
+			}, definedTokens.string));
 		}
+		
+		return tokens;
+	}
 
+	// Create node list from tokens
+	function createNodes(tokens) {
+		var nodes = [],
+			edit,
+			i;
+			
+		for (i = 0; i < tokens.length; i++) {
+			nodes.push(new Node(tokens[i]));
+		}
+		
 		// Build relationship between nodes
-		var i;
 		for (i = 0; i < nodes.length; i++) {
 			nodes[i].next = nodes[i + 1] || null;
 			nodes[i].prev = nodes[i - 1] || null;
 		}
 		
-		var edit = null;
+		edit = null;
 		for (i = 0; i < nodes.length; i++) {
 			nodes[i].prevEdit = edit;
-			if (nodes[i].token.type != "static" && nodes[i].token.type != "regex") {
+			if (nodes[i].token.mutable) {
 				edit = nodes[i];
 			}
 		}
@@ -289,7 +882,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 		edit = null;
 		for (i = nodes.length - 1; i >= 0; i--) {
 			nodes[i].nextEdit = edit;
-			if (nodes[i].token.type != "static" && nodes[i].token.type != "regex") {
+			if (nodes[i].token.mutable) {
 				edit = nodes[i];
 			}
 		}
@@ -507,146 +1100,130 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 		}
 	}
 
-	// Parse text[pos:] by node.token definition. Extract result into node.value, node.viewValue
-	function parseNode(node, text, pos) {
-		var p = node, m, match, value, j;
-		if (p.token.type != "static") {
-			if (text.indexOf(placehold(node.token), pos) == pos) {
-				p.unset();
-				return;
+	// Parse text[pos:] by node.token definition.
+	function parseNode(text, token, pos) {
+		var m, match, value, j;
+		if (token.mutable) {
+			var ph = placehold(token);
+			if (text.indexOf(ph, pos) == pos) {
+				return {
+					empty: true,
+					viewValue: ph
+				};
 			}
 		}
-		switch (p.token.type) {
+		switch (token.type) {
 			case "static":
-				if (text.lastIndexOf(p.value, pos) != pos) {
-					throw {
+				if (text.lastIndexOf(token.value, pos) != pos) {
+					return {
+						err: 2,
 						code: "TEXT_MISMATCH",
-						message: "Pattern value mismatch",
-						text: text,
-						node: p,
-						pos: pos
+						message: "Pattern value mismatch"
 					};
 				}
-				break;
+				return {
+					viewValue: token.value
+				};
 
 			case "number":
-				// Fail when meeting .sss
 				value = getInteger(text, pos);
+				
 				if (value == null) {
-					throw {
+					return {
+						err: 2,
 						code: "NUMBER_MISMATCH",
-						message: "Invalid number",
-						text: text,
-						node: p,
-						pos: pos
+						message: "Invalid number"
 					};
 				}
-				if (value.length < p.token.minLength) {
-					throw {
+				
+				if (value.length < token.minLength) {
+					return {
+						err: 1,
 						code: "NUMBER_TOOSHORT",
 						message: "The length of number is too short",
-						text: text,
-						node: p,
-						pos: pos,
-						match: value,
-						properValue: num2str(+value, p.token.minLength, p.token.maxLength)
+						value: +value,
+						viewValue: value,
+						properValue: num2str(+value, token.minLength, token.maxLength)
 					};
 				}
 
-				if (value.length > p.token.maxLength) {
-					value = value.substr(0, p.token.maxLength);
+				if (value.length > token.maxLength) {
+					value = value.substr(0, token.maxLength);
 				}
 
-				if (+value < p.token.min) {
-					throw {
+				if (+value < token.min) {
+					return {
+						err: 1,
 						code: "NUMBER_TOOSMALL",
 						message: "The number is too small",
-						text: text,
-						node: p,
-						pos: pos,
-						match: value
+						value: +value,
+						viewValue: value
 					};
 				}
 
-				if (value.length > p.token.minLength && value[0] == "0") {
-					throw {
+				if (value.length > token.minLength && value[0] == "0") {
+					return {
+						err: 1,
 						code: "LEADING_ZERO",
 						message: "The number has too many leading zero",
-						text: text,
-						node: p,
-						pos: pos,
-						match: value,
-						properValue: num2str(+value, p.token.minLength, p.token.maxLength)
+						value: +value,
+						viewValue: value,
+						properValue: num2str(+value, token.minLength, token.maxLength)
 					};
 				}
-
-				// if (+value > p.token.max) {
-					// throw {
-						// code: "NUMBER_TOOLARGE",
-						// message: "The number is too large",
-						// text: text,
-						// node: p,
-						// pos: pos,
-						// match: value,
-						// properValue: num2str(p.token.max, p.token.minLength, p.token.maxLength)
-					// };
-				// }
-
-				p.value = +value;
-				p.viewValue = value;
-				break;
+				
+				return {
+					value: +value,
+					viewValue: value
+				};
 
 			case "select":
 				match = "";
-				for (j = 0; j < p.token.select.length; j++) {
-					m = getMatch(text, pos, p.token.select[j]);
+				for (j = 0; j < token.select.length; j++) {
+					m = getMatch(text, pos, token.select[j]);
 					if (m && m.length > match.length) {
 						value = j;
 						match = m;
 					}
 				}
 				if (!match) {
-					throw {
+					return {
+						err: 2,
 						code: "SELECT_MISMATCH",
-						message: "Invalid select",
-						text: text,
-						node: p,
-						pos: pos
+						message: "Invalid select"
 					};
 				}
 
-				if (match != p.token.select[value]) {
-					throw {
+				if (match != token.select[value]) {
+					return {
+						err: 1,
 						code: "SELECT_INCOMPLETE",
 						message: "Incomplete select",
-						text: text,
-						node: p,
-						pos: pos,
-						match: match,
-						selected: p.token.select[value]
+						value: value + 1,
+						viewValue: match,
+						selected: token.select[value]
 					};
 				}
 
-				p.value = value + 1;
-				p.viewValue = match;
-				break;
+				return {
+					value: value + 1,
+					viewValue: match
+				};
 
 			case "regex":
-				m = node.token.regex.exec(text.substr(pos));
+				m = token.regex.exec(text.substr(pos));
 				if (!m || m.index != 0) {
-					throw {
+					return {
+						err: 2,
 						code: "REGEX_MISMATCH",
-						message: "Regex doesn't match",
-						text: text,
-						node: p,
-						pos: pos
+						message: "Regex doesn't match"
 					};
 				}
-				p.value = m[0];
-				p.viewValue = m[0];
-				break;
+				return {
+					value: m[0],
+					viewValue: m[0]
+				};
 		}
-		p.init = true;
 	}
 
 	function addDate(date, token, diff) {
@@ -689,54 +1266,87 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 		}
 	}
 	
-	// Main parsing loop. Loop through nodes, parse text, update date model.
-	function parseLoop(nodes, text, date) {
-		var i, pos, errorBuff, oldViewValue, dateBuff;
-
-		pos = 0;
-		// baseDate = new Date(date.getTime());
-
-		for (i = 0; i < nodes.length; i++) {
-			oldViewValue = nodes[i].viewValue;
-			try {
-				parseNode(nodes[i], text, pos);
-			} catch (err) {
-				if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL" || err.code == "LEADING_ZERO") {
-					errorBuff = err;
-					pos += err.match.length;
-					continue;
-				} else {
-					throw err;
-				}
+	function parse(text, tokens) {
+		var i, pos = 0, l = [], result;
+		for (i = 0; i < tokens.length; i++) {
+			result = parseNode(text, tokens[i], pos);
+			result.index = i;
+			result.pos = pos;
+			if (result.err >= 2) {
+				result.text = text;
+				throw result;
 			}
-			pos += nodes[i].viewValue.length;
-			
-			if (oldViewValue != nodes[i].viewValue && nodes[i].init) {
-				// Buff date
-				if (nodes[i].token.name == "date") {
-					dateBuff = nodes[i];
-				} else {
-					setDate(date, nodes[i].value, nodes[i].token);
-				}
+			pos += result.viewValue.length;
+			l.push(result);
+		}
+		return l;
+	}
+	
+	var priorTable = {
+		millisecond: 1,
+		second: 1,
+		minute: 1,
+		hour: 2,
+		hour12: 2,
+		ampm: 3,
+		day: 4,
+		date: 4,
+		week: 6,
+		month: 5,
+		year: 7
+	};
+	
+	function compareType(a, b) {
+		if (a.result.empty) {
+			return -1;
+		}
+		if (b.result.empty) {
+			return 1;
+		}
+		return priorTable[a.token.type] - priorTable[b.token.type];
+	}
+	
+	// Main parsing loop. Loop through nodes, parse text, update date model.
+	function parseLoop(nodes, tokens, text, date) {
+		var result = parse(text, tokens);
+		
+		// throw error
+		var i;
+		for (i = 0; i < result.length; i++) {
+			if (result[i].err) {
+				throw result[i];
 			}
 		}
 		
-		if (text.length > pos) {
+		// throw TEXT_TOOLONG error
+		var last = result[result.length - 1];
+		if (last.pos + last.viewValue.length > text.length) {
 			throw {
 				code: "TEXT_TOOLONG",
 				message: "Text is too long",
-				text: text,
-				pos: pos
+				text: text
 			};
 		}
 
-		if (errorBuff) {
-			throw errorBuff;
+		// grab changed nodes
+		var changed = [];
+		for (i = 0; i < result.length; i++) {
+			if (result[i].viewValue != nodes[i].viewValue) {
+				changed.push({
+					node: nodes[i],
+					token: tokens[i],
+					result: result[i]
+				});
+			}
 		}
 		
-		if (dateBuff) {
-			setDate(date, dateBuff.value, dateBuff.token);
+		// apply date
+		changed.sort(compareType);
+		for (i = changed.length - 1; i >= 0; i--) {
+			setDate(date, changed[i].result.value, changed[i].token);
 		}
+		
+		return result;
 	}
 	
 	function deOffsetDate(date, timezone) {
@@ -766,7 +1376,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			if (nodes[i].token.name == "string") {
 				continue;
 			}
-			if (nodes[i].init) {
+			if (!nodes[i].empty) {
 				nodes[i].value = getValue(date, nodes[i].token, timezone);
 				nodes[i].viewValue = getViewValue(nodes[i].value, nodes[i].token);
 			} else {
@@ -777,15 +1387,15 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 		calcOffset(nodes);
 	}
 	
-	function getNodesText(date, nodes, timezone) {
+	function getNodesText(date, nodes, tokens, timezone) {
 		var i, text = "";
 		for (i = 0; i < nodes.length; i++) {
-			if (nodes[i].token.name == "string") {
-				text += nodes[i].viewValue;
-			} else if (nodes[i].init) {
-				text += getViewValue(getValue(date, nodes[i].token, timezone), nodes[i].token);
+			if (tokens[i].name == "string") {
+				text += tokens[i].value;
+			} else if (nodes[i].empty) {
+				text += placehold(tokens[i]);
 			} else {
-				text += placehold(nodes[i].token);
+				text += getViewValue(getValue(date, tokens[i], timezone), tokens[i]);
 			}
 		}
 		return text;
@@ -794,8 +1404,9 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 	function createParser(format) {
 
 		format = getFormat(format);
-
-		var nodes = createNodes(format);
+		
+		var tokens = createTokens(format);
+		var nodes = createNodes(tokens);
 
 		var parser = {
 			parse: function(text) {
@@ -811,27 +1422,37 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 						oldText: oldText
 					};
 				}
+				
+				var result;
 
 				try {
-					parseLoop(parser.nodes, text, date);
-					calcOffset(parser.nodes);
-					
-					// check date consistency
-					newText = getNodesText(date, parser.nodes, parser.timezoneNode && parser.timezoneNode.viewValue);
-					if (text != newText) {
-						throw {
-							code: "INCONSISTENT_INPUT",
-							message: "Successfully parsed but the output text doesn't match the input",
-							text: text,
-							oldText: oldText,
-							properText: newText
-						};
-					}
-					
+					result = parseLoop(nodes, tokens, text, date);
 				} catch (err) {
-					// Should we reset date object if failed to parse?
-					applyDate(oldDate, parser.nodes, parser.timezone);
+					if (angular.isDefined(err.index)) {
+						err.node = nodes[err.index];
+					}
 					throw err;
+				}
+
+				// check date consistency
+				newText = getNodesText(date, result, tokens, parser.timezoneNode && parser.timezoneNode.viewValue);
+				if (text != newText) {
+					throw {
+						code: "INCONSISTENT_INPUT",
+						message: "Successfully parsed but the output text doesn't match the input",
+						text: text,
+						oldText: oldText,
+						properText: newText
+					};
+				}
+				
+				// everything is ok, copy result value into nodes
+				var i;
+				for (i = 0; i < result.length; i++) {
+					nodes[i].value = result[i].value;
+					nodes[i].viewValue = result[i].viewValue;
+					nodes[i].offset = result[i].pos;
+					nodes[i].empty = result[i].empty;
 				}
 				
 				// check if Z token exists
@@ -848,9 +1469,8 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				}
 				
 				// check uninit node
-				var i;
 				for (i = 0; i < parser.nodes.length; i++) {
-					if (!parser.nodes[i].init) {
+					if (parser.nodes[i].empty) {
 						throw {
 							code: "NOT_INIT",
 							message: "Some date parts are empty",
@@ -864,17 +1484,19 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			},
 			nodeParseValue: function(node, text) {
 				var date = parser.date,
-					oldValue = node.value,
-					oldViewValue = node.viewValue;
-				try {
-					parseNode(node, text, 0);
-					calcOffset(parser.nodes);
-				} catch (err) {
-					node.value = oldValue;
-					node.viewValue = oldViewValue;
-					throw err;
+					result = parseNode(text, node.token, 0);
+					
+				if (result.err) {
+					throw result;
 				}
-				if (!node.init) {
+				
+				node.viewValue = result.viewValue;
+				node.value = result.value;
+				node.empty = result.empty;
+				
+				calcOffset(parser.nodes);
+				
+				if (node.empty) {
 					return;
 				}
 				setDate(date, node.value, node.token);
@@ -888,7 +1510,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			},
 			nodeAddValue: function(node, diff) {
 				var date = parser.date;
-				node.init = true;
+				node.empty = false;
 				addDate(date, node.token, diff);
 				applyDate(date, parser.nodes, parser.timezone);
 				if (parser.timezone) {
@@ -908,7 +1530,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				// init all parts
 				var i;
 				for (i = 0; i < parser.nodes.length; i++) {
-					parser.nodes[i].init = true;
+					parser.nodes[i].empty = false;
 				}
 				applyDate(parser.date, parser.nodes, parser.timezone);
 				return parser;
@@ -920,7 +1542,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				var i, text = "";
 				if (timezone) {
 					var date = offsetDate(parser.model, timezone);
-					text = getNodesText(date, parser.nodes, timezone);
+					text = getNodesText(date, nodes, tokens, timezone);
 				} else {
 					for (i = 0; i < parser.nodes.length; i++) {
 						text += parser.nodes[i].viewValue;
@@ -945,10 +1567,29 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				}
 				calcOffset(nodes);
 			},
+			isEmpty: function(text){
+				var l, i;
+				if (text) {
+					try {
+						l = parse(text, parser.tokens);
+					} catch (err) {
+						return false;
+					}
+				} else {
+					l = nodes;
+				}
+				for (i = 0; i < l.length; i++) {
+					if (parser.tokens[i].mutable && !l[i].empty) {
+						return false;
+					}
+				}
+				return true;
+			},
 			date: null,
 			model: null,
 			format: format,
 			nodes: nodes,
+			tokens: tokens,
 			timezone: null,
 			timezoneNode: null
 		};
@@ -969,558 +1610,4 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 	}
 
 	return createParser;
-}]);
-angular.module("datetime").directive("datetime", ["datetime", "$log", "$document", function(datetime, $log, $document){
-	var doc = $document[0];
-
-	function getInputSelectionIE(input) {
-		var bookmark = doc.selection.createRange().getBookmark();
-		var range = input.createTextRange();
-		var range2 = range.duplicate();
-
-		range.moveToBookmark(bookmark);
-		range2.setEndPoint("EndToStart", range);
-
-		var start = range2.text.length;
-		var end = start + range.text.length;
-		return {
-			start: start,
-			end: end
-		};
-	}
-
-	function getInputSelection(input) {
-		input = input[0];
-
-		if (input.selectionStart != undefined && input.selectionEnd != undefined) {
-			return {
-				start: input.selectionStart,
-				end: input.selectionEnd
-			};
-		}
-
-		if (doc.selection) {
-			return getInputSelectionIE(input);
-		}
-	}
-
-	function getInitialNode(nodes) {
-		return getNode(nodes[0]);
-	}
-
-	function setInputSelectionIE(input, range) {
-		var select = input.createTextRange();
-		select.moveStart("character", range.start);
-		select.collapse();
-		select.moveEnd("character", range.end - range.start);
-		select.select();
-	}
-
-	function setInputSelection(input, range) {
-		input = input[0];
-
-		if (input.setSelectionRange) {
-			input.setSelectionRange(range.start, range.end);
-		} else if (input.createTextRange) {
-			setInputSelectionIE(input, range);
-		}
-	}
-
-	function getNode(node, direction) {
-		if (!node || !isStatic(node)) {
-			return node;
-		}
-		if (!direction) {
-			direction = "next";
-		}
-		return node[direction + "Edit"];
-	}
-
-	function getLastNode(node, direction) {
-		var lastNode;
-
-		do {
-			lastNode = node;
-			node = getNode(node[direction], direction);
-		} while (node);
-
-		return lastNode;
-	}
-
-	function selectRange(range, direction, toEnd) {
-		if (!range.node) {
-			return;
-		}
-		if (direction) {
-			range.start = 0;
-			range.end = "end";
-			if (toEnd) {
-				range.node = getLastNode(range.node, direction);
-			} else {
-				range.node = getNode(range.node[direction], direction) || range.node;
-			}
-		}
-		setInputSelection(range.element, {
-			start: range.start + range.node.offset,
-			end: range.end == "end" ? range.node.offset + range.node.viewValue.length : range.end + range.node.offset
-		});
-	}
-
-	function isStatic(node) {
-		return node.token.type == "static" || node.token.type == "regex";
-	}
-
-	function closerNode(range, next, prev) {
-		var offset = range.node.offset + range.start,
-			disNext = next.offset - offset,
-			disPrev = offset - (prev.offset + prev.viewValue.length);
-
-		return disNext <= disPrev ? next : prev;
-	}
-
-	function createRange(element, nodes) {
-		var prev, next, range;
-
-		range = getRange(element, nodes);
-
-		if (isStatic(range.node)) {
-			next = getNode(range.node, "next");
-			prev = getNode(range.node, "prev");
-
-			if (!next && !prev) {
-				range.node = nodes[0];
-				range.end = 0;
-			} else if (!next || !prev) {
-				range.node = next || prev;
-			} else {
-				range.node = closerNode(range, next, prev);
-			}
-		}
-
-		range.start = 0;
-		range.end = "end";
-
-		return range;
-	}
-
-	function getRange(element, nodes, node) {
-		var selection = getInputSelection(element), i, range;
-		for (i = 0; i < nodes.length; i++) {
-			if (!range && nodes[i].offset + nodes[i].viewValue.length >= selection.start || i == nodes.length - 1) {
-				range = {
-					element: element,
-					node: nodes[i],
-					start: selection.start - nodes[i].offset,
-					end: selection.start - nodes[i].offset
-				};
-				break;
-			}
-		}
-
-		if (node && range.node.next == node && range.start + range.node.offset == range.node.next.offset) {
-			range.node = range.node.next;
-			range.start = range.end = 0;
-		}
-
-		return range;
-	}
-
-	function isRangeCollapse(range) {
-		return range.start == range.end ||
-			range.start == range.node.viewValue.length && range.end == "end";
-	}
-
-	function isRangeAtEnd(range) {
-		var maxLength, length;
-		if (!isRangeCollapse(range)) {
-			return false;
-		}
-		maxLength = range.node.token.maxLength;
-		length = range.node.viewValue.length;
-		if (maxLength && length < maxLength) {
-			return false;
-		}
-		return range.start == length;
-	}
-
-	function isPrintableKey(e) {
-		var keyCode = e.charCode || e.keyCode;
-		return keyCode >= 48 && keyCode <= 57 ||
-			keyCode >= 65 && keyCode <= 90 ||
-			keyCode >= 97 && keyCode <= 122;
-	}
-
-	function linkFunc(scope, element, attrs, ngModel) {
-		if (ngModel === null) {
-			return false;
-		}
-
-		var parser = datetime(attrs.datetime),
-			modelParser = attrs.datetimeModel && datetime(attrs.datetimeModel),
-			range = {
-				element: element,
-				node: getInitialNode(parser.nodes),
-				start: 0,
-				end: "end"
-			},
-			errorRange = {
-				element: element,
-				node: null,
-				start: 0,
-				end: 0
-			},
-			lastError, isUtc;
-			
-		function updateView() {
-			ngModel.$setViewValue(parser.getText());
-			ngModel.$render();
-		}
-		
-		function setUtc(val) {
-			if (val && !isUtc) {
-				isUtc = true;
-				parser.setTimezone("+0000");
-				if (modelParser) {
-					modelParser.setTimezone("+0000");
-				}
-				scope.$evalAsync(updateView);
-			} else if (!val && isUtc) {
-				isUtc = false;
-				parser.setTimezone(null);
-				if (modelParser) {
-					modelParser.setTimezone(null);
-				}
-				scope.$evalAsync(updateView);
-			}
-		}
-
-		if (angular.isDefined(attrs.datetimeUtc)) {
-			if (attrs.datetimeUtc.length > 0) {
-				scope.$watch(attrs.datetimeUtc, setUtc);
-			} else {
-				setUtc(true);
-			}
-		}
-
-		var validMin = function(value) {
-			if (ngModel.$isEmpty(value) || ngModel.$isEmpty(attrs.min)) {
-				return true;
-			}
-			if (!angular.isDate(value)) {
-				value = modelParser.getDate();
-			}
-			return value >= new Date(attrs.min);
-		};
-
-		var validMax = function(value) {
-			if (ngModel.$isEmpty(value) || ngModel.$isEmpty(attrs.max)) {
-				return true;
-			}
-			if (!angular.isDate(value)) {
-				value = modelParser.getDate();
-			}
-			return value <= new Date(attrs.max);
-		};
-
-		if (ngModel.$validators) {
-			ngModel.$validators.min = validMin;
-			ngModel.$validators.max = validMax;
-		}
-
-		attrs.$observe("min", function(){
-			validMinMax(parser.getDate());
-		});
-
-		attrs.$observe("max", function(){
-			validMinMax(parser.getDate());
-		});
-
-		ngModel.$render = function(){
-			element.val(ngModel.$viewValue || "");
-			if (doc.activeElement == element[0]) {
-				selectRange(range);
-			}
-		};
-
-		function validMinMax(date) {
-			if (ngModel.$validate) {
-				ngModel.$validate();
-			} else {
-				ngModel.$setValidity("min", validMin(date));
-				ngModel.$setValidity("max", validMax(date));
-			}
-			return !ngModel.$error.min && !ngModel.$error.max;
-		}
-
-		ngModel.$parsers.push(function(viewValue){
-			// Handle empty string
-			if (!viewValue && angular.isUndefined(attrs.required)) {
-				// Reset range
-				range.node = getInitialNode(parser.nodes);
-				range.start = 0;
-				range.end = "end";
-				ngModel.$setValidity("datetime", true);
-				return null;
-			}
-
-			lastError = null;
-
-			try {
-				parser.parse(viewValue);
-			} catch (err) {
-				lastError = err;
-				
-				if (err.code != "NOT_INIT") {
-					$log.error(err);
-
-					ngModel.$setValidity("datetime", false);
-					
-					if (err.code == "NUMBER_TOOSHORT" || err.code == "NUMBER_TOOSMALL" && err.match.length < err.node.token.maxLength) {
-						errorRange.node = err.node;
-						errorRange.start = 0;
-						errorRange.end = err.match.length;
-					} else {
-						if (err.code == "LEADING_ZERO") {
-							viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
-							if (err.match.length >= err.node.token.maxLength) {
-								selectRange(range, "next");
-							} else {
-								range.start += err.properValue.length - err.match.length + 1;
-								range.end = range.start;
-							}
-						} else if (err.code == "SELECT_INCOMPLETE") {
-							parser.nodeParseValue(range.node, err.selected);
-							viewValue = parser.getText();
-							range.start = err.match.length;
-							range.end = "end";
-						} else if (err.code == "INCONSISTENT_INPUT") {
-							viewValue = err.properText;
-							range.start++;
-							range.end = range.start;
-						// } else if (err.code == "NUMBER_TOOLARGE") {
-							// viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.match.length);
-							// range.start = 0;
-							// range.end = "end";
-						} else {
-							if (err.node) {
-								err.node.unset();
-							}
-							viewValue = parser.getText();
-							range.start = 0;
-							range.end = "end";
-						}
-						scope.$evalAsync(function(){
-							if (viewValue == ngModel.$viewValue) {
-								throw "angular-datetime crashed!";
-							}
-							ngModel.$setViewValue(viewValue);
-							ngModel.$render();
-						});
-					}
-
-					return undefined;
-				}
-			}
-
-			// handle not init
-			var i, valid = true;
-			if (lastError) {
-				if (angular.isDefined(attrs.required)) {
-					valid = false;
-				} else {
-					for (i = 0; i < parser.nodes.length; i++) {
-						if (parser.nodes[i].token.type == "static" || parser.nodes[i].token.type == "regex") {
-							continue;
-						}
-						if (parser.nodes[i].init) {
-							valid = false;
-							break;
-						}
-					}
-				}
-			}
-			ngModel.$setValidity("datetime", valid);
-			
-			if (lastError) {
-				lastError = null;
-				return null;
-			}
-
-			if (ngModel.$validate || validMinMax(parser.getDate())) {
-				var date = parser.getDate();
-
-				if (modelParser) {
-					return modelParser.setDate(date).getText();
-				} else {
-					// Create new date to make Angular notice the difference.
-					return new Date(date.getTime());
-				}
-			}
-
-			return undefined;
-		});
-
-		ngModel.$formatters.push(function(modelValue){
-
-			if (!modelValue) {
-				ngModel.$setValidity("datetime", angular.isUndefined(attrs.required));
-				parser.unset();
-				return parser.getText();
-			}
-
-			ngModel.$setValidity("datetime", true);
-
-			if (modelParser) {
-				modelValue = modelParser.parse(modelValue).getDate();
-			}
-
-			return parser.setDate(modelValue).getText();
-		});
-		
-		function tryFixingLastError() {
-			if (lastError.properValue) {
-				parser.nodeParseValue(lastError.node, lastError.properValue);
-				ngModel.$setViewValue(parser.getText());
-				ngModel.$render();
-				scope.$apply();
-				return true;
-			}
-		}
-
-		var waitForClick;
-		element.on("focus keydown keypress mousedown click", function(e){
-			switch (e.type) {
-				case "mousedown":
-					waitForClick = true;
-					break;
-				case "focus":
-					e.preventDefault();
-
-					// Init value on focus
-					if (!ngModel.$viewValue) {
-						if (angular.isDefined(attrs["default"])) {
-							parser.setDate(new Date(attrs["default"]));
-						}
-						ngModel.$setViewValue(parser.getText());
-						ngModel.$render();
-						scope.$apply();
-					}
-
-					if (!waitForClick) {
-						setTimeout(function(){
-							if (!lastError) {
-								selectRange(range);
-							} else {
-								selectRange(errorRange);
-							}
-						});
-					}
-					break;
-				case "keydown":
-					if (e.altKey || e.ctrlKey) {
-						break;
-					}
-					if (e.keyCode == 37 || e.keyCode == 9 && e.shiftKey && range.node.prevEdit) {
-						// Left, Shift + Tab
-						e.preventDefault();
-						if (!lastError || tryFixingLastError()) {
-							selectRange(range, "prev");							
-						} else {
-							selectRange(errorRange);
-						}
-					} else if (e.keyCode == 39 || e.keyCode == 9 && !e.shiftKey && range.node.nextEdit) {
-						// Right, Tab
-						e.preventDefault();
-						if (!lastError || tryFixingLastError()) {
-							selectRange(range, "next");
-						} else {
-							selectRange(errorRange);
-						}
-					} else if (e.keyCode == 38) {
-						// Up
-						e.preventDefault();
-						parser.nodeAddValue(range.node, 1);
-						ngModel.$setViewValue(parser.getText());
-						range.start = 0;
-						range.end = "end";
-						ngModel.$render();
-						scope.$apply();
-					} else if (e.keyCode == 40) {
-						// Down
-						e.preventDefault();
-						parser.nodeAddValue(range.node, -1);
-						ngModel.$setViewValue(parser.getText());
-						range.start = 0;
-						range.end = "end";
-						ngModel.$render();
-						scope.$apply();
-					} else if (e.keyCode == 36) {
-						// Home
-						e.preventDefault();
-						if (lastError) {
-							selectRange(errorRange);
-						} else {
-							selectRange(range, "prev", true);
-						}
-					} else if (e.keyCode == 35) {
-						// End
-						e.preventDefault();
-						if (lastError) {
-							selectRange(errorRange);
-						} else {
-							selectRange(range, "next", true);
-						}
-					}
-					break;
-
-				case "click":
-					e.preventDefault();
-					waitForClick = false;
-					if (!lastError) {
-						range = createRange(element, parser.nodes);
-						selectRange(range);
-					} else {
-						selectRange(errorRange);
-					}
-					break;
-
-				case "keypress":
-					var separators = attrs.datetimeSeparator || "",
-						key = String.fromCharCode(e.keyCode || e.which);
-					// check for separator only when there is a next node which is static string
-					if (range.node.next && range.node.next.token.type === "static") {
-						separators += range.node.next.viewValue[0];
-					}
-
-					if (separators.indexOf(key) >= 0) {
-						e.preventDefault();
-						if (!lastError || tryFixingLastError()) {
-							selectRange(range, "next");
-						} else {
-							selectRange(errorRange);
-						}
-					}
-					else if (isPrintableKey(e)) {
-						setTimeout(function(){
-							range = getRange(element, parser.nodes, range.node);
-							if (isRangeAtEnd(range)) {
-								range.node = getNode(range.node.next) || range.node;
-								range.start = 0;
-								range.end = "end";
-								selectRange(range);
-							}
-						});
-					}
-					break;
-
-			}
-		});
-
-	}
-
-	return {
-		restrict: "A",
-		require: "?ngModel",
-		link: linkFunc
-	};
 }]);
