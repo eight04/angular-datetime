@@ -104,12 +104,13 @@ Todos
 * Errors throwed by angular-datetime should have its own type.
 * Put some error handler into factory?
 * Day node should give different proper values depends on month when NUMBER_TOOLARGE.
-* Refactor createParser.
-* Drop static, regex types and add editable attr.
-* Do min/max validators execute when clear the input?
 
 Changelog
 ---------
+* 4.1.0 (Oct 5, 2016)
+	- Refactor.
+	- Fix day priority bug.
+	- Add `parser.isEmpty`. Fix required issue.
 * 4.0.0 (Sep 1, 2016)
 	- Change how parser work. It can represent "undefined" node now.
 	- Use tab key to navigate between different parts.
