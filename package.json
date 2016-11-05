@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "test": "eslint src/*.js && karma start",
-    "build": "n-concat src/main.js src/*.js | ng-annotate -a -o dist/datetime.js -",
+    "build": "n-concat src/main.js src/*.js | ng-annotate -a -o dist/datetime.js - && node build-demo.js",
     "build:watch": "watch \"npm run build\" src",
     "preversion": "npm test && npm run build",
     "version": "sync-version bower.json && git add .",

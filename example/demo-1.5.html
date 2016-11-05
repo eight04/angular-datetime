@@ -48,15 +48,18 @@
 </head>
 <body class="container-sm" ng-controller="myDate">
 	<h2>Angular Datetime <small>Demo Page</small></h2>
+	<p>To use the directive, add <code>datetime="date-format"</code> attribute to your input.</p>
+	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="data.myDate" class="form-control">
+	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate"&gt;</code></pre>
+	
+	<p>To set a date, just set your model to a Date object. Set to null to remove it.</p>
 	<p>
 		<button class="btn-default" ng-click="reset()">Reset</button>
 		<button class="btn-default" ng-click="clear()">Clear</button>
 	</p>
-	<p>To use the directive, add <code>datetime="date-format"</code> attribute to your input.</p>
-	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="data.myDate" class="form-control">
-	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate"&gt;</code></pre>
+	<pre class="code"><code>&lt;button ng-click="myDate = new Date">reset&lt;/button></code></pre>
 
-	<h3>Min / Max</h3>
+	<h3>min / max</h3>
 	<p>Validation for min/max date. The min/max attribute will be used to construct the date object.</p>
 	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="data.myDate" class="form-control" min="{{data.min.toUTCString()}}" max="{{data.max.toUTCString()}}">
 	<pre class="code" ng-non-bindable><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" min="Jan 1, 2010" max="Dec 31, 2019"&gt;</code></pre>
@@ -75,22 +78,23 @@
 		</label>
 	</div>
 
-	<h3>Required</h3>
-	<p>You won't be able to clear this field if required. You can still set the model value to null though.</p>
+	<h3>required</h3>
+	<p><code>ng-invalid-required</code> will be added to the class list when all parts are empty.</p>
 	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="data.myDate" class="form-control" required>
 	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" required&gt;</code></pre>
+	
 	<p>Use <code>ng-require</code>.</p>
 	<label class="checkbox"><input type="checkbox" ng-model="isRequired">Required</label>
 	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-required="isRequired" class="form-control" ng-model="data.myDate">
 
-	<h3>Model format</h3>
-	<p>You can use a date string instead of date object as model value.</p>
+	<h3>model-format</h3>
+	<p>With this attribute, it will convert the model into a date string automatically.</p>
 	<input type="text" class="form-control" datetime="medium" ng-model="data.myDateString" datetime-model="yyyy-MM-dd HH:mm:ss">
 	<pre class="output">myDateString = {{data.myDateString | json}}</pre>
 	<pre class="code"><code>&lt;input type="text" datetime="medium" datetime-model="yyyy-MM-dd HH:mm:ss" ng-model="myDateString"&gt;</code></pre>
 
-	<h3>Show UTC time</h3>
-	<p>By the default, angular-datetime will format view value in local timezone. Add <code>datetime-utc</code> attribute to show UTC time to users.</p>
+	<h3>datetime-utc</h3>
+	<p>By the default, angular-datetime will format the date in local timezone. Add <code>datetime-utc</code> attribute to show in UTC timezone.</p>
 	<input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="data.myDate" class="form-control" datetime-utc>
 	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="myDate" datetime-utc&gt;</code></pre>
 	<p>Also support expression.</p>
@@ -99,8 +103,13 @@
 	<pre class="code"><code>&lt;label class="checkbox">&lt;input type="checkbox" ng-model="isUtc">Show UTC&lt;/label>
 &lt;input type="text" datetime="yyyy-MM-dd HH:mm:ss" ng-model="data.myDate" class="form-control" datetime-utc="isUtc"></code></pre>
 
+	<h3>datetime-separator</h3>
+	<p>By the default, you can use left/right keys to navigate between each part of date. With this attribute, you will be able to use different keys to jump to next part.</p>
+	<input type="text" class="form-control" datetime="dd.MM.yyyy" ng-model="data.myDate" datetime-separator=",.-/">
+	<pre class="code"><code>&lt;input type="text" datetime="dd.MM.yyyy" ng-model="myDate" datetime-separator=",.-/"></code></pre>
+	
 	<h3>Localizable formats</h3>
-	<p>The parser supports localizable formats in angular.</p>
+	<p>The parser supports localizable formats in Angular.</p>
 	<div class="form-group" ng-repeat="format in formats">
 		<label>
 			{{format}}
@@ -138,12 +147,6 @@
 			<pre class="code"><code>{{data.myDateString2 | json}}</code></pre>
 		</label>
 	</div>
-	<h3>Custom separator</h3>
-	<p>Used to jump on the next segment when pressing separator key. In this example angular-datetime will jump on the next segment when pressing <code>.</code> or <code>,</code>.</p>
-	<div class="form-group">
-		<label>
-			<input type="text" class="form-control" datetime="dd.MM.yyyy" ng-model="data.myDate" datetime-separator=",">
-		</label>
-	</div>
+	
 </body>
 </html>
