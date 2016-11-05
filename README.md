@@ -5,13 +5,8 @@ This module includes a datetime directive and a parser service.
 Features
 --------
 * This module includes:
-	- A directive adding `type=datetime` behavior to `input[text]`:
-		- Use date object as modelValue.
-		- Use arrow keys to move on different part of datestring.
-		- Use arrow keys to increase/decrease value.
-		- Typeahead. Ex. "se" -> "September".
-	- A parser, which can parse date string into date object with defined format.
-	- A formatter, which can convert date object into date string without Angular builtin date filter.
+	- A directive which can simulate datetime input within a text field.
+	- A service which can convert a string of date into a Date object, and vice versa.
 * Support IE8.
 
 Date string format
@@ -23,10 +18,10 @@ Apart from [the formats provided officially](https://docs.angularjs.org/api/ng/f
 Demo
 ----
 * With Angular 1.2.x: <https://rawgit.com/eight04/angular-datetime/master/example/demo.html>
-* With Angular 1.5.x: <https://rawgit.com/eight04/angular-datetime/master/example/demo-angular-1.5.html>
+* With Angular 1.5.x: <https://rawgit.com/eight04/angular-datetime/master/example/demo-1.5.html>
 
-Install
--------
+Installation
+------------
 Bower:
 
 	bower install angular-datetime --save
@@ -35,8 +30,8 @@ npm:
 
 	npm install angular-datetime-input --save
 
-Usage examples
---------------
+Usage
+-----
 ### datetime service
 ```Javascript
 // Setup dependency
@@ -70,9 +65,12 @@ angular.controller("myController", function(datetime){
 	}
 });
 ```
+
 ### datetime directive
-Check demo page for live example.
-```HTML
+
+Check demo page for live example and details.
+
+```html
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate">
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" required>
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" datetime-utc>
