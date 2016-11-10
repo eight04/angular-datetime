@@ -12,11 +12,10 @@
   "scripts": {
     "test": "eslint src/*.js && karma start",
     "build": "n-concat src/main.js src/*.js | ng-annotate -a -o dist/datetime.js - && node build-demo.js",
-    "build:watch": "watch \"npm run build\" src",
+    "watch-build": "n-run -w src/* \"npm run build\"",
     "preversion": "npm test && npm run build",
     "version": "sync-version bower.json && git add .",
-    "postversion": "git push --follow-tags && npm publish",
-    "version:list": "sync-version -l bower.json"
+    "postversion": "git push --follow-tags && npm publish"
   },
   "homepage": "https://github.com/eight04/angular-datetime",
   "bugs": {
@@ -48,7 +47,6 @@
     "ng-annotate": "^1.2.1",
     "npm-build-tools": "^2.2.5",
     "phantomjs-prebuilt": "^2.1.7",
-    "sync-version": "^0.1.0",
-    "watch": "^0.17.1"
+    "sync-version": "^0.1.0"
   }
 }
