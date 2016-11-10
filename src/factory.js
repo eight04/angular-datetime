@@ -1,4 +1,4 @@
-angular.module("datetime").factory("datetime", function($locale){
+angular.module("datetime").factory("datetime", function($locale, datetimePlaceholder){
 	// Fetch date and time formats from $locale service
 	var formats = $locale.DATETIME_FORMATS;
 	// Valid format tokens. 1=sss, 2=''
@@ -238,7 +238,7 @@ angular.module("datetime").factory("datetime", function($locale){
 	}
 	
 	function placehold(token) {
-		return "(" + token.name + ")";
+		return datetimePlaceholder[token.name];
 	}
 	
 	function Node(token) {
