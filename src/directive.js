@@ -292,7 +292,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 			try {
 				parser.parse(viewValue);
 			} catch (err) {
-				if (err.code == "NOT_INIT" || err.code == "EMPTY") {
+				if (err.code == "NOT_INIT") {
 					if (parser.isEmpty()) {
 						ngModel.$setValidity("datetime", true);
 					} else {
@@ -311,7 +311,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 					errorRange.node = err.node;
 					errorRange.start = 0;
 					errorRange.end = err.viewValue.length;
-				} else if (err.code != "NOT_INIT" && err.code != "EMPTY") {
+				} else {
 					if (err.code == "LEADING_ZERO") {
 						viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.viewValue.length);
 						if (err.viewValue.length >= err.node.token.maxLength) {
@@ -334,6 +334,9 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 						// range.start = 0;
 						// range.end = "end";
 					} else {
+						if (err.code == "EMPTY") {
+							parser.unset();
+						}
 						if (err.node) {
 							err.node.unset();
 						}
