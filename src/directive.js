@@ -311,6 +311,11 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 					errorRange.node = err.node;
 					errorRange.start = 0;
 					errorRange.end = err.viewValue.length;
+				} else if (err.code == "NUMBER_MISMATCH" || err.code == "SELECT_MISMATCH") {
+					err.node.unset();
+					errorRange.node = err.node;
+					errorRange.start = 0;
+					errorRange.end = 0;
 				} else {
 					if (err.code == "LEADING_ZERO") {
 						viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.viewValue.length);

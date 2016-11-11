@@ -588,9 +588,10 @@ angular.module("datetime").factory("datetime", function($locale, datetimePlaceho
 				
 				if (value == null) {
 					return {
-						err: 2,
+						err: 1,
 						code: "NUMBER_MISMATCH",
-						message: "Invalid number"
+						message: "Invalid number",
+						viewValue: ""
 					};
 				}
 				
@@ -646,9 +647,10 @@ angular.module("datetime").factory("datetime", function($locale, datetimePlaceho
 				}
 				if (!match) {
 					return {
-						err: 2,
+						err: 1,
 						code: "SELECT_MISMATCH",
-						message: "Invalid select"
+						message: "Invalid select",
+						viewValue: ""
 					};
 				}
 
@@ -768,6 +770,16 @@ angular.module("datetime").factory("datetime", function($locale, datetimePlaceho
 	function parseLoop(nodes, tokens, text, date) {
 		var result = parse(text, tokens);
 		
+		// throw TEXT_TOOLONG error
+		var last = result[result.length - 1];
+		if (last.pos + last.viewValue.length < text.length) {
+			throw {
+				code: "TEXT_TOOLONG",
+				message: "Text is too long",
+				text: text
+			};
+		}
+
 		// throw error
 		var i;
 		for (i = 0; i < result.length; i++) {
@@ -776,16 +788,6 @@ angular.module("datetime").factory("datetime", function($locale, datetimePlaceho
 			}
 		}
 		
-		// throw TEXT_TOOLONG error
-		var last = result[result.length - 1];
-		if (last.pos + last.viewValue.length > text.length) {
-			throw {
-				code: "TEXT_TOOLONG",
-				message: "Text is too long",
-				text: text
-			};
-		}
-
 		// grab changed nodes
 		var changed = [];
 		for (i = 0; i < result.length; i++) {
