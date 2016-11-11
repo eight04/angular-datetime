@@ -1,5 +1,19 @@
 angular.module("datetime", []);
 
+angular.module("datetime").constant("datetimePlaceholder", {
+	year: "(year)",
+	month: "(month)",
+	date: "(date)",
+	day: "(day)",
+	hour: "(hour)",
+	hour12: "(hour12)",
+	minute: "(minute)",
+	second: "(second)",
+	millisecond: "(millisecond)",
+	ampm: "(am/pm)",
+	week: "(week)"
+});
+
 angular.module("datetime").directive("datetime", ["datetime", "$log", "$document", function(datetime, $log, $document){
 	var doc = $document[0];
 
@@ -32,6 +46,11 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 		if (doc.selection) {
 			return getInputSelectionIE(input);
 		}
+	}
+	
+	function isSelectionCollapse(input) {
+		var s = getInputSelection(input);
+		return s.start == s.end;
 	}
 
 	function getInitialNode(nodes) {
@@ -157,16 +176,13 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 	}
 
 	function isRangeAtEnd(range) {
-		var maxLength, length;
 		if (!isRangeCollapse(range)) {
 			return false;
 		}
-		maxLength = range.node.token.maxLength;
-		length = range.node.viewValue.length;
-		if (maxLength && length < maxLength) {
-			return false;
+		if (range.node.token.maxLength) {
+			return range.start >= range.node.token.maxLength;
 		}
-		return range.start == length;
+		return range.start >= range.node.viewValue.length;
 	}
 
 	function isPrintableKey(e) {
@@ -289,12 +305,17 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 		}
 
 		ngModel.$parsers.push(function(viewValue){
+			// You will get undefined when input is required and model get unset
+			if (angular.isUndefined(viewValue)) {
+				return undefined;
+			}
+			
 			lastError = null;
 
 			try {
 				parser.parse(viewValue);
 			} catch (err) {
-				if (err.code == "NOT_INIT" || err.code == "EMPTY") {
+				if (err.code == "NOT_INIT") {
 					if (parser.isEmpty()) {
 						ngModel.$setValidity("datetime", true);
 					} else {
@@ -313,7 +334,12 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 					errorRange.node = err.node;
 					errorRange.start = 0;
 					errorRange.end = err.viewValue.length;
-				} else if (err.code != "NOT_INIT" && err.code != "EMPTY") {
+				} else if (err.code == "NUMBER_MISMATCH" || err.code == "SELECT_MISMATCH") {
+					err.node.unset();
+					errorRange.node = err.node;
+					errorRange.start = 0;
+					errorRange.end = 0;
+				} else {
 					if (err.code == "LEADING_ZERO") {
 						viewValue = viewValue.substr(0, err.pos) + err.properValue + viewValue.substr(err.pos + err.viewValue.length);
 						if (err.viewValue.length >= err.node.token.maxLength) {
@@ -336,6 +362,9 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 						// range.start = 0;
 						// range.end = "end";
 					} else {
+						if (err.code == "EMPTY") {
+							parser.unset();
+						}
 						if (err.node) {
 							err.node.unset();
 						}
@@ -395,6 +424,12 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 		function tryFixingLastError() {
 			if (lastError.properValue) {
 				parser.nodeParseValue(lastError.node, lastError.properValue);
+				ngModel.$setViewValue(parser.getText());
+				ngModel.$render();
+				scope.$apply();
+				return true;
+			}
+			if (lastError.node.empty) {
 				ngModel.$setViewValue(parser.getText());
 				ngModel.$render();
 				scope.$apply();
@@ -485,6 +520,43 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 						} else {
 							selectRange(range, "next", true);
 						}
+					} else if (e.keyCode == 46) {
+						// Del
+						if (!isSelectionCollapse(element)) {
+							break;
+						}
+						if (lastError) {
+							if (lastError.node != range.node) {
+								break;
+							}
+							if (typeof lastError.viewValue != "string") {
+								break;
+							}
+							if (getInputSelection(element).start < lastError.viewValue.length + lastError.pos) {
+								break;
+							}
+							if (!tryFixingLastError()) {
+								break;
+							}
+						} else if (getInputSelection(element).start < range.node.offset + range.node.viewValue.length) {
+							break;
+						}
+						e.preventDefault();
+						selectRange(range, "next");
+						
+					} else if (e.keyCode == 8) {
+						// Backspace
+						if (!isSelectionCollapse(element)) {
+							break;
+						}
+						if (getInputSelection(element).start > range.node.offset) {
+							break;
+						}
+						if (lastError && !tryFixingLastError()) {
+							break;
+						}
+						e.preventDefault();
+						selectRange(range, "prev");
 					}
 					break;
 
@@ -519,10 +591,7 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 						setTimeout(function(){
 							range = getRange(element, parser.nodes, range.node);
 							if (isRangeAtEnd(range)) {
-								range.node = getNode(range.node.next) || range.node;
-								range.start = 0;
-								range.end = "end";
-								selectRange(range);
+								selectRange(range, "next");
 							}
 						});
 					}
@@ -540,7 +609,7 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 	};
 }]);
 
-angular.module("datetime").factory("datetime", ["$locale", function($locale){
+angular.module("datetime").factory("datetime", ["$locale", "datetimePlaceholder", function($locale, datetimePlaceholder){
 	// Fetch date and time formats from $locale service
 	var formats = $locale.DATETIME_FORMATS;
 	// Valid format tokens. 1=sss, 2=''
@@ -780,7 +849,7 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 	}
 	
 	function placehold(token) {
-		return "(" + token.name + ")";
+		return datetimePlaceholder[token.name];
 	}
 	
 	function Node(token) {
@@ -1130,9 +1199,10 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				
 				if (value == null) {
 					return {
-						err: 2,
+						err: 1,
 						code: "NUMBER_MISMATCH",
-						message: "Invalid number"
+						message: "Invalid number",
+						viewValue: ""
 					};
 				}
 				
@@ -1188,9 +1258,10 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 				}
 				if (!match) {
 					return {
-						err: 2,
+						err: 1,
 						code: "SELECT_MISMATCH",
-						message: "Invalid select"
+						message: "Invalid select",
+						viewValue: ""
 					};
 				}
 
@@ -1310,6 +1381,16 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 	function parseLoop(nodes, tokens, text, date) {
 		var result = parse(text, tokens);
 		
+		// throw TEXT_TOOLONG error
+		var last = result[result.length - 1];
+		if (last.pos + last.viewValue.length < text.length) {
+			throw {
+				code: "TEXT_TOOLONG",
+				message: "Text is too long",
+				text: text
+			};
+		}
+
 		// throw error
 		var i;
 		for (i = 0; i < result.length; i++) {
@@ -1318,16 +1399,6 @@ angular.module("datetime").factory("datetime", ["$locale", function($locale){
 			}
 		}
 		
-		// throw TEXT_TOOLONG error
-		var last = result[result.length - 1];
-		if (last.pos + last.viewValue.length > text.length) {
-			throw {
-				code: "TEXT_TOOLONG",
-				message: "Text is too long",
-				text: text
-			};
-		}
-
 		// grab changed nodes
 		var changed = [];
 		for (i = 0; i < result.length; i++) {
