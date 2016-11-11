@@ -287,6 +287,11 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 		}
 
 		ngModel.$parsers.push(function(viewValue){
+			// You will get undefined when input is required and model get unset
+			if (angular.isUndefined(viewValue)) {
+				return undefined;
+			}
+			
 			lastError = null;
 
 			try {
