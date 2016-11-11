@@ -31,6 +31,11 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 			return getInputSelectionIE(input);
 		}
 	}
+	
+	function isSelectionCollapse(input) {
+		var s = getInputSelection(input);
+		return s.start == s.end;
+	}
 
 	function getInitialNode(nodes) {
 		return getNode(nodes[0]);
@@ -155,16 +160,13 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 	}
 
 	function isRangeAtEnd(range) {
-		var maxLength, length;
 		if (!isRangeCollapse(range)) {
 			return false;
 		}
-		maxLength = range.node.token.maxLength;
-		length = range.node.viewValue.length;
-		if (maxLength && length < maxLength) {
-			return false;
+		if (range.node.token.maxLength) {
+			return range.start >= range.node.token.maxLength;
 		}
-		return range.start == length;
+		return range.start >= range.node.viewValue.length;
 	}
 
 	function isPrintableKey(e) {
@@ -411,6 +413,12 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 				scope.$apply();
 				return true;
 			}
+			if (lastError.node.empty) {
+				ngModel.$setViewValue(parser.getText());
+				ngModel.$render();
+				scope.$apply();
+				return true;
+			}
 		}
 
 		var waitForClick;
@@ -496,6 +504,43 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 						} else {
 							selectRange(range, "next", true);
 						}
+					} else if (e.keyCode == 46) {
+						// Del
+						if (!isSelectionCollapse(element)) {
+							break;
+						}
+						if (lastError) {
+							if (lastError.node != range.node) {
+								break;
+							}
+							if (typeof lastError.viewValue != "string") {
+								break;
+							}
+							if (getInputSelection(element).start < lastError.viewValue.length + lastError.pos) {
+								break;
+							}
+							if (!tryFixingLastError()) {
+								break;
+							}
+						} else if (getInputSelection(element).start < range.node.offset + range.node.viewValue.length) {
+							break;
+						}
+						e.preventDefault();
+						selectRange(range, "next");
+						
+					} else if (e.keyCode == 8) {
+						// Backspace
+						if (!isSelectionCollapse(element)) {
+							break;
+						}
+						if (getInputSelection(element).start > range.node.offset) {
+							break;
+						}
+						if (lastError && !tryFixingLastError()) {
+							break;
+						}
+						e.preventDefault();
+						selectRange(range, "prev");
 					}
 					break;
 
@@ -530,10 +575,7 @@ angular.module("datetime").directive("datetime", function(datetime, $log, $docum
 						setTimeout(function(){
 							range = getRange(element, parser.nodes, range.node);
 							if (isRangeAtEnd(range)) {
-								range.node = getNode(range.node.next) || range.node;
-								range.start = 0;
-								range.end = "end";
-								selectRange(range);
+								selectRange(range, "next");
 							}
 						});
 					}
