@@ -1,7 +1,8 @@
-angular.module("datetime", []);
+angular.module("datetime", ["custom-input"]);
 
 angular.module("datetime").constant("datetimePlaceholder", {
 	year: "(year)",
+	yearShort: "(year)",
 	month: "(month)",
 	date: "(date)",
 	day: "(day)",
@@ -10,6 +11,6 @@ angular.module("datetime").constant("datetimePlaceholder", {
 	minute: "(minute)",
 	second: "(second)",
 	millisecond: "(millisecond)",
-	ampm: "(am/pm)",
+	ampm: "(AM/PM)",
 	week: "(week)"
 });

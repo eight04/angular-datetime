@@ -1,4 +1,5 @@
-angular.module("datetime").factory("datetime", function($locale, datetimePlaceholder){
+angular.module("datetime").factory("datetime", function($locale, datetimePlaceholder, customInput){
+	var { TextParser, utils: { num2str } } = customInput;
 	// Fetch date and time formats from $locale service
 	var formats = $locale.DATETIME_FORMATS;
 	// Valid format tokens. 1=sss, 2=''
@@ -8,210 +9,266 @@ angular.module("datetime").factory("datetime", function($locale, datetimePlaceho
 		"y": {
 			minLength: 1,
 			maxLength: 4,
-			min: 1,
 			max: 9999,
+			min: 0,
 			name: "year",
-			type: "number",
-			mutable: true
+			type: "number"
 		},
 		"yy": {
 			minLength: 2,
 			maxLength: 2,
-			min: 1,
-			max: 99,
-			name: "year",
-			type: "number",
-			mutable: true
+			name: "yearShort",
+			type: "number"
 		},
 		"yyyy": {
 			minLength: 4,
 			maxLength: 4,
-			min: 1,
 			max: 9999,
+			min: 0,
 			name: "year",
-			type: "number",
-			mutable: true
+			type: "number"
 		},
 		"MMMM": {
 			name: "month",
 			type: "select",
-			select: formats.MONTH,
-			mutable: true
+			select: formats.MONTH
 		},
 		"MMM": {
 			name: "month",
 			type: "select",
-			select: formats.SHORTMONTH,
-			mutable: true
+			select: formats.SHORTMONTH
 		},
 		"MM": {
 			minLength: 2,
 			maxLength: 2,
-			min: 1,
-			max: 12,
 			name: "month",
-			type: "number",
-			mutable: true
+			type: "number"
 		},
 		"M": {
 			minLength: 1,
 			maxLength: 2,
-			min: 1,
-			max: 12,
 			name: "month",
 			type: "number",
-			mutable: true
+			min: 1
 		},
 		"dd": {
 			minLength: 2,
 			maxLength: 2,
-			min: 1,
-			max: 31,
 			name: "date",
-			type: "number",
-			mutable: true
+			type: "number"
 		},
 		"d": {
 			minLength: 1,
 			maxLength: 2,
-			min: 1,
-			max: 31,
 			name: "date",
 			type: "number",
-			mutable: true
+			min: 1
 		},
 		"EEEE": {
 			name: "day",
 			type: "select",
-			select: fixDay(formats.DAY),
-			mutable: true
+			select: fixDay(formats.DAY)
 		},
 		"EEE": {
 			name: "day",
 			type: "select",
-			select: fixDay(formats.SHORTDAY),
-			mutable: true
+			select: fixDay(formats.SHORTDAY)
 		},
 		"HH": {
 			minLength: 2,
 			maxLength: 2,
-			min: 0,
-			max: 23,
 			name: "hour",
-			type: "number",
-			mutable: true
+			type: "number"
 		},
 		"H": {
 			minLength: 1,
 			maxLength: 2,
-			min: 0,
-			max: 23,
 			name: "hour",
-			type: "number",
-			mutable: true
+			type: "number"
 		},
 		"hh": {
 			minLength: 2,
 			maxLength: 2,
-			min: 1,
-			max: 12,
 			name: "hour12",
-			type: "number",
-			mutable: true
+			type: "number"
 		},
 		"h": {
 			minLength: 1,
 			maxLength: 2,
-			min: 1,
-			max: 12,
 			name: "hour12",
-			type: "number",
-			mutable: true
+			type: "number"
 		},
 		"mm": {
 			minLength: 2,
 			maxLength: 2,
-			min: 0,
-			max: 59,
 			name: "minute",
-			type: "number",
-			mutable: true
+			type: "number"
 		},
 		"m": {
 			minLength: 1,
 			maxLength: 2,
-			min: 0,
-			max: 59,
 			name: "minute",
-			type: "number",
-			mutable: true
+			type: "number"
 		},
 		"ss": {
 			minLength: 2,
 			maxLength: 2,
-			min: 0,
-			max: 59,
 			name: "second",
-			type: "number",
-			mutable: true
+			type: "number"
 		},
 		"s": {
 			minLength: 1,
 			maxLength: 2,
-			min: 0,
-			max: 59,
 			name: "second",
-			type: "number",
-			mutable: true
+			type: "number"
 		},
 		"sss": {
 			minLength: 3,
 			maxLength: 3,
-			min: 0,
-			max: 999,
 			name: "millisecond",
-			type: "number",
-			mutable: true
+			type: "number"
 		},
 		"a": {
 			name: "ampm",
 			type: "select",
-			select: formats.AMPMS,
-			mutable: true
+			select: formats.AMPMS
 		},
 		"ww": {
 			minLength: 2,
 			maxLength: 2,
-			min: 0,
 			max: 53,
 			name: "week",
-			type: "number",
-			mutable: true
+			type: "number"
 		},
 		"w": {
 			minLength: 1,
 			maxLength: 2,
-			min: 0,
 			max: 53,
 			name: "week",
-			type: "number",
-			mutable: true
+			type: "number"
 		},
 		"Z": {
 			name: "timezone",
-			type: "regex",
-			regex: /[+-]\d{4}/
+			type: "static"
 		},
 		"ZZ": {
-			name: "timezoneWithColon",
-			type: "regex",
-			regex: /[+-]\d{2}:\d{2}/
+			name: "timezone",
+			type: "static",
+			colon: true
 		},
 		"string": {
 			name: "string",
 			type: "static"
 		}
 	};
+	
+	var nameConf = {
+		year: {
+			extract: d => {
+				// year might be negative
+				var v = d.getFullYear() % 10000;
+				return v >= 0 ? v : 0;
+			},
+			restore: (d, v) => d.setFullYear(v),
+			add: (d, v) => d.setFullYear(d.getFullYear() + v),
+			prior: 7
+		},
+		yearShort: {
+			extract: d => {
+				var v = d.getFullYear() % 100;
+				return v >= 0 ? v : v + 100;
+			},
+			restore: (d, v) => d.setFullYear(v),
+			add: (d, v) => d.setFullYear(d.getFullYear() + v),
+			prior: 7
+		},
+		month: {
+			extract: d => d.getMonth() + 1,
+			restore: (d, v) => {
+				// http://stackoverflow.com/questions/14680396/the-date-getmonth-method-has-bug
+				d.setMonth(v - 1);
+				// handle date overflow
+				if (d.getMonth() == v) {
+					d.setDate(0);
+				}
+			},
+			add: (d, v) => {
+				v = d.getMonth() + v;
+				d.setMonth(v);
+				// date overflow
+				if (d.getMonth() == v + 1) {
+					d.setDate(0);
+				}
+			},
+			prior: 5
+		},
+		date: {
+			extract: d => d.getDate(),
+			restore: (d, v) => d.setDate(v),
+			add: (d, v) => d.setDate(d.getDate() + v),
+			prior: 4
+		},
+		day: {
+			extract: d => d.getDay() || 7,
+			restore: setDay,
+			add: (d, v) => d.setDate(d.getDate() + v),
+			prior: 4
+		},
+		hour: {
+			extract: d => d.getHours(),
+			restore: (d, v) => d.setHours(v),
+			add: (d, v) => d.setHours(d.getHours() + v),
+			prior: 2
+		},
+		hour12: {
+			extract: d => d.getHours() % 12 || 12,
+			restore: setHour12,
+			add: (d, v) => d.setHours(d.getHours() + v),
+			prior: 2
+		},
+		ampm: {
+			extract: d => d.getHours() < 12 ? 1 : 2,
+			restore: setAmpm,
+			add: (d, v) => d.setHours(d.getHours() + v * 12),
+			prior: 3
+		},
+		minute: {
+			extract: d => d.getMinutes(),
+			restore: (d, v) => d.setMinutes(v),
+			add: (d, v) => d.setMinutes(d.getMinutes() + v),
+			prior: 0
+		},
+		second: {
+			extract: d => d.getSeconds(),
+			restore: (d, v) => d.setSeconds(v),
+			add: (d, v) => d.setSeconds(d.getSeconds() + v),
+			prior: 1
+		},
+		millisecond: {
+			extract: d => d.getMilliseconds(),
+			restore: (d, v) => d.setMilliseconds(v),
+			add: (d, v) => d.setMilliseconds(d.getMilliseconds() + v),
+			prior: 1
+		},
+		week: {
+			extract: getWeek,
+			restore: (d, v) => d.setDate(d.getDate() + (v - getWeek(d)) * 7),
+			add: (d, v) => d.setDate(d.getDate() + v * 7),
+			prior: 6
+		}
+	};
+	
+	// setup placeholder
+	for (var name in nameConf) {
+		nameConf[name].placeholder = datetimePlaceholder[name];
+	}
+	
+	// setup tokens
+	for (var tk of Object.values(definedTokens)) {
+		if (nameConf[tk.name]) {
+			angular.extend(tk, nameConf[tk.name]);
+		}
+	}
 	
 	var SYS_TIMEZONE = (function(){
 		var offset = -(new Date).getTimezoneOffset(),
@@ -232,43 +289,6 @@ angular.module("datetime").factory("datetime", function($locale, datetimePlaceho
 		return s;
 	}
 
-	// Use localizable formats
-	function getFormat(format) {
-		return formats[format] || format;
-	}
-	
-	function placehold(token) {
-		return datetimePlaceholder[token.name];
-	}
-	
-	function Node(token) {
-		this.token = token;
-		this.value = null;
-		this.viewValue = token.value || placehold(token);
-		this.offset = 0;
-		this.next = null;
-		this.prev = null;
-		this.nextEdit = null;
-		this.prevEdit = null;
-		this.empty = true;
-	}
-	
-	Node.prototype.unset = function() {
-		if (!this.token.mutable) {
-			return;
-		}
-		this.empty = true;
-		this.value = null;
-		this.viewValue = placehold(this.token);
-		
-		// Update offset
-		var node = this.next;
-		while (node) {
-			node.offset = node.prev.offset + node.prev.viewValue.length;
-			node = node.next;
-		}
-	};
-	
 	// Split format into multiple tokens
 	function createTokens(format) {
 		var tokens = [],
@@ -296,6 +316,15 @@ angular.module("datetime").factory("datetime", function($locale, datetimePlaceho
 					tokens.push(angular.extend({
 						value: match[2].replace("''", "'")
 					}, definedTokens.string));
+				} else if (definedTokens[match[0]].name == "timezone") {
+					// static timezone
+					var tz = SYS_TIMEZONE;
+					if (definedTokens[match[0]].colon) {
+						tz = insertColon(tz);
+					}
+					tokens.push(angular.extend({
+						value: tz
+					}, definedTokens[match[0]]));
 				} else {
 					// other tokens
 					tokens.push(definedTokens[match[0]]);
@@ -313,59 +342,6 @@ angular.module("datetime").factory("datetime", function($locale, datetimePlaceho
 		return tokens;
 	}
 
-	// Create node list from tokens
-	function createNodes(tokens) {
-		var nodes = [],
-			edit,
-			i;
-			
-		for (i = 0; i < tokens.length; i++) {
-			nodes.push(new Node(tokens[i]));
-		}
-		
-		// Build relationship between nodes
-		for (i = 0; i < nodes.length; i++) {
-			nodes[i].next = nodes[i + 1] || null;
-			nodes[i].prev = nodes[i - 1] || null;
-		}
-		
-		edit = null;
-		for (i = 0; i < nodes.length; i++) {
-			nodes[i].prevEdit = edit;
-			if (nodes[i].token.mutable) {
-				edit = nodes[i];
-			}
-		}
-		
-		edit = null;
-		for (i = nodes.length - 1; i >= 0; i--) {
-			nodes[i].nextEdit = edit;
-			if (nodes[i].token.mutable) {
-				edit = nodes[i];
-			}
-		}
-
-		return nodes;
-	}
-
-	function getInteger(str, pos) {
-		str = str.substring(pos);
-		var match = str.match(/^\d+/);
-		return match && match[0];
-	}
-
-	function getMatch(str, pos, pattern) {
-		var i = 0,
-			strQ = str.toUpperCase(),
-			patternQ = pattern.toUpperCase();
-
-		while (strQ[pos + i] && strQ[pos + i] == patternQ[i]) {
-			i++;
-		}
-
-		return str.substr(pos, i);
-	}
-
 	function getWeek(date) {
 		var yearStart = new Date(date.getFullYear(), 0, 1);
 
@@ -381,95 +357,6 @@ angular.module("datetime").factory("datetime", function($locale, datetimePlaceho
 		return Math.floor(diff / (7 * 24 * 60 * 60 * 1000));
 	}
 
-	function num2str(num, minLength, maxLength) {
-		var i;
-		num = "" + num;
-		if (num.length > maxLength) {
-			num = num.substr(num.length - maxLength);
-		} else if (num.length < minLength) {
-			for (i = num.length; i < minLength; i++) {
-				num = "0" + num;
-			}
-		}
-		return num;
-	}
-	
-	function insertColon(timezone) {
-		if (timezone[3] == ":") {
-			return timezone;
-		}
-		return timezone.substr(0, 3) + ":" + timezone.substr(3, 2);
-	}
-	
-	function removeColon(timezone) {
-		if (timezone[3] != ":") {
-			return timezone;
-		}
-		return timezone.substr(0, 3) + timezone.substr(4, 2);
-	}
-	
-	function getValue(date, token, timezone) {
-		// format value from @date according to @token.
-		var value;
-		switch (token.name) {
-			case "year":
-				value = date.getFullYear();
-				// it is possible
-				if (value < 0) {
-					value = 0;
-				}
-				break;
-			case "month":
-				value = date.getMonth() + 1;
-				break;
-			case "date":
-				value = date.getDate();
-				break;
-			case "day":
-				value = date.getDay() || 7;
-				break;
-			case "hour":
-				value = date.getHours();
-				break;
-			case "hour12":
-				value = date.getHours() % 12 || 12;
-				break;
-			case "ampm":
-				value = date.getHours() < 12 ? 1 : 2;
-				break;
-			case "minute":
-				value = date.getMinutes();
-				break;
-			case "second":
-				value = date.getSeconds();
-				break;
-			case "millisecond":
-				value = date.getMilliseconds();
-				break;
-			case "week":
-				value = getWeek(date);
-				break;
-			case "timezone":
-				value = removeColon(timezone || SYS_TIMEZONE);
-				break;
-			case "timezoneWithColon":
-				value = insertColon(timezone || SYS_TIMEZONE);
-				break;
-		}
-		return value;
-	}
-	
-	function getViewValue(value, token) {
-		// format viewValue from @value and @token
-		switch (token.type) {
-			case "number":
-				return num2str(value, token.minLength, token.maxLength);
-			case "select":
-				return token.select[value - 1];
-		}
-		return value + "";
-	}
-	
 	// set the proper date value matching the weekday
 	function setDay(date, day) {
 		// we don't want to change month when changing date
@@ -501,325 +388,22 @@ angular.module("datetime").factory("datetime", function($locale, datetimePlaceho
 			date.setHours((hour + 12) % 24);
 		}
 	}
-
-	function setDate(date, value, token) {
-		switch (token.name) {
-			case "year":
-				date.setFullYear(value);
-				break;
-			case "month":
-				// http://stackoverflow.com/questions/14680396/the-date-getmonth-method-has-bug
-				date.setMonth(value - 1);
-				// handle date overflow
-				if (date.getMonth() == value) {
-					date.setDate(0);
-				}
-				break;
-			case "date":
-				date.setDate(value);
-				break;
-			case "day":
-				setDay(date, value);
-				break;
-			case "hour":
-				date.setHours(value);
-				break;
-			case "hour12":
-				setHour12(date, value);
-				break;
-			case "ampm":
-				setAmpm(date, value);
-				break;
-			case "minute":
-				date.setMinutes(value);
-				break;
-			case "second":
-				date.setSeconds(value);
-				break;
-			case "millisecond":
-				date.setMilliseconds(value);
-				break;
-			case "week":
-				date.setDate(date.getDate() + (value - getWeek(date)) * 7);
-				break;
+	
+	function insertColon(timezone) {
+		if (timezone[3] == ":") {
+			return timezone;
 		}
-
-		if (date.getFullYear() < 0) {
-			date.setFullYear(0);
-		}
-	}
-
-	// Re-calculate offset
-	function calcOffset(nodes) {
-		var i, offset = 0;
-		for (i = 0; i < nodes.length; i++) {
-			nodes[i].offset = offset;
-			offset += nodes[i].viewValue.length;
-		}
-	}
-
-	// Parse text[pos:] by node.token definition.
-	function parseNode(text, token, pos) {
-		var m, match, value, j;
-		if (token.mutable) {
-			var ph = placehold(token);
-			if (text.indexOf(ph, pos) == pos) {
-				return {
-					empty: true,
-					viewValue: ph
-				};
-			}
-		}
-		switch (token.type) {
-			case "static":
-				if (text.lastIndexOf(token.value, pos) != pos) {
-					return {
-						err: 2,
-						code: "TEXT_MISMATCH",
-						message: "Pattern value mismatch"
-					};
-				}
-				return {
-					viewValue: token.value
-				};
-
-			case "number":
-				value = getInteger(text, pos);
-				
-				if (value == null) {
-					return {
-						err: 1,
-						code: "NUMBER_MISMATCH",
-						message: "Invalid number",
-						viewValue: ""
-					};
-				}
-				
-				if (value.length < token.minLength) {
-					return {
-						err: 1,
-						code: "NUMBER_TOOSHORT",
-						message: "The length of number is too short",
-						value: +value,
-						viewValue: value,
-						properValue: num2str(+value, token.minLength, token.maxLength)
-					};
-				}
-
-				if (value.length > token.maxLength) {
-					value = value.substr(0, token.maxLength);
-				}
-
-				if (+value < token.min) {
-					return {
-						err: 1,
-						code: "NUMBER_TOOSMALL",
-						message: "The number is too small",
-						value: +value,
-						viewValue: value
-					};
-				}
-
-				if (value.length > token.minLength && value[0] == "0") {
-					return {
-						err: 1,
-						code: "LEADING_ZERO",
-						message: "The number has too many leading zero",
-						value: +value,
-						viewValue: value,
-						properValue: num2str(+value, token.minLength, token.maxLength)
-					};
-				}
-				
-				return {
-					value: +value,
-					viewValue: value
-				};
-
-			case "select":
-				match = "";
-				for (j = 0; j < token.select.length; j++) {
-					m = getMatch(text, pos, token.select[j]);
-					if (m && m.length > match.length) {
-						value = j;
-						match = m;
-					}
-				}
-				if (!match) {
-					return {
-						err: 1,
-						code: "SELECT_MISMATCH",
-						message: "Invalid select",
-						viewValue: ""
-					};
-				}
-
-				if (match != token.select[value]) {
-					return {
-						err: 1,
-						code: "SELECT_INCOMPLETE",
-						message: "Incomplete select",
-						value: value + 1,
-						viewValue: match,
-						selected: token.select[value]
-					};
-				}
-
-				return {
-					value: value + 1,
-					viewValue: match
-				};
-
-			case "regex":
-				m = token.regex.exec(text.substr(pos));
-				if (!m || m.index != 0) {
-					return {
-						err: 2,
-						code: "REGEX_MISMATCH",
-						message: "Regex doesn't match"
-					};
-				}
-				return {
-					value: m[0],
-					viewValue: m[0]
-				};
-		}
-	}
-
-	function addDate(date, token, diff) {
-		var value;
-		switch (token.name) {
-			case "year":
-				date.setFullYear(date.getFullYear() + diff);
-				break;
-			case "month":
-				value = date.getMonth() + diff;
-				date.setMonth(value);
-				// date overflow
-				if (date.getMonth() == value + 1) {
-					date.setDate(0);
-				}
-				break;
-			case "date":
-			case "day":
-				date.setDate(date.getDate() + diff);
-				break;
-			case "hour":
-			case "hour12":
-				date.setHours(date.getHours() + diff);
-				break;
-			case "ampm":
-				date.setHours(date.getHours() + diff * 12);
-				break;
-			case "minute":
-				date.setMinutes(date.getMinutes() + diff);
-				break;
-			case "second":
-				date.setSeconds(date.getSeconds() + diff);
-				break;
-			case "millisecond":
-				date.setMilliseconds(date.getMilliseconds() + diff);
-				break;
-			case "week":
-				date.setDate(date.getDate() + diff * 7);
-				break;
-		}
+		return timezone.substr(0, 3) + ":" + timezone.substr(3, 2);
 	}
 	
-	function parse(text, tokens) {
-		var i, pos = 0, l = [], result;
-		for (i = 0; i < tokens.length; i++) {
-			result = parseNode(text, tokens[i], pos);
-			result.index = i;
-			result.pos = pos;
-			if (result.err >= 2) {
-				result.text = text;
-				throw result;
-			}
-			pos += result.viewValue.length;
-			l.push(result);
+	function removeColon(timezone) {
+		if (timezone[3] != ":") {
+			return timezone;
 		}
-		return l;
+		return timezone.substr(0, 3) + timezone.substr(4, 2);
 	}
 	
-	var priorTable = {
-		millisecond: 1,
-		second: 1,
-		minute: 1,
-		hour: 2,
-		hour12: 2,
-		ampm: 3,
-		day: 4,
-		date: 4,
-		week: 6,
-		month: 5,
-		year: 7
-	};
-	
-	function compareType(a, b) {
-		if (a.result.empty) {
-			return -1;
-		}
-		if (b.result.empty) {
-			return 1;
-		}
-		return priorTable[a.token.type] - priorTable[b.token.type];
-	}
-	
-	// Main parsing loop. Loop through nodes, parse text, update date model.
-	function parseLoop(nodes, tokens, text, date) {
-		var result = parse(text, tokens);
-		
-		// throw TEXT_TOOLONG error
-		var last = result[result.length - 1];
-		if (last.pos + last.viewValue.length < text.length) {
-			throw {
-				code: "TEXT_TOOLONG",
-				message: "Text is too long",
-				text: text
-			};
-		}
-
-		// throw error
-		var i;
-		for (i = 0; i < result.length; i++) {
-			if (result[i].err) {
-				throw result[i];
-			}
-		}
-		
-		// grab changed nodes
-		var changed = [];
-		for (i = 0; i < result.length; i++) {
-			if (result[i].viewValue != nodes[i].viewValue) {
-				changed.push({
-					node: nodes[i],
-					token: tokens[i],
-					result: result[i]
-				});
-			}
-		}
-		
-		// apply date
-		changed.sort(compareType);
-		for (i = changed.length - 1; i >= 0; i--) {
-			setDate(date, changed[i].result.value, changed[i].token);
-		}
-		
-		return result;
-	}
-	
-	function deOffsetDate(date, timezone) {
-		timezone = removeColon(timezone);
-		var hour = +timezone.substr(1, 2),
-			min = +timezone.substr(3, 2),
-			sig = (timezone[0] + "1"),
-			offset = (hour * 60 + min) * sig;
-		
-		return new Date(date.getTime() + (-date.getTimezoneOffset() - offset) * 60 * 1000);
-	}
-	
-	function offsetDate(date, timezone) {
+	function offset(date, timezone) {
 		timezone = removeColon(timezone);
 		var hour = +timezone.substr(1, 2),
 			min = +timezone.substr(3, 2),
@@ -829,244 +413,109 @@ angular.module("datetime").factory("datetime", function($locale, datetimePlaceho
 		return new Date(date.getTime() + (offset - -date.getTimezoneOffset()) * 60 * 1000);
 	}
 	
-	function applyDate(date, nodes, timezone){
-		// extract date to node values
-		var i;
-		for (i = 0; i < nodes.length; i++) {
-			if (nodes[i].token.name == "string") {
-				continue;
-			}
-			if (!nodes[i].empty) {
-				nodes[i].value = getValue(date, nodes[i].token, timezone);
-				nodes[i].viewValue = getViewValue(nodes[i].value, nodes[i].token);
-			} else {
-				nodes[i].value = null;
-				nodes[i].viewValue = placehold(nodes[i].token);
-			}
-		}
-		calcOffset(nodes);
+	function deoffset(date, timezone) {
+		timezone = removeColon(timezone);
+		var hour = +timezone.substr(1, 2),
+			min = +timezone.substr(3, 2),
+			sig = (timezone[0] + "1"),
+			offset = (hour * 60 + min) * sig;
+		
+		return new Date(date.getTime() + (-date.getTimezoneOffset() - offset) * 60 * 1000);
 	}
 	
-	function getNodesText(date, nodes, tokens, timezone) {
-		var i, text = "";
-		for (i = 0; i < nodes.length; i++) {
-			if (tokens[i].name == "string") {
-				text += tokens[i].value;
-			} else if (nodes[i].empty) {
-				text += placehold(tokens[i]);
-			} else {
-				text += getViewValue(getValue(date, tokens[i], timezone), tokens[i]);
-			}
+	class DatetimeParser {
+		// Apply timezone offset
+		constructor(tp) {
+			this.tp = tp;
+			this.timezone = SYS_TIMEZONE;
+			this.timezoneNodes = this.tp.nodes.filter(n => n.token.name == "timezone");
 		}
-		return text;
+		parse(text) {
+			this.tp.parse(text);
+			return this;
+		}
+		getText() {
+			return this.tp.getText();
+		}
+		setDate(date, ignoreEmpty) {
+			this.tp.setValue(offset(date, this.timezone), ignoreEmpty);
+			return this;
+		}
+		getDate() {
+			return deoffset(this.tp.getValue(), this.timezone);
+		}
+		setTimezone(timezone = SYS_TIMEZONE) {
+			if (timezone == this.timezone) {
+				return;
+			}
+			var date = this.getDate();
+			this.timezone = timezone;
+			for (var n of this.timezoneNodes) {
+				if (n.token.colon) {
+					n.token.value = insertColon(timezone);
+				} else {
+					n.token.value = removeColon(timezone);
+				}
+			}
+			return this.setDate(date, false);
+		}
+		isEmpty() {
+			return this.tp.isEmpty.apply(this.tp, arguments);
+		}
+		isInit() {			
+			return this.tp.isInit.apply(this.tp, arguments);
+		}
+		unset() {
+			this.tp.unset();
+			return this;
+		}
 	}
 	
 	function createParser(format) {
-
-		format = getFormat(format);
-		
-		var tokens = createTokens(format);
-		var nodes = createNodes(tokens);
-
-		var parser = {
-			parse: function(text) {
-				var oldDate = parser.date,
-					date = new Date(oldDate.getTime()),
-					oldText = parser.getText(),
-					newText;
-
-				if (!text) {
-					throw {
-						code: "EMPTY",
-						message: "The input is empty",
-						oldText: oldText
-					};
-				}
-				
-				var result;
-
-				try {
-					result = parseLoop(nodes, tokens, text, date);
-				} catch (err) {
-					if (angular.isDefined(err.index)) {
-						err.node = nodes[err.index];
+		var tokens = createTokens(formats[format] || format),
+			yearCheck;
+			
+		if (tokens.some(t => t.name == "yearShort")) {
+			yearCheck = function(fn) {
+				return function(d) {
+					fn.apply(this, arguments);
+					var y = d.getFullYear();
+					if (y < 0) {
+						d.setFullYear(y + 100);
 					}
-					throw err;
-				}
-
-				// check date consistency
-				newText = getNodesText(date, result, tokens, parser.timezoneNode && parser.timezoneNode.viewValue);
-				if (text != newText) {
-					throw {
-						code: "INCONSISTENT_INPUT",
-						message: "Successfully parsed but the output text doesn't match the input",
-						text: text,
-						oldText: oldText,
-						properText: newText
-					};
-				}
-				
-				// everything is ok, copy result value into nodes
-				var i;
-				for (i = 0; i < result.length; i++) {
-					nodes[i].value = result[i].value;
-					nodes[i].viewValue = result[i].viewValue;
-					nodes[i].offset = result[i].pos;
-					nodes[i].empty = result[i].empty;
-				}
-				
-				// check if Z token exists
-				if (parser.timezoneNode) {
-					parser.setTimezone(parser.timezoneNode.viewValue);
-				}
-
-				// de-offset and save to model
-				parser.date = date;
-				if (parser.timezone) {
-					parser.model = deOffsetDate(date, parser.timezone);
-				} else {
-					parser.model = new Date(date.getTime());
-				}
-				
-				// check uninit node
-				for (i = 0; i < parser.nodes.length; i++) {
-					if (parser.nodes[i].empty) {
-						throw {
-							code: "NOT_INIT",
-							message: "Some date parts are empty",
-							text: text,
-							node: parser.nodes[i]
-						};
+				};
+			};
+		} else {
+			yearCheck = function(fn) {
+				return function(d) {
+					fn.apply(this, arguments);
+					var y = d.getFullYear();
+					if (y < 0) {
+						d.setFullYear(0);
 					}
-				}
-				
-				return parser;
-			},
-			nodeParseValue: function(node, text) {
-				var date = parser.date,
-					result = parseNode(text, node.token, 0);
-					
-				if (result.err) {
-					throw result;
-				}
-				
-				node.viewValue = result.viewValue;
-				node.value = result.value;
-				node.empty = result.empty;
-				
-				calcOffset(parser.nodes);
-				
-				if (node.empty) {
-					return;
-				}
-				setDate(date, node.value, node.token);
-				applyDate(date, parser.nodes, parser.timezone);
-				if (parser.timezone) {
-					parser.model = deOffsetDate(date, parser.timezone);
-				} else {
-					parser.model = new Date(date.getTime());
-				}
-				return parser;
-			},
-			nodeAddValue: function(node, diff) {
-				var date = parser.date;
-				node.empty = false;
-				addDate(date, node.token, diff);
-				applyDate(date, parser.nodes, parser.timezone);
-				if (parser.timezone) {
-					parser.model = deOffsetDate(date, parser.timezone);
-				} else {
-					parser.model = new Date(date.getTime());
-				}
-				return parser;
-			},
-			setDate: function(date){
-				parser.model = new Date(date.getTime());
-				if (parser.timezone) {
-					parser.date = offsetDate(date, parser.timezone);
-				} else {
-					parser.date = new Date(date.getTime());
-				}
-				// init all parts
-				var i;
-				for (i = 0; i < parser.nodes.length; i++) {
-					parser.nodes[i].empty = false;
-				}
-				applyDate(parser.date, parser.nodes, parser.timezone);
-				return parser;
-			},
-			getDate: function(){
-				return parser.model;
-			},
-			getText: function(timezone){
-				var i, text = "";
-				if (timezone) {
-					var date = offsetDate(parser.model, timezone);
-					text = getNodesText(date, nodes, tokens, timezone);
-				} else {
-					for (i = 0; i < parser.nodes.length; i++) {
-						text += parser.nodes[i].viewValue;
+					if (y > 9999) {
+						d.setFullYear(9999);
 					}
-				}
-				return text;
-			},
-			setTimezone: function(timezone){
-				if (!timezone) {
-					timezone = SYS_TIMEZONE;
-				}
-				if (timezone != parser.timezone) {
-					parser.timezone = timezone;
-					parser.date = offsetDate(parser.model, timezone);
-					applyDate(parser.date, parser.nodes, timezone);
-				}
-			},
-			unset: function(){
-				var i;
-				for (i = 0; i < nodes.length; i++) {
-					nodes[i].unset();
-				}
-				calcOffset(nodes);
-			},
-			isEmpty: function(text){
-				var l, i;
-				if (text) {
-					try {
-						l = parse(text, parser.tokens);
-					} catch (err) {
-						return false;
-					}
-				} else {
-					l = nodes;
-				}
-				for (i = 0; i < l.length; i++) {
-					if (parser.tokens[i].mutable && !l[i].empty) {
-						return false;
-					}
-				}
-				return true;
-			},
-			date: null,
-			model: null,
-			format: format,
-			nodes: nodes,
-			tokens: tokens,
-			timezone: null,
-			timezoneNode: null
-		};
-
-		// get timezone node
-		var node = parser.nodes[0];
-		while (node) {
-			if (node.token.name == "timezone" || node.token.name == "timezoneWithColon") {
-				parser.timezoneNode = node;
-				break;
-			}
-			node = node.next;
+				};
+			};
 		}
 		
-		parser.setDate(new Date());
+		for (var tk of tokens) {
+			if (tk.add) {
+				tk.add = yearCheck(tk.add);
+			}
+			if (tk.restore) {
+				tk.restore = yearCheck(tk.restore);
+			}
+		}
 		
-		return parser;
+		var tp = new TextParser({
+			tokens: tokens,
+			value: new Date,
+			copyValue: o => new Date(o.getTime())
+		});
+		
+		return new DatetimeParser(tp);
 	}
 
 	return createParser;
