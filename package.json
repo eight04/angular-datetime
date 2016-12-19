@@ -11,8 +11,10 @@
   ],
   "scripts": {
     "test": "eslint src/*.js && karma start",
-    "build": "n-concat src/main.js src/*.js | ng-annotate -a -o dist/datetime.js - && node build-demo.js",
-    "watch-build": "n-run -w src/* \"npm run build\"",
+    "build": "n-concat src/main.js src/*.js | babel --filename datetime.js | n-pipe dist/datetime.js && node build-demo.js",
+    "build-polyfill": "browserify polyfill/polyfill.js | n-pipe dist/polyfill.js",
+    "watch": "n-run -w src/* \"npm run build\"",
+    "watch-polyfill": "n-run -w polyfill/* \"npm run build-polyfill\"",
     "preversion": "npm test && npm run build",
     "version": "sync-version bower.json && git add .",
     "postversion": "git push --follow-tags && npm publish"
@@ -30,11 +32,17 @@
     "url": "https://github.com/eight04/angular-datetime.git"
   },
   "dependencies": {
-    "angular": "^1.2.0"
+    "angular": "^1.2.0",
+    "babel-polyfill": "^6.20.0",
+    "core-js": "^2.4.1",
+    "custom-input": "^0.1.0"
   },
   "devDependencies": {
     "angular-mocks": "^1.2.0",
-    "eslint": "^1.6.0",
+    "babel-cli": "^6.18.0",
+    "babel-plugin-angularjs-annotate": "^0.6.0",
+    "babel-preset-env": "^1.1.4",
+    "eslint": "^3.12.2",
     "eslint-config-angular": "^0.4.0",
     "eslint-plugin-angular": "^0.12.0",
     "eslint-plugin-jasmine": "^1.0.0",
@@ -44,9 +52,26 @@
     "karma-firefox-launcher": "^0.1.4",
     "karma-jasmine": "^0.3.5",
     "karma-phantomjs-launcher": "^1.0.0",
-    "ng-annotate": "^1.2.1",
     "npm-build-tools": "^2.2.5",
     "phantomjs-prebuilt": "^2.1.7",
     "sync-version": "^0.1.0"
+  },
+  "babel": {
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "browsers": {
+              "ie": 8
+            }
+          },
+          "loose": true
+        }
+      ]
+    ],
+    "plugins": [
+      "angularjs-annotate"
+    ]
   }
 }
