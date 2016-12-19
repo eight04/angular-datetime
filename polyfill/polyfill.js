@@ -1,0 +1,10 @@
+require("core-js/fn/object/values");
+require("core-js/fn/object/assign");
+require("core-js/fn/object/create");
+require("core-js/fn/array/is-array"); 
+require("core-js/fn/array/filter"); 
+require("core-js/fn/array/index-of"); 
+require("core-js/fn/array/map"); 
+require("core-js/fn/array/some"); 
+require("core-js/fn/string/starts-with"); 
+require("core-js/fn/string/includes"); 
