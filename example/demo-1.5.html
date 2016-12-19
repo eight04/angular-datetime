@@ -5,8 +5,11 @@
 	<title>Angular Datetime</title>
 	<script src="https://code.angularjs.org/1.5.8/angular.js"></script>
 
+	<!--[if lte ie 8]>
+	<script src="https://rawgit.com/scottjehl/Respond/master/dest/respond.src.js"></script>
+	<![endif]-->
 	<script src="../dist/polyfill.js"></script>
-	<script src="../node_modules/custom-input/dist/custom-input.js"></script>
+	<script src="https://rawgit.com/eight04/custom-input/master/dist/custom-input.js"></script>
 	<script src="../dist/datetime.js"></script>
 	<link rel="stylesheet" href="https://rawgit.com/eight04/end2end/master/dist/end2end.css">
 
@@ -43,10 +46,6 @@
 			}
 		});
 	</script>
-
-	<!--[if lte ie 8]>
-	<script src="https://rawgit.com/scottjehl/Respond/master/dest/respond.src.js"></script>
-	<![endif]-->
 </head>
 <body class="container-sm" ng-controller="myDate">
 	<h2>Angular Datetime <small>Demo Page</small></h2>
