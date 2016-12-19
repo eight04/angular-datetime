@@ -7,7 +7,13 @@ Features
 * This module includes:
 	- A directive which can simulate datetime input within a text field.
 	- A service which can convert a string of date into a Date object, and vice versa.
-* Support IE8.
+* IE8 is supported by transpiling through babel and using polyfill.
+
+Dependencies
+------------
+
+* Angular 1.2+
+* custom-input 0.1.0
 
 Date string format
 ------------------
@@ -53,9 +59,9 @@ angular.controller("myController", function(datetime){
 	// Set working timezone. Changing timezone will not affect date object but
 	// date string (i.e. parser.getText()).
 	parser.setTimezone("+0800");
-
-	// Other properties
-	parser.format;	// -> "yyyy-MM-dd"
+	
+	// Reset to default timezone.
+	parser.setTimezone();
 
 	// Catch the parsing error
 	try {
@@ -68,7 +74,7 @@ angular.controller("myController", function(datetime){
 
 ### datetime directive
 
-Check demo page for live example and details.
+Check out the [demo page](https://rawgit.com/eight04/angular-datetime/master/example/demo.html) for details.
 
 ```html
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate">
@@ -80,28 +86,21 @@ Check demo page for live example and details.
 <input type="text" datetime="dd.MM.yyyy" ng-model="myDate" datetime-separator=",">
 ```
 
-Parsing errors
---------------
-* TEXT_MISMATCH
-* NUMBER_MISMATCH
-* NUMBER_TOOSHORT
-* NUMBER_TOOSMALL
-* LEADING_ZERO
-* SELECT_MISMATCH
-* SELECT_INCOMPLETE
-* REGEX_MISMATCH
-* TEXT_TOOLONG
-* INCONSISTENT_INPUT
-
 Known issues
 ------------
 * 2 digit year 'yy' is ambiguous when converting datestring back to date object (Ex. 14 -> 2014, 1914, ...). You should avoid it.
 
 Todos
 -----
-* Errors throwed by angular-datetime should have its own type.
+* Errors thrown by angular-datetime should have its own type.
 * Put some error handler into factory?
 * Day node should give different proper values depends on month when NUMBER_TOOLARGE.
+
+Notes
+-----
+* Some info about getting selection range across all browsers:
+	- https://github.com/acdvorak/jquery.caret
+	- http://stackoverflow.com/questions/19814465/is-it-possible-to-insert-text-in-textarea-and-update-undo-redo-queue
 
 Changelog
 ---------
