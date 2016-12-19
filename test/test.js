@@ -62,11 +62,6 @@ describe("datetime service", function(){
 				$date = $filter("date");
 			}));
 
-			beforeEach(angular.mock.inject(function($compile, _$rootScope_){
-				$rootScope = _$rootScope_;
-				element = $compile("<input type='text' datetime='{{format}}' ng-model='date'>")($rootScope);
-			}));
-			
 			it("test viewValue", function(){
 				parser = datetime(format);
 				date = new Date();
@@ -171,7 +166,7 @@ describe("datetime service", function(){
 				$date = $filter("date");
 			});
 			parser = datetime("fullDate");
-			date = new Date(parser.date.getTime());
+			date = new Date(parser.getDate().getTime());
 		});
 
 		it("getDate should match current date", function(){
@@ -193,7 +188,7 @@ describe("datetime service", function(){
 				$date = $filter("date");
 			});
 			parser = datetime("medium");
-			date = new Date(parser.date.getTime());
+			date = new Date(parser.getDate().getTime());
 		});
 		
 		it("utc time + offset should be equal if the local time is the same", function(){
