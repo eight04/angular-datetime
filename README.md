@@ -13,7 +13,7 @@ Dependencies
 ------------
 
 * Angular 1.2+
-* custom-input 0.1.0
+* custom-input 0.1.0 - https://github.com/eight04/custom-input
 
 Date string format
 ------------------
@@ -86,15 +86,93 @@ Check out the [demo page](https://rawgit.com/eight04/angular-datetime/master/exa
 <input type="text" datetime="dd.MM.yyyy" ng-model="myDate" datetime-separator=",">
 ```
 
+API reference
+-------------
+
+This module exports:
+
+* `datetime` service - a function to create a DatetimeParser object.
+* `datetimePlaceholder` constant - a map that define the placeholder of each element.
+
+#### datetimePlaceholder object
+
+Just a plain object. Edit it in config phase to specify different placeholder.
+
+Default value:
+
+	{
+		year: "(year)",
+		yearShort: "(year)",
+		month: "(month)",
+		date: "(date)",
+		day: "(day)",
+		hour: "(hour)",
+		hour12: "(hour12)",
+		minute: "(minute)",
+		second: "(second)",
+		millisecond: "(millisecond)",
+		ampm: "(AM/PM)",
+		week: "(week)"
+	}
+
+#### datetime(format: String) => DatetimeParser
+
+A function to construct a date parser. format is a string containing date definition tokens which defined by Angular: https://docs.angularjs.org/api/ng/filter/date
+
+#### DatetimeParser
+
+A parser object which can convert String to Date and vice versa.
+
+##### DatetimeParser.parse(text: String) => DatetimeParser
+
+Parse text. This method might throw error.
+
+##### DatetimeParser.getText() => String
+
+Return current text.
+
+##### DatetimeParser.setDate(date: Date) => DatetimeParser
+
+Set value to date.
+
+##### DatetimeParser.getDate() => Date
+
+Get Date object.
+
+The methods above are usually used like:
+
+	date = parser.parse(text).getDate();
+	text = parser.setDate(date).getText();
+	
+##### DatetimeParser.setTimezone([timezone: String]) => DatetimeParser
+
+Set the timezone of the parser. timezone is a string matching /[+-]\d{4}/ or /[+-]\d{2}:\d{2}/.
+
+If timezone is not provided, reset timezone to browser default.
+
+Setting timezone doesn't affect model value but update text.
+
+	time = parser.getDate().getTime();
+	parser.setTimezone(newTimezone);
+	time2 = parser.getDate().getTime();
+	
+	console.assert(time == time2);
+	
+##### DatetimeParser.isEmpty() => boolean
+
+Return true if there are any element is empty.
+
+##### DatetimeParser.isInit() => boolean
+
+Return true if all elements are set.
+
+##### DatetimeParser.unset() => DatetimeParser
+
+Set all elements to empty.
+
 Known issues
 ------------
 * 2 digit year 'yy' is ambiguous when converting datestring back to date object (Ex. 14 -> 2014, 1914, ...). You should avoid it.
-
-Todos
------
-* Errors thrown by angular-datetime should have its own type.
-* Put some error handler into factory?
-* Day node should give different proper values depends on month when NUMBER_TOOLARGE.
 
 Notes
 -----
