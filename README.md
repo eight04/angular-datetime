@@ -36,8 +36,8 @@ npm:
 
 	npm install angular-datetime-input --save
 
-Usage
------
+Example
+-------
 ### datetime service
 ```Javascript
 // Setup dependency
@@ -82,7 +82,6 @@ Check out the [demo page](https://rawgit.com/eight04/angular-datetime/master/exa
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" datetime-utc>
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" min="Jan 1, 1990" max="Dec 31, 2050">
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" datetime-model="yyyy-MM-ddTHH:mm:ss">
-<input type="text" datetime="yyyy-MM-dd" ng-model="myDate" default="Jan 1, 2000">
 <input type="text" datetime="dd.MM.yyyy" ng-model="myDate" datetime-separator=",">
 ```
 
@@ -91,8 +90,8 @@ API reference
 
 This module exports:
 
-* `datetime` service - a function to create a DatetimeParser object.
-* `datetimePlaceholder` constant - a map that define the placeholder of each element.
+* `datetime` service - a function to create DatetimeParser object.
+* `datetimePlaceholder` - a map that define the placeholder of each element.
 
 #### datetimePlaceholder object
 
@@ -117,7 +116,7 @@ Default value:
 
 #### datetime(format: String) => DatetimeParser
 
-A function to construct a date parser. format is a string containing date definition tokens which defined by Angular: https://docs.angularjs.org/api/ng/filter/date
+A function to construct a date parser. format is a string containing date definition tokens defined by Angular: https://docs.angularjs.org/api/ng/filter/date
 
 #### DatetimeParser
 
@@ -129,24 +128,24 @@ Parse text. This method might throw error.
 
 ##### DatetimeParser.getText() => String
 
-Return current text.
+Return formatted text.
 
 ##### DatetimeParser.setDate(date: Date) => DatetimeParser
 
-Set value to date.
+Set date and conver date to text.
 
 ##### DatetimeParser.getDate() => Date
 
-Get Date object.
+Return Date object.
 
-The methods above are usually used like:
+These methods are usually used like:
 
 	date = parser.parse(text).getDate();
 	text = parser.setDate(date).getText();
 	
 ##### DatetimeParser.setTimezone([timezone: String]) => DatetimeParser
 
-Set the timezone of the parser. timezone is a string matching /[+-]\d{4}/ or /[+-]\d{2}:\d{2}/.
+Set the timezone of the parser. timezone is a string matching `/[+-]\d{4}/` or `/[+-]\d{2}:\d{2}/`.
 
 If timezone is not provided, reset timezone to browser default.
 
@@ -160,7 +159,7 @@ Setting timezone doesn't affect model value but update text.
 	
 ##### DatetimeParser.isEmpty() => boolean
 
-Return true if there are any element is empty.
+Return true if there is any empty element.
 
 ##### DatetimeParser.isInit() => boolean
 
