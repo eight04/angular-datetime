@@ -16,7 +16,7 @@
     "watch": "n-run -w src/* \"npm run build\"",
     "watch-polyfill": "n-run -w polyfill/* \"npm run build-polyfill\"",
     "preversion": "npm test && npm run build",
-    "version": "sync-version bower.json && git add .",
+    "version": "git add .",
     "postversion": "git push --follow-tags && npm publish"
   },
   "homepage": "https://github.com/eight04/angular-datetime",
@@ -52,8 +52,7 @@
     "karma-jasmine": "^0.3.5",
     "karma-phantomjs-launcher": "^1.0.0",
     "npm-build-tools": "^2.2.5",
-    "phantomjs-prebuilt": "^2.1.7",
-    "sync-version": "^0.1.0"
+    "phantomjs-prebuilt": "^2.1.7"
   },
   "babel": {
     "presets": [
