@@ -91,7 +91,7 @@ API reference
 This module exports:
 
 * `datetime` service - a function to create DatetimeParser object.
-* `datetimePlaceholder` - a map that define the placeholder of each element.
+* `datetimePlaceholder` constant - a map that define the placeholder of each element.
 
 #### datetimePlaceholder object
 
@@ -181,6 +181,11 @@ Notes
 
 Changelog
 ---------
+* 5.0.0 (Dec 23, 2016)
+	- Rewritten in ES6.
+		- The core part of the parser and the input mask are pulled out as [custom-input](https://github.com/eight04/custom-input)
+		- Support IE8 by transpiling through babel and using polyfill for missing functions.
+	- Add constant `datetimePlaceholder`.
 * 4.1.0 (Oct 5, 2016)
 	- Refactor.
 	- Fix day priority bug.
