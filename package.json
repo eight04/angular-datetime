@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "angular": "^1.2.0",
-    "babel-polyfill": "^6.20.0",
     "core-js": "^2.4.1",
     "custom-input": "^0.1.0"
   },
