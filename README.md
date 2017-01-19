@@ -28,13 +28,15 @@ Demo
 
 Installation
 ------------
-Bower:
-
-	bower install angular-datetime --save
-	
-npm:
+You can download the [dist file](https://github.com/eight04/angular-datetime/blob/master/dist/datetime.js) directly from Github, or via npm:
 
 	npm install angular-datetime-input --save
+	
+And put it into your html:
+
+	<!-- Don't forget to include custom-input -->
+	<script src="node_modules/custom-input/dist/custom-input.js"></script>
+	<script src="node_modules/angular-datetime-input/dist/datetime.js"></script>
 
 Example
 -------
