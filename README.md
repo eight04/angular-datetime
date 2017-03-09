@@ -13,7 +13,7 @@ Dependencies
 ------------
 
 * Angular 1.2+
-* custom-input 0.1.0 - https://github.com/eight04/custom-input
+* custom-input 0.2.0 - https://github.com/eight04/custom-input
 
 Date string format
 ------------------
@@ -28,15 +28,22 @@ Demo
 
 Installation
 ------------
-You can download the [dist file](https://github.com/eight04/angular-datetime/blob/master/dist/datetime.js) directly from Github, or via npm:
+Via npm:
 
-	npm install angular-datetime-input --save
+```
+npm install angular-datetime-input --save
+```
+```javascript
+require("angular-datetime-input");
+```
 	
-And put it into your html:
+Or use pre-built dist:
 
-	<!-- Don't forget to include custom-input -->
-	<script src="node_modules/custom-input/dist/custom-input.js"></script>
-	<script src="node_modules/angular-datetime-input/dist/datetime.js"></script>
+```html
+<!-- Don't forget to include custom-input -->
+<script src="https://unpkg.com/custom-input@0.2.0/dist/custom-input.js"></script>
+<script src="https://unpkg.com/angular-datetime@5.1.0/dist/angular-datetime.js"></script>
+```
 
 Example
 -------
@@ -56,7 +63,7 @@ angular.controller("myController", function(datetime){
 
 	// Parse a date string
 	parser.parse("2015-01-30");
-	parser.getDate();	// -> DateTime object
+	parser.getDate();	// -> Date object
 	
 	// Set working timezone. Changing timezone will not affect date object but
 	// date string (i.e. parser.getText()).
@@ -183,6 +190,11 @@ Notes
 
 Changelog
 ---------
+* 5.1.0 (Mar 9, 2017)
+	- Switch to browserify.
+	- Drop karma, switch to mocha + jsdom.
+	- **Update custom-input to 0.2.0.**
+	- Now this package is requirable, perhaps it works better in different bundlers.
 * 5.0.0 (Dec 23, 2016)
 	- Rewritten in ES6.
 		- The core part of the parser and the input mask are pulled out as [custom-input](https://github.com/eight04/custom-input)
