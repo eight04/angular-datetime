@@ -107,7 +107,8 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 		    mask = new InputMask(maskElement, parser.tp, attrs.datetimeSeparator),
 		    isUtc;
 
-		mask.on("error", function (err) {
+		mask.on("digest", function (err) {
+			console.log(err);
 			if (err.code != "NOT_INIT") {
 				ngModel.$setValidity("datetime", false);
 			}
