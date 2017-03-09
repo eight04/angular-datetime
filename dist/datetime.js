@@ -108,7 +108,6 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 		    isUtc;
 
 		mask.on("digest", function (err) {
-			console.log(err);
 			if (err.code != "NOT_INIT") {
 				ngModel.$setValidity("datetime", false);
 			}
