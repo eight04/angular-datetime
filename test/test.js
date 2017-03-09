@@ -1,6 +1,26 @@
-/* eslint-env jasmine */
+/* eslint-env browser */
+require("jsdom-global")();
 
-var formats = [
+var {describe, it, beforeEach, afterEach} = require("mocha"),
+	assert = require("assert");
+
+// setup angular
+require("angular/angular");
+global.angular = window.angular;
+
+// setup mocha for angular mock
+window.mocha = true;
+window.beforeEach = beforeEach;
+window.afterEach = afterEach;
+require("angular-mocks");
+
+var {module, inject} = window;
+	
+require("../src/main");
+require("../src/factory");
+require("../src/directive");
+
+var FORMATS = [
 	"yyyy-MM-dd HH:mm:ss",
 	"medium",
 	"short",
@@ -28,202 +48,142 @@ function randomTimezone(){
 		absOffset = Math.abs(offset),
 		hour = Math.floor(absOffset / 60),
 		min = absOffset % 60,
-		text = sign + num2str(hour, 2, 2) + num2str(min, 2, 2);
+		text = sign + padStart(hour, 2, "0") + padStart(min, 2, "0");
 	return {
 		time: offset * 60 * 1000,
 		text: text
 	};
 }
 
-function num2str(num, minLength, maxLength) {
-	var i;
-	num = "" + num;
-	if (num.length > maxLength) {
-		num = num.substr(num.length - maxLength);
-	} else if (num.length < minLength) {
-		for (i = num.length; i < minLength; i++) {
-			num = "0" + num;
-		}
+function padStart(text, n, pad = " ") {
+	text = String(text);
+	if (n > text.length) {
+		text = pad
+			.repeat(Math.ceil((n - text.length) / pad.length))
+			.slice(0, n - text.length) + text;
 	}
-	return num;
+	return text;
 }
 
-describe("datetime service", function(){
-
-	angular.forEach(formats, function(format){
-		describe("Format: " + format, function(){
-			var datetime, $date, parser, date, viewValue, modelValue,
-				$rootScope, element;
-
-			beforeEach(angular.mock.module("datetime"));
-
-			beforeEach(angular.mock.inject(function(_datetime_, $filter){
-				datetime = _datetime_;
-				$date = $filter("date");
-			}));
-
-			it("test viewValue", function(){
-				parser = datetime(format);
-				date = new Date();
-
-				parser.setDate(date);
-				viewValue = parser.getText();
-
-				expect(viewValue).toEqual($date(date, format));
-			});
-
-			it("test modelValue", function(){
-				parser.parse(viewValue);
-				modelValue = parser.getDate();
-
-				// 'yy' is ambigous in shortDate/short
-				if (format == "shortDate" || format == "short") {
-					modelValue.setFullYear(date.getFullYear());
-				}
-
-				expect(modelValue.getTime()).toEqual(date.getTime());
-			});
+describe("datetime service", () => {
+	var datetime, $date;
+	
+	beforeEach(module("datetime"));
+	beforeEach(inject(function(_datetime_, $filter) {
+		datetime = _datetime_;
+		$date = $filter("date");
+	}));
+	
+	FORMATS.forEach(format => {
+		it(`Format: ${format}`, () => {
+			var parser = datetime(format),
+				date = new Date,
+				text, model;
+			
+			text = parser.setDate(date).getText();
+			assert.equal(text, $date(date, format));
+			model = parser.parse(text).getDate();
+			// 'yy' is ambigous in shortDate/short
+			if (format == "shortDate" || format == "short") {
+				assert.equal(model.getFullYear() % 100, date.getFullYear() % 100);
+				model.setFullYear(date.getFullYear());
+			}
+			assert.equal(model.getTime(), date.getTime());
 		});
 	});
 
-	describe("test duplicate name and state change", function(){
 
-		var datetime, parser;
-
-		beforeEach(angular.mock.module("datetime"));
-
-		beforeEach(angular.mock.inject(function(_datetime_){
-			datetime = _datetime_;
-		}));
-
-		it("create parser", function(){
-			parser = datetime("yyyy-yyyy");
-			parser.parse("2000-2000");
-		});
-
-		it("operate on right hand", function(){
-			try {
-				parser.parse("2000-2001");
-			} catch (er) {
-				expect(er.properText).toEqual("2001-2001");
-			}
-		});
-
-		it("operate on left hand", function(){
-			try {
-				parser.parse("2001-2000");
-			} catch (er) {
-				expect(er.properText).toEqual("2001-2001");
-			}
-		});
-
-		it("Tuesday, May 19, 2015", function(){
-			parser = datetime("fullDate");
-			parser.parse("Tuesday, May 5, 2015");
-			try {
-				parser.parse("Tuesday, May 1, 2015");
-			} catch (er) {
-				expect(er.properText).toEqual("Friday, May 1, 2015");
-			}
-			parser.parse("Friday, May 1, 2015");
-			try {
-				parser.parse("Friday, May 19, 2015");
-			} catch (er) {
-				expect(er.properText).toEqual("Tuesday, May 19, 2015");
-			}
-			parser.parse("Tuesday, May 19, 2015");
-
-			expect(parser.getText()).toEqual("Tuesday, May 19, 2015");
-			
-			try {
-				parser.parse("Monday, May 19, 2015");
-			} catch (er) {
-				expect(er.properText).toEqual("Monday, May 18, 2015");
-			}
-			
-			parser.parse("Monday, May 18, 2015");
-
-			parser.parse("Sunday, May 17, 2015");
-			parser.parse("Sunday, May 17, 2015");			
-		});
+	it("duplicate tokens", () => {
+		var parser = datetime("yyyy-yyyy");
+		parser.parse("2000-2000");
 		
-		it("31 date overflow", function(){
-			parser = datetime("medium");
-			
-			parser.parse("Mar 31, 2016 6:19:20 PM");
-			parser.parse("Apr 1, 2016 10:42:20 AM");
-		});
-	});
-
-	describe("test initial value", function(){
-
-		var datetime, parser, date, $date;
-
-		it("Create parser", function(){
-			angular.mock.module("datetime");
-			angular.mock.inject(function(_datetime_, $filter){
-				datetime = _datetime_;
-				$date = $filter("date");
-			});
-			parser = datetime("fullDate");
-			date = new Date(parser.getDate().getTime());
-		});
-
-		it("getDate should match current date", function(){
-			expect(parser.getDate().getTime()).toEqual(date.getTime());
-		});
-
-		it("getText", function(){
-			expect(parser.getText()).toEqual($date(date, "fullDate"));
-		});
+		assert.throws(
+			() => parser.parse("2000-2001"),
+			err => err.properText == "2001-2001"
+		);
+		
+		assert.throws(
+			() => parser.parse("2001-2000"),
+			err => err.properText == "2001-2001"
+		);
 	});
 	
-	describe("test timezone", function(){
-		var datetime, parser, date, $date;
-
-		it("Create parser", function(){
-			angular.mock.module("datetime");
-			angular.mock.inject(function(_datetime_, $filter){
-				datetime = _datetime_;
-				$date = $filter("date");
-			});
-			parser = datetime("medium");
-			date = new Date(parser.getDate().getTime());
-		});
-		
-		it("utc time + offset should be equal if the local time is the same", function(){
-			var r1 = randomTimezone(),
-				r2 = randomTimezone(),
-				text = parser.getText(),
-				t1, t2;
-				
-			parser.setTimezone(r1.text);
-			parser.parse(text);
-			t1 = parser.getDate().getTime();
-			
-			parser.setTimezone(r2.text);
-			parser.parse(text);
-			t2 = parser.getDate().getTime();
-			
-			expect(t1 + r1.time).toEqual(t2 + r2.time);
-		});
-
+	it("tokens affect each others", () => {
+		var parser = datetime("fullDate");
+		parser.parse("Tuesday, May 5, 2015");
+		assert.throws(
+			() => parser.parse("Tuesday, May 1, 2015"),
+			err => err.properText == "Friday, May 1, 2015"
+		);
+		parser.parse("Friday, May 1, 2015");
+		assert.throws(
+			() => parser.parse("Friday, May 19, 2015"),
+			err => err.properText == "Tuesday, May 19, 2015"
+		);
+		parser.parse("Tuesday, May 19, 2015");
+		assert.equal(parser.getText(), "Tuesday, May 19, 2015");
+		assert.throws(
+			() => parser.parse("Monday, May 19, 2015"),
+			err => err.properText == "Monday, May 18, 2015"
+		);
+		parser.parse("Monday, May 18, 2015");
+		parser.parse("Sunday, May 17, 2015");
+		parser.parse("Sunday, May 17, 2015");			
 	});
+
+	it("31 date overflow", () => {
+		var parser = datetime("medium");
+		
+		parser.parse("Mar 31, 2016 6:19:20 PM");
+		parser.parse("Apr 1, 2016 10:42:20 AM");
+	});
+
+	it("initial value", () => {
+		var parser = datetime("fullDate"),
+			date = new Date;
+			
+		assert.ok(date.getTime() - parser.getDate().getTime() < 10);
+		assert.equal(parser.getText(), $date(parser.getDate(), "fullDate"));
+	});
+	
+	it("timezone: utc time + offset should always equal on same date", () => {
+		var parser = datetime("medium"),
+			r1 = randomTimezone(),
+			r2 = randomTimezone(),
+			text = parser.getText(),
+			t1, t2;
+			
+		parser.setTimezone(r1.text);
+		parser.parse(text);
+		t1 = parser.getDate().getTime();
+		
+		parser.setTimezone(r2.text);
+		parser.parse(text);
+		t2 = parser.getDate().getTime();
+		
+		assert.equal(t1 + r1.time, t2 + r2.time);
+	});
+	
+	it("ZZ token", () => {
+		var parser = datetime("ZZ");
+		
+		assert.equal(parser.getText(), insertColon($date(parser.getDate(), "Z")));
+	});
+
 });
 
 describe("datetime directive", function(){
 	var $rootScope, $date, $compile;
 	
-	beforeEach(angular.mock.module("datetime"));
-	
-	beforeEach(angular.mock.inject(function(_$compile_, _$rootScope_, $filter){
+	beforeEach(module("datetime"));
+	beforeEach(inject(function(_$compile_, _$rootScope_, $filter){
 		$rootScope = _$rootScope_;
 		$date = $filter("date");
 		$compile = _$compile_;
 	}));
 	
-	angular.forEach(formats, function(format){
-		it(format, function(){
+	FORMATS.forEach(format => {
+		it(`Format: ${format}`, function(){
 			$rootScope.format = format;
 			$rootScope.date = new Date;
 			
@@ -231,7 +191,7 @@ describe("datetime directive", function(){
 
 			$rootScope.$digest();
 			
-			expect(element.val()).toEqual($date($rootScope.date, format));
+			assert.equal(element.val(), $date($rootScope.date, format));
 		});
 	});
 	
@@ -242,7 +202,7 @@ describe("datetime directive", function(){
 		
 		$rootScope.$digest();
 		
-		expect(element.val()).toEqual("+0000");
+		assert.equal(element.val(), "+0000");
 	});
 	
 	it("dynamic datetime-utc", function(){
@@ -253,24 +213,13 @@ describe("datetime directive", function(){
 		
 		$rootScope.$digest();
 				
-		expect(element.val()).toEqual("+0000");
+		assert.equal(element.val(), "+0000");
 		
 		$rootScope.utc = false;
 		
 		$rootScope.$digest();
 		
-		expect(element.val()).toEqual($date(date, "Z"));
-	});
-
-	it("should allow : when using Z:Z token", function(){
-		$rootScope.date = new Date;
-
-		var element = $compile("<input type='text' datetime='ZZ' ng-model='date'>")($rootScope),
-			value;
-
-		$rootScope.$digest();
-		
-		expect(element.val()).toEqual(insertColon($date($rootScope.date, "Z")));
+		assert.equal(element.val(), $date(date, "Z"));
 	});
 
 	it("datetime-model", function(){
@@ -280,7 +229,7 @@ describe("datetime directive", function(){
 		
 		$rootScope.$digest();
 		
-		expect(element.val()).toEqual($date(date, "medium"));
+		assert.equal(element.val(), $date(date, "medium"));
 	});
 	
 	it("min & max", function(){
@@ -293,19 +242,19 @@ describe("datetime directive", function(){
 		
 		element.val("1999-01-01 00:00:00").triggerHandler("input");
 		$rootScope.$digest();
-		expect(element.hasClass("ng-invalid-min")).toEqual(true);
+		assert.equal(element.hasClass("ng-invalid-min"), true);
 		
 		element.val("2016-06-18 22:59:00").triggerHandler("input");
 		$rootScope.$digest();
-		expect(element.hasClass("ng-invalid")).toEqual(false);
+		assert.equal(element.hasClass("ng-invalid"), false);
 		
 		element.val("2021-01-01 00:00:00").triggerHandler("input");
 		$rootScope.$digest();
-		expect(element.hasClass("ng-invalid-max")).toEqual(true);
+		assert.equal(element.hasClass("ng-invalid-max"), true);
 		
 		$rootScope.min = null;
 		$rootScope.max = null;
 		$rootScope.$digest();
-		expect(element.hasClass("ng-invalid")).toEqual(false);
+		assert.equal(element.hasClass("ng-invalid"), false);
 	});
 });

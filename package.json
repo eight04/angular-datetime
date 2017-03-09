@@ -10,7 +10,7 @@
     "parser"
   ],
   "scripts": {
-    "test": "eslint src/*.js && karma start",
+    "test": "eslint **/*.js && mocha",
     "build": "n-concat src/main.js src/*.js | babel --filename datetime.js | n-pipe dist/datetime.js && node build-demo.js",
     "build-polyfill": "browserify polyfill/polyfill.js | n-pipe dist/polyfill.js",
     "watch": "n-run -w src/* \"npm run build\"",
@@ -44,15 +44,10 @@
     "eslint": "^3.12.2",
     "eslint-config-angular": "^0.4.0",
     "eslint-plugin-angular": "^0.12.0",
-    "eslint-plugin-jasmine": "^1.0.0",
-    "jasmine-core": "^2.2.0",
-    "karma": "^0.13.0",
-    "karma-chrome-launcher": "^0.1.8",
-    "karma-firefox-launcher": "^0.1.4",
-    "karma-jasmine": "^0.3.5",
-    "karma-phantomjs-launcher": "^1.0.0",
-    "npm-build-tools": "^2.2.5",
-    "phantomjs-prebuilt": "^2.1.7"
+    "jsdom": "^9.11.0",
+    "jsdom-global": "^2.1.1",
+    "mocha": "^3.2.0",
+    "npm-build-tools": "^2.2.5"
   },
   "babel": {
     "presets": [
