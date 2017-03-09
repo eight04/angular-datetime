@@ -1,26 +1,19 @@
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+"use strict";
+
+require("./lib/main");
+require("./lib/factory");
+require("./lib/directive");
+
+},{"./lib/directive":2,"./lib/factory":3,"./lib/main":4}],2:[function(require,module,exports){
+(function (global){
 "use strict";
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-angular.module("datetime", ["custom-input"]);
-
-angular.module("datetime").constant("datetimePlaceholder", {
-	year: "(year)",
-	yearShort: "(year)",
-	month: "(month)",
-	date: "(date)",
-	day: "(day)",
-	hour: "(hour)",
-	hour12: "(hour12)",
-	minute: "(minute)",
-	second: "(second)",
-	millisecond: "(millisecond)",
-	ampm: "(AM/PM)",
-	week: "(week)"
-});
-
-angular.module("datetime").directive("datetime", ["datetime", "$log", "$document", "customInput", function (datetime, $log, $document, customInput) {
-	var InputMask = customInput.InputMask;
+angular.module("datetime").directive("datetime", ["datetime", "$log", "$document", function (datetime, $log, $document) {
+	var _ref = typeof window !== "undefined" ? window['customInput'] : typeof global !== "undefined" ? global['customInput'] : null,
+	    InputMask = _ref.InputMask;
 
 	var Element = function () {
 		function Element(element, document) {
@@ -278,10 +271,19 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 	};
 }]);
 
-angular.module("datetime").factory("datetime", ["$locale", "datetimePlaceholder", "customInput", function ($locale, datetimePlaceholder, customInput) {
-	var TextParser = customInput.TextParser,
-	    num2str = customInput.utils.num2str;
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],3:[function(require,module,exports){
+(function (global){
+"use strict";
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+angular.module("datetime").factory("datetime", ["$locale", "datetimePlaceholder", function ($locale, datetimePlaceholder) {
+	var _ref = typeof window !== "undefined" ? window['customInput'] : typeof global !== "undefined" ? global['customInput'] : null,
+	    TextParser = _ref.TextParser,
+	    num2str = _ref.utils.num2str;
 	// Fetch date and time formats from $locale service
+
 
 	var formats = $locale.DATETIME_FORMATS;
 	// Valid format tokens. 1=sss, 2=''
@@ -603,18 +605,18 @@ angular.module("datetime").factory("datetime", ["$locale", "datetimePlaceholder"
 
 	// setup tokens
 	for (var _iterator = Object.values(definedTokens), _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
-		var _ref;
+		var _ref2;
 
 		if (_isArray) {
 			if (_i >= _iterator.length) break;
-			_ref = _iterator[_i++];
+			_ref2 = _iterator[_i++];
 		} else {
 			_i = _iterator.next();
 			if (_i.done) break;
-			_ref = _i.value;
+			_ref2 = _i.value;
 		}
 
-		var tk = _ref;
+		var tk = _ref2;
 
 		if (nameConf[tk.name]) {
 			angular.extend(tk, nameConf[tk.name]);
@@ -814,18 +816,18 @@ angular.module("datetime").factory("datetime", ["$locale", "datetimePlaceholder"
 			var date = this.getDate();
 			this.timezone = timezone;
 			for (var _iterator2 = this.timezoneNodes, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-				var _ref2;
+				var _ref3;
 
 				if (_isArray2) {
 					if (_i2 >= _iterator2.length) break;
-					_ref2 = _iterator2[_i2++];
+					_ref3 = _iterator2[_i2++];
 				} else {
 					_i2 = _iterator2.next();
 					if (_i2.done) break;
-					_ref2 = _i2.value;
+					_ref3 = _i2.value;
 				}
 
-				var n = _ref2;
+				var n = _ref3;
 
 				if (n.token.colon) {
 					n.token.value = insertColon(timezone);
@@ -884,18 +886,18 @@ angular.module("datetime").factory("datetime", ["$locale", "datetimePlaceholder"
 		}
 
 		for (var _iterator3 = tokens, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
-			var _ref3;
+			var _ref4;
 
 			if (_isArray3) {
 				if (_i3 >= _iterator3.length) break;
-				_ref3 = _iterator3[_i3++];
+				_ref4 = _iterator3[_i3++];
 			} else {
 				_i3 = _iterator3.next();
 				if (_i3.done) break;
-				_ref3 = _i3.value;
+				_ref4 = _i3.value;
 			}
 
-			var tk = _ref3;
+			var tk = _ref4;
 
 			if (tk.add) {
 				tk.add = yearCheck(tk.add);
@@ -919,3 +921,25 @@ angular.module("datetime").factory("datetime", ["$locale", "datetimePlaceholder"
 	return createParser;
 }]);
 
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],4:[function(require,module,exports){
+"use strict";
+
+angular.module("datetime", []);
+
+angular.module("datetime").constant("datetimePlaceholder", {
+	year: "(year)",
+	yearShort: "(year)",
+	month: "(month)",
+	date: "(date)",
+	day: "(day)",
+	hour: "(hour)",
+	hour12: "(hour12)",
+	minute: "(minute)",
+	second: "(second)",
+	millisecond: "(millisecond)",
+	ampm: "(AM/PM)",
+	week: "(week)"
+});
+
+},{}]},{},[1]);
