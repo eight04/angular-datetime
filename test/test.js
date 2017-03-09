@@ -16,9 +16,7 @@ require("angular-mocks");
 
 var {module, inject} = window;
 	
-require("../src/main");
-require("../src/factory");
-require("../src/directive");
+require("../index");
 
 var FORMATS = [
 	"yyyy-MM-dd HH:mm:ss",
