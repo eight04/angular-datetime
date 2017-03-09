@@ -1,5 +1,8 @@
 angular-datetime
 ================
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/e65b981268564476bbecb04911e743be)](https://www.codacy.com/app/eight04/angular-datetime?utm_source=github.com&utm_medium=referral&utm_content=eight04/angular-datetime&utm_campaign=badger)
+
 This module includes a datetime directive and a parser service.
 
 Features
