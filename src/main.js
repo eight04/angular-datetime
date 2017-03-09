@@ -1,4 +1,4 @@
-angular.module("datetime", ["custom-input"]);
+angular.module("datetime", []);
 
 angular.module("datetime").constant("datetimePlaceholder", {
 	year: "(year)",

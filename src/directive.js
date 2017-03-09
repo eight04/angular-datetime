@@ -1,5 +1,5 @@
-angular.module("datetime").directive("datetime", function(datetime, $log, $document, customInput){
-	var { InputMask } = customInput;
+angular.module("datetime").directive("datetime", function(datetime, $log, $document){
+	var { InputMask } = require("custom-input");
 
 	class Element {
 		constructor(element, document) {
