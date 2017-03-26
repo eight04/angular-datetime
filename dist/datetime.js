@@ -214,10 +214,15 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 			return !ngModel.$error.min && !ngModel.$error.max;
 		}
 
-		ngModel.$parsers.push(function (viewValue) {
+		ngModel.$parsers.unshift(function (viewValue) {
 			// You will get undefined when input is required and model get unset
 			if (angular.isUndefined(viewValue)) {
 				viewValue = parser.getText();
+			}
+
+			if (!angular.isString(viewValue)) {
+				// let unknown value pass through
+				return viewValue;
 			}
 
 			mask.digest(null, viewValue);
@@ -240,13 +245,22 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 			return undefined;
 		});
 
+		function validModelType(model) {
+			if (angular.isDate(model) && !modelParser) {
+				return true;
+			}
+			if (angular.isString(model) && modelParser) {
+				return true;
+			}
+			return false;
+		}
+
 		ngModel.$formatters.push(function (modelValue) {
 
+			// formatter clean the error
 			ngModel.$setValidity("datetime", true);
-			if (!ngModel.$validate) {
-				validMinMax(modelValue);
-			}
 
+			// handle empty value
 			if (!modelValue) {
 				parser.unset();
 				// FIXME: input will be cleared if modelValue is empty and the input is required. This is a temporary fix.
@@ -256,8 +270,17 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 				return parser.getText();
 			}
 
+			// let unknown model type pass through
+			if (!validModelType(modelValue)) {
+				return modelValue;
+			}
+
 			if (modelParser) {
 				modelValue = modelParser.parse(modelValue).getDate();
+			}
+
+			if (!ngModel.$validate) {
+				validMinMax(modelValue);
 			}
 
 			return parser.setDate(modelValue).getText();
@@ -267,7 +290,8 @@ angular.module("datetime").directive("datetime", ["datetime", "$log", "$document
 	return {
 		restrict: "A",
 		require: "?ngModel",
-		link: linkFunc
+		link: linkFunc,
+		priority: 100
 	};
 }]);
 
