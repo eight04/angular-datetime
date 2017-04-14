@@ -12,7 +12,7 @@
   "scripts": {
     "test": "eslint **/*.js && mocha",
     "build": "browserify index.js | n-pipe dist/datetime.js && node build-demo.js",
-    "watch": "n-run -w src/* \"npm run build\"",
+    "watch": "n-run -w lib/* \"npm run build\"",
     "preversion": "npm test && npm run build",
     "version": "git add .",
     "postversion": "git push --follow-tags && npm publish"
