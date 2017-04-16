@@ -193,6 +193,8 @@ Notes
 
 Changelog
 ---------
+* 5.1.2 (Apr 16, 2017)
+	- Fix jQuery compat issue. [#45](https://github.com/eight04/angular-datetime/issues/45)
 * 5.1.1 (Mar 30, 2017)
 	- Increase directive's priority. [#46](https://github.com/eight04/angular-datetime/issues/46)
 * 5.1.0 (Mar 9, 2017)
