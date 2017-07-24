@@ -526,12 +526,23 @@ angular.module("datetime").factory("datetime", ["$locale", "datetimePlaceholder"
 			extract: function extract(d) {
 				return d.getDate();
 			},
-			restore: function restore(d, v) {
-				return d.setDate(v);
+			restore: function restore(d, v, p) {
+				// handle overflowed day
+				var oldMonth = d.getMonth();
+				d.setDate(v);
+				if (d.getMonth() != oldMonth && v <= 31) {
+					var monthNodes = p.getNodes("month");
+					if (monthNodes && monthNodes.every(function (n) {
+						return n.empty;
+					})) {
+						d.setDate(v);
+					}
+				}
 			},
-			add: function add(d, v) {
-				return d.setDate(d.getDate() + v);
+			add: function add(d, v, p) {
+				this.restore(d, d.getDate() + v, p);
 			},
+
 			prior: 4
 		},
 		day: {
