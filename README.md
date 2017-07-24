@@ -16,7 +16,7 @@ Dependencies
 ------------
 
 * Angular 1.2+
-* custom-input 0.2.0 - https://github.com/eight04/custom-input
+* custom-input 0.2.1 - https://github.com/eight04/custom-input
 
 Date string format
 ------------------
@@ -193,6 +193,8 @@ Notes
 
 Changelog
 ---------
+* 5.1.3 (Jul 24, 2017)
+	- Fix overflowed day issue. [#52](https://github.com/eight04/angular-datetime/issues/52)
 * 5.1.2 (Apr 16, 2017)
 	- Fix jQuery compat issue. [#45](https://github.com/eight04/angular-datetime/issues/45)
 * 5.1.1 (Mar 30, 2017)
