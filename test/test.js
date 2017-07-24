@@ -167,6 +167,27 @@ describe("datetime service", () => {
 		
 		assert.equal(parser.getText(), insertColon($date(parser.getDate(), "Z")));
 	});
+	
+	it("Overflowed day with empty month", ()=> {
+		var parser = datetime("dd.MM.yyyy");
+		parser.parse("01.06.2017");
+		assert.throws(
+			() => parser.parse("31.(month).(year)"),
+			err => err.code == "NOT_INIT"
+		);
+	});
+	
+	it("Overflowed day with empty month (add)", ()=> {
+		var parser = datetime("dd.MM.yyyy");
+		parser.parse("30.06.2017");
+		parser.tp.nodes[0].add(1);
+		assert.equal(parser.getText(), "01.07.2017");
+		
+		parser.parse("30.06.2017");
+		parser.tp.unset();
+		parser.tp.nodes[0].add(1);
+		assert.equal(parser.getText(), "31.(month).(year)");
+	});
 
 });
 
