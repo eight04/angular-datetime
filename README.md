@@ -44,8 +44,8 @@ Or use pre-built dist:
 
 ```html
 <!-- Don't forget to include custom-input -->
-<script src="https://unpkg.com/custom-input@0.2.0/dist/custom-input.js"></script>
-<script src="https://unpkg.com/angular-datetime-input@5.1.0/dist/datetime.js"></script>
+<script src="https://unpkg.com/custom-input/dist/custom-input.js"></script>
+<script src="https://unpkg.com/angular-datetime-input/dist/datetime.js"></script>
 ```
 
 Example
