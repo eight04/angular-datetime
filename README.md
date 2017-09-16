@@ -191,6 +191,11 @@ Notes
 
 Changelog
 ---------
+* 5.2.0 (next)
+	- Fix: use explicit DI annotation. [#57](https://github.com/eight04/angular-datetime/issues/57)
+	- Change: dist file is minimized. [#14](https://github.com/eight04/angular-datetime/issues/14)
+	- **Change: pre-built dist now includes custom-input so there is no need to inject it manually.**
+	- Update custom-input to 0.3.0 which uses event-lite for smaller file size.
 * 5.1.3 (Jul 24, 2017)
 	- Fix overflowed day issue. [#52](https://github.com/eight04/angular-datetime/issues/52)
 * 5.1.2 (Apr 16, 2017)
