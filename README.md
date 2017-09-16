@@ -191,7 +191,7 @@ Notes
 
 Changelog
 ---------
-* 5.2.0 (next)
+* 5.2.0 (Sep 17, 2017)
 	- Fix: use explicit DI annotation. [#57](https://github.com/eight04/angular-datetime/issues/57)
 	- Change: dist file is minimized. [#14](https://github.com/eight04/angular-datetime/issues/14)
 	- **Change: pre-built dist now includes custom-input so there is no need to inject it manually.**
