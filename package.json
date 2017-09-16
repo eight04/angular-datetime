@@ -25,7 +25,7 @@
   "license": "MIT",
   "author": "eight <eight04@gmail.com>",
   "main": "index.js",
-  "browser": "dist/datetime.js",
+  "unpkg": "dist/datetime.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/eight04/angular-datetime.git"

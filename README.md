@@ -191,6 +191,8 @@ Notes
 
 Changelog
 ---------
+* 5.2.1 (Sep 17, 2017)
+	- Fix: use unpkg field in package.json.
 * 5.2.0 (Sep 17, 2017)
 	- Fix: use explicit DI annotation. [#57](https://github.com/eight04/angular-datetime/issues/57)
 	- Change: dist file is minimized. [#14](https://github.com/eight04/angular-datetime/issues/14)
