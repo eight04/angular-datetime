@@ -11,7 +11,7 @@
 		"eslint:recommended"
 	],
 	"overrides": [{
-		"files": ["**/rollup.config.js"],
+		"files": ["**/rollup.config.js", "bundle.js"],
 		"parserOptions": {
 			"sourceType": "module"
 		}
