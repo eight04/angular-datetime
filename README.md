@@ -34,7 +34,7 @@ Installation
 Via npm:
 
 ```
-npm install angular-datetime-input --save
+npm install angular angular-datetime-input --save
 ```
 ```javascript
 require("angular-datetime-input");
@@ -43,9 +43,7 @@ require("angular-datetime-input");
 Or use pre-built dist:
 
 ```html
-<!-- Don't forget to include custom-input -->
-<script src="https://unpkg.com/custom-input/dist/custom-input.js"></script>
-<script src="https://unpkg.com/angular-datetime-input/dist/datetime.js"></script>
+<script src="https://unpkg.com/angular-datetime-input"></script>
 ```
 
 Example
