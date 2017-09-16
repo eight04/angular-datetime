@@ -3,3 +3,5 @@ node_modules
 
 *.bak
 *.log
+
+package-lock.json

@@ -5,7 +5,8 @@
 	},
 	"rules": {
 		"no-use-before-define": [2, "nofunc"],
-		"semi": [2, "always"]
+		"semi": [2, "always"],
+    "angular/di": ["error", "$inject"]
 	},
 	"extends": [
 		"eslint:recommended",

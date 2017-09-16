@@ -6,8 +6,9 @@
 					"ie": 8
 				}
 			},
-			"loose": true
+			"loose": true,
+			"modules": false
 		}]
 	],
-	"plugins": ["angularjs-annotate"]
+	"plugins": ["external-helpers"]
 }
