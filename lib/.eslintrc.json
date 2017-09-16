@@ -1,15 +1,15 @@
 {
-	"env": {
-		"browser": true,
-		"es6": true
-	},
-	"rules": {
-		"no-use-before-define": [2, "nofunc"],
-		"semi": [2, "always"],
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "rules": {
+    "no-use-before-define": [2, "nofunc"],
+    "semi": [2, "always"],
     "angular/di": ["error", "$inject"]
-	},
-	"extends": [
-		"eslint:recommended",
-		"angular"
-	]
+  },
+  "extends": [
+    "eslint:recommended",
+    "angular"
+  ]
 }
