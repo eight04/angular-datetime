@@ -33,7 +33,7 @@ Installation
 ------------
 Via npm:
 
-```
+```shell
 npm install angular angular-datetime-input --save
 ```
 ```javascript
