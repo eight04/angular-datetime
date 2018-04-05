@@ -154,6 +154,12 @@
 	</div>
 	<div class="form-group">
 		<label>
+			Custom Europe/Moscow timezone
+			<input type="text" class="form-control" datetime="yyyy-MM-dd HH:mm:ssZ" ng-model="data.myDate" datetime-utc="'+0300'">
+		</label>
+	</div>
+	<div class="form-group">
+		<label>
 			datetime-model with min/max
 			<input type="text" class="form-control" datetime="yyyy-MM-dd" datetime-model="yyyy-MM-ddTHH:mm:ssZZ" ng-model="data.myDateString2" min="Jan 1, 2000">
 			<pre class="code"><code>{{data.myDateString2 | json}}</code></pre>
