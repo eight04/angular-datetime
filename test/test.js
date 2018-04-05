@@ -223,6 +223,16 @@ describe("datetime directive", function(){
 		
 		assert.equal(element.val(), "+0000");
 	});
+
+	it("custom timezone", function(){
+		$rootScope.date = new Date;
+
+		var element = $compile("<input type='text' datetime='Z' ng-model='date' datetime-utc='\"+0300\"'>")($rootScope);
+
+		$rootScope.$digest();
+
+		assert.equal(element.val(), "+0300");
+	});
 	
 	it("dynamic datetime-utc", function(){
 		var date = $rootScope.date = new Date;
