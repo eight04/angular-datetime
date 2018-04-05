@@ -237,7 +237,7 @@ describe("datetime directive", function(){
 	it("datetime-timezone and utc", function(){
 		$rootScope.date = new Date;
 
-		var element = $compile("<input type='text' datetime='Z' ng-model='date' datetime-timezone='UTC'>")($rootScope);
+		var element = $compile("<input type='text' datetime='Z' ng-model='date' datetime-timezone='\"+0000\"'>")($rootScope);
 
 		$rootScope.$digest();
 
