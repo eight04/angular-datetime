@@ -226,32 +226,38 @@ describe("datetime directive", function(){
 
 	it("datetime-timezone and custom timezone", function(){
 		$rootScope.date = new Date;
+		$rootScope.timezone = "'+0500'";
 
-		var element = $compile("<input type='text' datetime='Z' ng-model='date' datetime-timezone='\"+0300\"'>")($rootScope);
-
-		$rootScope.$digest();
-
-		assert.equal(element.val(), "+0300");
-	});
-
-	it("datetime-timezone and utc", function(){
-		$rootScope.date = new Date;
-
-		var element = $compile("<input type='text' datetime='Z' ng-model='date' datetime-timezone='\"+0000\"'>")($rootScope);
+		var element = $compile("<input type='text' datetime='Z' ng-model='date' datetime-timezone={{timezone}}>")($rootScope);
 
 		$rootScope.$digest();
 
-		assert.equal(element.val(), "+0000");
+		assert.equal(element.val(), "+0500");
 	});
 
 	it("datetime-timezone and utc format with colon", function(){
 		$rootScope.date = new Date;
+		$rootScope.timezone = "'+07:00'";
 
-		var element = $compile("<input type='text' datetime='Z' ng-model='date' datetime-timezone='\"+03:00\"'>")($rootScope);
+		var element = $compile("<input type='text' datetime='Z' ng-model='date' datetime-timezone={{timezone}}>")($rootScope);
 
 		$rootScope.$digest();
 
-		assert.equal(element.val(), "+0300");
+		assert.equal(element.val(), "+0700");
+	});
+
+	it("dynamic datetime-timezone", function(){
+		var date = $rootScope.date = new Date;
+		$rootScope.timezone = "'+0500'";
+
+		var element = $compile("<input type='text' datetime='Z' ng-model='date' datetime-timezone={{timezone}}>")($rootScope);
+		$rootScope.$digest();
+		assert.equal(element.val(), $date(date, "Z", "+0500"));
+
+		$rootScope.timezone = "'+0800'";
+		$rootScope.$digest();
+		assert.equal(element.val(), $date(date, "Z", "+0800"));
+
 	});
 	
 	it("dynamic datetime-utc", function(){
