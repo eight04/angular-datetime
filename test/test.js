@@ -247,24 +247,24 @@ describe("datetime directive", function(){
 	});
 
 	it("dynamic datetime-timezone", function(){
-		var date = $rootScope.date = new Date;
+		$rootScope.date = new Date;
 		$rootScope.timezone = "+0500";
 
 		var element = $compile("<input type='text' datetime='Z' ng-model='date' datetime-timezone='timezone'>")($rootScope);
 		$rootScope.$digest();
-		assert.equal(element.val(), $date(date, "Z", "+0500"));
+		assert.equal(element.val(), "+0500");
 
 		$rootScope.timezone = "+0800";
 		$rootScope.$digest();
-		assert.equal(element.val(), $date(date, "Z", "+0800"));
+		assert.equal(element.val(), "+0800");
 	});
 
 	it("static datetime-timezone", function(){
-		var date = $rootScope.date = new Date;
+		$rootScope.date = new Date;
 
 		var element = $compile("<input type='text' datetime='Z' ng-model='date' datetime-timezone='+0500'>")($rootScope);
 		$rootScope.$digest();
-		assert.equal(element.val(), $date(date, "Z", "+0500"));
+		assert.equal(element.val(), "+0500");
 	});
 	
 	it("dynamic datetime-utc", function(){
