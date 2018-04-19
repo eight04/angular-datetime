@@ -110,17 +110,15 @@
 	<pre>myDate = {{data.myDate | json}}</pre>
 	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ssZ" ng-model="myDate" datetime-timezone="+0000"&gt;</code></pre>
 	<p>Also support expression.</p>
-	<label class="text">
-		Timezone string e.g. +0500. -0730
-		<input type="text" ng-model="data.myTimezone" pattern="[+-]\d{2}:?\d{2}" class="form-control">
-	</label>
 	<input type="text" datetime="yyyy-MM-dd HH:mm:ssZ" ng-model="data.myDate" class="form-control" datetime-timezone="data.myTimezone">
 	<pre>myDate = {{data.myDate | json}}<br>myTimezone = {{data.myTimezone | json}}</pre>
-	<pre class="code"><code>&lt;label class="text">
-	Timezone string e.g. +0500. -0730
-	&lt;input type="text" ng-model="data.myTimezone" pattern="[+-]\d{2}:?\d{2}">
-&lt;/label>
-&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ssZ" ng-model="data.myDate" class="form-control" datetime-timezone="data.myTimezone"></code></pre>
+	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ssZ" ng-model="data.myDate" datetime-timezone="myTimezone"></code></pre>
+	<div class="form-group">
+		<label>
+			Timezone
+			<input type="text" ng-model="data.myTimezone" pattern="[+-]\d{2}:?\d{2}" class="form-control">
+		</label>
+	</div>
 
 	<h3>datetime-separator</h3>
 	<p>By the default, you can use left/right keys to navigate between each part of date. With this attribute, you will be able to use different keys to jump to next part.</p>
