@@ -19,6 +19,7 @@
 				myDate: new Date,
 				myDateString: "2000-01-01 00:00:00",
 				myDateString2: "2000-01-01T00:00:00+08:00",
+				myTimezone: "+0000",
 				min: new Date(2010, 0, 1),
 				max: new Date(2019, 11, 31)
 			};
@@ -103,17 +104,23 @@
 	<pre class="output">myDateString = {{data.myDateString | json}}</pre>
 	<pre class="code"><code>&lt;input type="text" datetime="medium" datetime-model="yyyy-MM-dd HH:mm:ss" ng-model="myDateString"&gt;</code></pre>
 
-	<h3>datetime-utc</h3>
-	<p>By the default, angular-datetime will format the date in local timezone. Add <code>datetime-utc</code> attribute to show in UTC timezone.</p>
-	<input type="text" datetime="yyyy-MM-dd HH:mm:ssZ" ng-model="data.myDate" class="form-control" datetime-utc>
+	<h3>datetime-timezone</h3>
+	<p>By the default, angular-datetime will format the date in the local timezone. Use <code>datetime-timezone</code> to specify a different timezone.</p>
+	<input type="text" datetime="yyyy-MM-dd HH:mm:ssZ" ng-model="data.myDate" class="form-control" datetime-timezone="+0000">
 	<pre>myDate = {{data.myDate | json}}</pre>
-	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ssZ" ng-model="myDate" datetime-utc&gt;</code></pre>
+	<pre class="code"><code>&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ssZ" ng-model="myDate" datetime-timezone="+0000"&gt;</code></pre>
 	<p>Also support expression.</p>
-	<label class="checkbox"><input type="checkbox" ng-model="isUtc">Show UTC</label>
-	<input type="text" datetime="yyyy-MM-dd HH:mm:ssZ" ng-model="data.myDate" class="form-control" datetime-utc="isUtc">
-	<pre>myDate = {{data.myDate | json}}</pre>
-	<pre class="code"><code>&lt;label class="checkbox">&lt;input type="checkbox" ng-model="isUtc">Show UTC&lt;/label>
-&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ssZ" ng-model="data.myDate" class="form-control" datetime-utc="isUtc"></code></pre>
+	<label class="text">
+		Timezone string e.g. +0500. -0730
+		<input type="text" ng-model="data.myTimezone" pattern="[+-]\d{2}:?\d{2}" class="form-control">
+	</label>
+	<input type="text" datetime="yyyy-MM-dd HH:mm:ssZ" ng-model="data.myDate" class="form-control" datetime-timezone="data.myTimezone">
+	<pre>myDate = {{data.myDate | json}}<br>myTimezone = {{data.myTimezone | json}}</pre>
+	<pre class="code"><code>&lt;label class="text">
+	Timezone string e.g. +0500. -0730
+	&lt;input type="text" ng-model="data.myTimezone" pattern="[+-]\d{2}:?\d{2}">
+&lt;/label>
+&lt;input type="text" datetime="yyyy-MM-dd HH:mm:ssZ" ng-model="data.myDate" class="form-control" datetime-timezone="data.myTimezone"></code></pre>
 
 	<h3>datetime-separator</h3>
 	<p>By the default, you can use left/right keys to navigate between each part of date. With this attribute, you will be able to use different keys to jump to next part.</p>
