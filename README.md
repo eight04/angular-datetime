@@ -197,6 +197,8 @@ Notes
 
 Changelog
 ---------
+* 5.3.0 (Apr 19, 2018)
+	- Add: `datetime-timezone` attribute. Now you can customize the timezone in the directive. #60 @andreyjkee
 * 5.2.1 (Sep 17, 2017)
 	- Fix: use unpkg field in package.json.
 * 5.2.0 (Sep 17, 2017)
