@@ -89,7 +89,7 @@ Check out the [demo page](https://rawgit.com/eight04/angular-datetime/master/exa
 ```html
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate">
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" required>
-<input type="text" datetime="yyyy-MM-dd" ng-model="myDate" datetime-utc>
+<input type="text" datetime="yyyy-MM-dd" ng-model="myDate" datetime-timezone="+0300">
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" min="Jan 1, 1990" max="Dec 31, 2050">
 <input type="text" datetime="yyyy-MM-dd" ng-model="myDate" datetime-model="yyyy-MM-ddTHH:mm:ss">
 <input type="text" datetime="dd.MM.yyyy" ng-model="myDate" datetime-separator=",">
@@ -109,20 +109,22 @@ Just a plain object. Edit it in config phase to specify different placeholder.
 
 Default value:
 
-	{
-		year: "(year)",
-		yearShort: "(year)",
-		month: "(month)",
-		date: "(date)",
-		day: "(day)",
-		hour: "(hour)",
-		hour12: "(hour12)",
-		minute: "(minute)",
-		second: "(second)",
-		millisecond: "(millisecond)",
-		ampm: "(AM/PM)",
-		week: "(week)"
-	}
+```js
+{
+	year: "(year)",
+	yearShort: "(year)",
+	month: "(month)",
+	date: "(date)",
+	day: "(day)",
+	hour: "(hour)",
+	hour12: "(hour12)",
+	minute: "(minute)",
+	second: "(second)",
+	millisecond: "(millisecond)",
+	ampm: "(AM/PM)",
+	week: "(week)"
+}
+```
 
 #### datetime(format: String) => DatetimeParser
 
@@ -150,22 +152,26 @@ Return Date object.
 
 These methods are usually used like:
 
-	date = parser.parse(text).getDate();
-	text = parser.setDate(date).getText();
+```js
+date = parser.parse(text).getDate();
+text = parser.setDate(date).getText();
+```
 	
 ##### DatetimeParser.setTimezone([timezone: String]) => DatetimeParser
 
-Set the timezone of the parser. timezone is a string matching `/[+-]\d{4}/` or `/[+-]\d{2}:\d{2}/`.
+Set the timezone of the parser. timezone is a string matching `/[+-]\d{2}:?\d{2}/`.
 
 If timezone is not provided, reset timezone to browser default.
 
 Setting timezone doesn't affect model value but update text.
 
-	time = parser.getDate().getTime();
-	parser.setTimezone(newTimezone);
-	time2 = parser.getDate().getTime();
-	
-	console.assert(time == time2);
+```js
+time = parser.getDate().getTime();
+parser.setTimezone(newTimezone);
+time2 = parser.getDate().getTime();
+
+console.assert(time == time2);
+```
 	
 ##### DatetimeParser.isEmpty() => boolean
 
