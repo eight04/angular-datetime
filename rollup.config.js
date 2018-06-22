@@ -22,10 +22,11 @@ export default {
 		cjs({nested: true}),
 		babel(babelOptions),
 		uglify({
+      // https://github.com/mishoo/UglifyJS2/issues/3197
 			compress: {
-				// https://github.com/mishoo/UglifyJS2/issues/3197
-				reduce_vars: false
-			}
+        reduce_vars: false
+      },
+      ie8: true
 		})
 	]
 };
