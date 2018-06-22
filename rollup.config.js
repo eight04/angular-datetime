@@ -1,6 +1,6 @@
-import commonjs from "rollup-plugin-commonjs";
+import cjs from "rollup-plugin-cjs-es";
 import babel from "rollup-plugin-babel";
-import uglify from "rollup-plugin-uglify";
+import {uglify} from "rollup-plugin-uglify";
 import resolve from "rollup-plugin-node-resolve";
 
 var babelOptions = Object.assign(
@@ -9,25 +9,18 @@ var babelOptions = Object.assign(
 );
 
 export default {
-	input: "bundle.js",
+	input: "index.js",
 	output: {
 		file: "dist/datetime.js",
-		format: "iife"
+		format: "iife",
+		globals: {angular: "angular"},
+		sourcemap: false
 	},
 	external: ["angular"],
-	globals: {angular: "angular"},
 	plugins: [
 		resolve(),
-		commonjs(),
+		cjs(),
 		babel(babelOptions),
-		// https://github.com/rollup/rollup/issues/1595
-		{
-			name: "rollup-plugin-trim-async-generator",
-			transform(code, id) {
-				if (id != "\0babelHelpers") return;
-				return code.replace(/export var asyncGenerator[\s\S]*?}\(\);/, "");
-			}
-		},
 		uglify({ie8: true})
 	]
 };
