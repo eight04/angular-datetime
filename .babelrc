@@ -7,8 +7,7 @@
 				}
 			},
 			"loose": true,
-			"modules": false,
-			"exclude": ["transform-es2015-function-name"]
+			"modules": false
 		}]
 	],
 	"plugins": ["external-helpers"]

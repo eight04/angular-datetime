@@ -10,7 +10,7 @@
     "parser"
   ],
   "scripts": {
-    "test": "eslint **/*.js --cache && mocha",
+    "test": "eslint **/*.js --cache --ignore-pattern dist && mocha",
     "build": "rollup -c && node build-demo.js",
     "watch": "n-run -w lib/* \"npm run build\"",
     "preversion": "npm test && npm run build",
