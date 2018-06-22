@@ -12,7 +12,7 @@
   "scripts": {
     "test": "eslint **/*.js --cache --ignore-pattern dist && mocha",
     "build": "rollup -c && node build-demo.js",
-    "watch": "n-run -w lib/* \"npm run build\"",
+    "watch": "rollup -cw",
     "preversion": "npm test && npm run build",
     "version": "git add .",
     "postversion": "git push --follow-tags && npm publish"
@@ -45,7 +45,6 @@
     "jsdom": "^11.11.0",
     "jsdom-global": "^3.0.2",
     "mocha": "^5.2.0",
-    "npm-build-tools": "^2.2.5",
     "rollup": "^0.61.1",
     "rollup-plugin-babel": "^3.0.4",
     "rollup-plugin-cjs-es": "^0.4.0",
