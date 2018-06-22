@@ -1,0 +1,12 @@
+{
+  "angular": "named",
+  "index.js": "default",
+  "lib/directive.js": "default",
+  "lib/factory.js": "default",
+  "lib/main.js": "default",
+  "node_modules/custom-input/index.js": "named",
+  "node_modules/custom-input/lib/input-mask.js": "named",
+  "node_modules/custom-input/lib/text-parser.js": "named",
+  "node_modules/custom-input/lib/utils.js": "named",
+  "node_modules/event-lite/event-lite.js": "default"
+}
