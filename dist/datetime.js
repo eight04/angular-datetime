@@ -1,1 +1,1271 @@
-!function(k){"use strict";k.module("datetime",[]),k.module("datetime").constant("datetimePlaceholder",{year:"(year)",yearShort:"(year)",month:"(month)",date:"(date)",day:"(day)",hour:"(hour)",hour12:"(hour12)",minute:"(minute)",second:"(second)",millisecond:"(millisecond)",ampm:"(AM/PM)",week:"(week)"});var r={exports:{}};!function(e){void 0!==r&&(r.exports=e);var i="listeners",n={on:function(e,t){return s(this,e).push(t),this},once:function(e,t){var n=this;return r.originalListener=t,s(n,e).push(r),n;function r(){o.call(n,e,r),t.apply(this,arguments)}},off:o,emit:function(e,t){var n=this,r=s(n,e,!0);if(!r)return!1;var i=arguments.length;if(1===i)r.forEach(function(e){e.call(n)});else if(2===i)r.forEach(function(e){e.call(n,t)});else{var o=Array.prototype.slice.call(arguments,1);r.forEach(function(e){e.apply(n,o)})}return!!r.length}};function t(e){for(var t in n)e[t]=n[t];return e}function o(e,t){var n,r=this;if(arguments.length){if(t){if(n=s(r,e,!0)){if(!(n=n.filter(function(e){return e!==t&&e.originalListener!==t})).length)return o.call(r,e);r[i][e]=n}}else if((n=r[i])&&(delete n[e],!Object.keys(n).length))return o.call(r)}else delete r[i];return r}function s(e,t,n){if(!n||e[i]){var r=e[i]||(e[i]={});return r[t]||(r[t]=[])}}t(e.prototype),e.mixin=t}(function e(){if(!(this instanceof e))return new e});var t=r.exports,E=function(e,t,n){var r;if((e=""+e).length>n)e=e.substr(e.length-n);else if(e.length<t)for(r=e.length;r<t;r++)e="0"+e;return e},l="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},V=function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")},i=function(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)},o=function(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t};function s(e,t){if(t.length){var n=a(t,e).map(function(e){return e.node}),r=n[0],i=n[1];return r==i?r:e-r.offset-r.viewValue.length<=i.offset-e?r:i}}function a(e,t){var n,r,i,o=2<arguments.length&&arguments[2]!==undefined?arguments[2]:t,s=e,a=Array.isArray(s),u=0;for(s=a?s:s[Symbol.iterator]();;){if(a){if(u>=s.length)break;n=s[u++]}else{if((u=s.next()).done)break;n=u.value}n.offset<=t&&(r={node:n,pos:t-n.offset}),n.offset+n.viewValue.length>=o&&!i&&(i={node:n,pos:o-n.offset})}if(!i){var l=e[e.length-1];i={node:l,pos:l.viewValue.length}}r||(r={node:e[0],pos:0});return r.pos>r.node.viewValue.length&&(r.pos=r.node.viewValue.length),[r,i]}var u=function(){function n(e,t){V(this,n),this.el=e,this.nodes=t,this.range={node:s(0,this.nodes),start:0,end:"end"}}return n.prototype.selectNearestNode=function(){var e=this.el.getSelection();e&&this.select({node:s(e.start,this.nodes),start:0,end:"end"})},n.prototype.select=function(e){(e=Object.assign(this.range,e)).node&&this.el.setSelection(e.node.offset+e.start,e.node.offset+("end"==e.end?e.node.viewValue.length:e.end))},n.prototype.hasNext=function(){if(this.range.node)return this.range.node.nextEdit},n.prototype.hasPrev=function(){if(this.range.node)return this.range.node.prevEdit},n.prototype.selectNext=function(){var e=this.hasNext(),t={start:0,end:"end"};e&&(t.node=e),this.select(t)},n.prototype.selectPrev=function(){var e=this.hasPrev(),t={start:0,end:"end"};e&&(t.node=e),this.select(t)},n.prototype.get=function(){if(this.nodes.length){var e=this.el.getSelection();if(e){var t=a(this.nodes,e.start,e.end),n=t[0],r=t[1];n.node==r.node&&(this.range={node:n.node,start:n.pos,end:r.pos})}}},n.prototype.atNodeEnd=function(){if(this.range.node){this.get();var e=this.range.node.viewValue.length,t=this.range.node.token.maxLength,n="end"==this.range.start?e:this.range.start;return n==("end"==this.range.end?e:this.range.end)&&n==(null!=t?t:e)||!e}},n.prototype.atNodeStart=function(){if(this.range.node){this.get();var e=this.range.node.viewValue.length,t="end"==this.range.start?e:this.range.start;return t==("end"==this.range.end?e:this.range.end)&&0==t}},n}(),n=function(t){function n(){V(this,n);var e=o(this,t.call(this));return e._constructor.apply(e,arguments),e.initialize(),e}return i(n,t),n.prototype._constructor=function(e,t){var n=2<arguments.length&&arguments[2]!==undefined?arguments[2]:"";this.el=e,this.tp=t,this.separators=n,this.sel=new u(e,t.getNodes().filter(function(e){return"static"!=e.token.type}))},n.prototype.initialize=function(){var o=this;this.el.on("mousedown",function(){o.mousedown=!0}),this.el.on("focus",function(){o.mousedown||setTimeout(function(){o.sel.select({start:0,end:"end"})})}),this.el.on("click",function(){o.mousedown=!1,o.sel.selectNearestNode()}),this.el.on("input",function(){o.digest(null,o.el.val())}),this.el.on("keydown",function(e){e.altKey||e.ctrlKey||(37==e.keyCode||9==e.keyCode&&e.shiftKey&&o.sel.hasPrev()?(e.preventDefault(),o.tryFixingError(),o.sel.selectPrev()):39==e.keyCode||9==e.keyCode&&!e.shiftKey&&o.sel.hasNext()?(e.preventDefault(),o.tryFixingError(),o.sel.selectNext()):38==e.keyCode?(e.preventDefault(),o.sel.selectNearestNode(),o.sel.range.node&&o.sel.range.node.add(1),o.val(o.tp.getText()),o.sel.select({start:0,end:"end"})):40==e.keyCode?(e.preventDefault(),o.sel.selectNearestNode(),o.sel.range.node&&o.sel.range.node.add(-1),o.val(o.tp.getText()),o.sel.select({start:0,end:"end"})):36==e.keyCode||35==e.keyCode?setTimeout(function(){return o.sel.selectNearestNode()}):46==e.keyCode?o.sel.atNodeEnd()&&(e.preventDefault(),o.tryFixingError(),o.sel.selectNext()):8==e.keyCode&&o.sel.atNodeStart()&&(e.preventDefault(),o.tryFixingError(),o.sel.selectPrev()))}),this.el.on("keypress",function(e){var t=null==e.charCode?e.keyCode:e.charCode,n=String.fromCharCode(t),r=o.separators,i=o.sel.range.node;if(i&&i.next&&"static"==i.next.token.type&&(r+=i.next.viewValue[0]),r.includes(n))return e.preventDefault(),o.tryFixingError(),void o.sel.selectNext();setTimeout(function(){o.sel.atNodeEnd()&&o.sel.range.node.viewValue&&(o.tryFixingError(),o.sel.selectNext())})}),this.el.on("blur",function(){setTimeout(function(){o.tryFixingError()})}),this.tp.on("change",function(){o.err||o.inDigest||(o.val(o.tp.getText()),o.sel.select())});var e=this.el.val();e?this.digest(null,e,!0):this.val(this.tp.getText())},n.prototype.errorViewLength=function(){return this.err&&null!=this.err.viewValue?this.err.viewValue.length:undefined},n.prototype.val=function(e){this.el.val()!=e&&this.el.val(e),this.err=null},n.prototype.tryFixingError=function(){this.err&&(this.err.properValue?this.digest(this.err.node,this.err.properValue,!0):this.err.node&&(this.err.node.unset(),this.digest(null,this.tp.getText())))},n.prototype.digest=function(e,t,n){var r,i=10;for(this.inDigest=!0;i--;){this.err=null;try{e?e.parse(t):this.tp.parse(t)}catch(o){if(this.emit("digest",o),this.sel.get(),"NOT_INIT"==o.code)break;if(this.err=o,!n&&("NUMBER_TOOSHORT"==o.code||"NUMBER_TOOSMALL"==o.code||"NUMBER_MISMATCH"==o.code||"SELECT_MISMATCH"==o.code||"LEADING_ZERO"==o.code))break;if("SELECT_INCOMPLETE"==o.code){e=o.node,t=o.selected,r={end:"end"};continue}null!=o.properValue?(e=o.node,t=o.properValue):null!=o.properText?(e=null,t=o.properText):("EMPTY"==o.code&&this.tp.unset(),o.node&&o.node.unset(),e=null,t=this.tp.getText(),r={start:0,end:"end"});continue}break}if(this.err||(this.val(this.tp.getText()),i<9&&this.sel.select(r)),this.inDigest=!1,i<0)throw new Error("InputMask.digest crashed! Infinite loop on "+t)},n}(t);function h(e,t,n){for(var r=0,i=e.toUpperCase(),o=n.toUpperCase();i[t+r]&&i[t+r]==o[r];)r++;return e.substr(t,r)}function c(e,t,n){var r=function(e,t,n){var r,i,o,s;if("static"==t.type)return e.startsWith(t.value,n)?{viewValue:t.value}:{err:2,code:"TEXT_MISMATCH",message:"Pattern value mismatch"};if("number"==t.type)return a=n,u=e.substring(a).match(/^\d+/),null==(o=u&&u[0])?{err:1,code:"NUMBER_MISMATCH",message:"Invalid number",viewValue:""}:o.length<t.minLength?{err:1,code:"NUMBER_TOOSHORT",message:"The length of number is too short",value:+o,viewValue:o,properValue:E(+o,t.minLength,t.maxLength)}:(o.length>t.maxLength&&(o=o.substr(0,t.maxLength)),+o<t.min?{err:1,code:"NUMBER_TOOSMALL",message:"The number is too small",value:+o,viewValue:o,properValue:E(t.min,t.minLength,t.maxLength)}:o.length>t.minLength&&"0"==o[0]?{err:1,code:"LEADING_ZERO",message:"The number has too many leading zero",value:+o,viewValue:o,properValue:E(+o,t.minLength,t.maxLength)}:+o>t.max?{err:1,code:"NUMBER_TOOLARGE",message:"The number is too large",value:+o,viewValue:o,properValue:E(t.max,t.minLength,t.maxLength)}:{value:+o,viewValue:o});var a,u;if("select"==t.type){for(i="",s=0;s<t.select.length;s++)(r=h(e,n,t.select[s]))&&r.length>i.length&&(o=s,i=r);return i?i!=t.select[o]?{err:1,code:"SELECT_INCOMPLETE",message:"Incomplete select",value:o+1,viewValue:i,selected:t.select[o]}:{value:o+1,viewValue:i}:{err:1,code:"SELECT_MISMATCH",message:"Invalid select",viewValue:""}}throw"Unknown token type: "+t.type}(e,t,n);return r.err&&"static"!=t.type&&e.startsWith(t.placeholder,n)&&(1<r.err||r.viewValue.length<=t.placeholder.length)?{empty:!0,viewValue:t.placeholder}:r}function f(e,t){var n,r,i=0,o=[],s=e,a=Array.isArray(s),u=0;for(s=a?s:s[Symbol.iterator]();;){if(a){if(u>=s.length)break;n=s[u++]}else{if((u=s.next()).done)break;n=u.value}if((r=c(t,n.token,i)).node=n,r.pos=i,r.token=n.token,2<=r.err)throw r.text=t,r;i+=r.viewValue.length,o.push(r)}var l=o[o.length-1];if(l.pos+l.viewValue.length<t.length)throw{code:"TEXT_TOOLONG",message:"Text is too long",text:t};return o}function d(e,t){if("static"==t.type)return{viewValue:t.value};var n=t.extract(e);if("number"==t.type)return{value:n,viewValue:E(n,t.minLength,t.maxLength)};if("select"==t.type)return{value:n,viewValue:t.select[n-1]};throw"Unknown type to format: "+t.type}function p(e,t,n){var r,i,o=[],s=t,a=Array.isArray(s),u=0;for(s=a?s:s[Symbol.iterator]();;){if(a){if(u>=s.length)break;i=s[u++]}else{if((u=s.next()).done)break;i=u.value}r=d(e,i.token),"static"!=i.token.type&&i.empty&&!n&&(r.value=null,r.viewValue=i.token.placeholder),o.push(r)}return o}var m=function(){function n(e,t){V(this,n),this.parser=e,this.token=t,this.value=null,this.viewValue=t.value,this.offset=0,this.next=null,this.prev=null,this.nextEdit=null,this.prevEdit=null,this.empty=!0}return n.prototype.unset=function(){"static"==this.token.type||this.parser.noEmpty||(this.empty=!0,this.parser.setValue(this.parser.value,!1))},n.prototype.parse=function(e){var t=1<arguments.length&&arguments[1]!==undefined?arguments[1]:0,n=c(e,this.token,t);if(n.err)throw n.node=this,n.token=this.token,n;if(this.parser.noEmpty&&n.empty)throw{code:"NOT_INIT_FORBIDDEN",message:"Empty node is forbidden",node:this};if(n.empty)this.unset();else{this.empty=!1;var r=g(this.parser.copyValue(this.parser.value),this.token,n.value,this.parser);this.parser.setValue(r,!1)}},n.prototype.add=function(e){var t,n,r,i,o,s,a,u=this.parser.copyValue(this.parser.value);this.empty=!1,n=u,r=this.token,i=e,o=this.parser,u="object"==(void 0===n?"undefined":l(n))?(r.add(n,i,o),n):r.add(n,i,o),t=this.token.extract(u),"number"==this.token.type?(s=this.token.min,a=this.token.max):"select"==this.token.type&&(s=1,a=this.token.select.length),t<s&&(u=g(u,this.token,s,this.parser)),a<t&&(u=g(u,this.token,a,this.parser)),this.parser.setValue(u,!1)},n}();function g(e,t,n,r){return"object"==(void 0===e?"undefined":l(e))?(t.restore(e,n,r),e):t.restore(e,n,r)}function y(e){return e}var D=function(t){function n(){V(this,n);var e=o(this,t.call(this));return e._constructor.apply(e,arguments),e.initialize(),e}return i(n,t),n.prototype._constructor=function(e){var t=e.tokens,n=e.noEmpty,r=n!==undefined&&n,i=e.value,o=e.text,s=e.copyValue,a=s===undefined?y:s;if(!t||!t.length)throw new Error("option.tokens is required");this.tokens=t,this.nodes=function(e,t){var n,r,i,o=[],s=t,a=Array.isArray(s),u=0;for(s=a?s:s[Symbol.iterator]();;){if(a){if(u>=s.length)break;n=s[u++]}else{if((u=s.next()).done)break;n=u.value}o.push(new m(e,n))}for(r=0;r<o.length;r++)o[r].next=o[r+1]||null,o[r].prev=o[r-1]||null;for(i=null,r=0;r<o.length;r++)o[r].prevEdit=i,"static"!=o[r].token.type&&(i=o[r]);for(i=null,r=o.length-1;0<=r;r--)o[r].nextEdit=i,"static"!=o[r].token.type&&(i=o[r]);return o}(this,t),this.nameMap=function(e){var t=new Map,n=e,r=Array.isArray(n),i=0;for(n=r?n:n[Symbol.iterator]();;){var o;if(r){if(i>=n.length)break;o=n[i++]}else{if((i=n.next()).done)break;o=i.value}var s=o,a=t.get(s.token.name);a||(a=[],t.set(s.token.name,a)),a.push(s)}return t}(this.nodes),this.value=i,this.text=o,this.noEmpty=r,this.copyValue=a,this.err=!1},n.prototype.initialize=function(){this.setValue(this.value)},n.prototype.parse=function(e){if(!e)throw{code:"EMPTY",message:"The input is empty",oldText:this.text};var t,n;t=f(this.nodes,e);var r,i=[];for(r=this.err?f(this.nodes,this.text):this.nodes,n=0;n<t.length;n++)t[n].empty||t[n].viewValue==r[n].viewValue||(t[n].token=this.nodes[n].token,i.push(t[n]));var o=t.filter(function(e){return e.empty}),s=t.filter(function(e){return e.err});for(n=0;n<t.length;n++)this.nodes[n].value=t[n].value,this.nodes[n].viewValue=t[n].viewValue,this.nodes[n].offset=t[n].pos,this.nodes[n].empty=t[n].empty;if(s.length)throw this.err=!0,s[0];this.err=!1,i.sort(function(e,t){return t.empty?-1:e.empty?1:(t.token.prior||0)-(e.token.prior||0)});var a,u=this.copyValue(this.value),l=i,h=Array.isArray(l),c=0;for(l=h?l:l[Symbol.iterator]();;){if(h){if(c>=l.length)break;a=l[c++]}else{if((c=l.next()).done)break;a=c.value}u=g(u,a.token,a.value,this)}var d=p(u,t).map(function(e){return e.viewValue}).join("");if(e!=d)throw this.err=!0,{code:"INCONSISTENT_INPUT",message:"Successfully parsed but the output text doesn't match the input",text:e,oldText:this.text,properText:d};if(this.text=e,this.value=u,this.emit("change",this.value),o.length)throw{code:"NOT_INIT",message:"Some nodes are empty",text:e,node:o[0]};return this},n.prototype.setValue=function(e){var t,n=!(1<arguments.length&&arguments[1]!==undefined)||arguments[1],r=p(e,this.nodes,n),i=0,o="";for(t=0;t<r.length;t++)this.nodes[t].value=r[t].value,this.nodes[t].viewValue=r[t].viewValue,this.nodes[t].offset=i,this.nodes[t].empty=!n&&this.nodes[t].empty,i+=this.nodes[t].viewValue.length,o+=this.nodes[t].viewValue;return this.value=e,this.text=o,this.emit("change",this.value),this},n.prototype.isEmpty=function(e){var t,n;if(e)try{t=f(this.nodes,e)}catch(r){return!1}else t=this.nodes;for(n=0;n<t.length;n++)if("static"!=this.nodes[n].token.type&&!t[n].empty)return!1;return!0},n.prototype.isInit=function(){var e,t=this.nodes,n=Array.isArray(t),r=0;for(t=n?t:t[Symbol.iterator]();;){if(n){if(r>=t.length)break;e=t[r++]}else{if((r=t.next()).done)break;e=r.value}if("static"!=e.token.type&&e.empty)return!1}return!0},n.prototype.unset=function(){var e,t=this.nodes,n=Array.isArray(t),r=0;for(t=n?t:t[Symbol.iterator]();;){if(n){if(r>=t.length)break;e=t[r++]}else{if((r=t.next()).done)break;e=r.value}e.empty=!0}return this.setValue(this.value,!1),this},n.prototype.getText=function(){return this.text},n.prototype.getValue=function(){return this.value},n.prototype.getNodes=function(e){return e?this.nameMap.get(e):this.nodes},n}(t),v=n;function x(e,t){var l=e.DATETIME_FORMATS,h=/yyyy|yy|y|M{1,4}|dd?|EEEE?|HH?|hh?|mm?|ss?|([.,])sss|a|Z{1,2}|ww|w|'(([^']+|'')*)'/g,c={y:{minLength:1,maxLength:4,max:9999,min:0,name:"year",type:"number"},yy:{minLength:2,maxLength:2,name:"yearShort",type:"number"},yyyy:{minLength:4,maxLength:4,max:9999,min:0,name:"year",type:"number"},MMMM:{name:"month",type:"select",select:l.MONTH},MMM:{name:"month",type:"select",select:l.SHORTMONTH},MM:{minLength:2,maxLength:2,name:"month",type:"number"},M:{minLength:1,maxLength:2,name:"month",type:"number",min:1},dd:{minLength:2,maxLength:2,name:"date",type:"number"},d:{minLength:1,maxLength:2,name:"date",type:"number",min:1},EEEE:{name:"day",type:"select",select:v(l.DAY)},EEE:{name:"day",type:"select",select:v(l.SHORTDAY)},HH:{minLength:2,maxLength:2,name:"hour",type:"number"},H:{minLength:1,maxLength:2,name:"hour",type:"number"},hh:{minLength:2,maxLength:2,name:"hour12",type:"number"},h:{minLength:1,maxLength:2,name:"hour12",type:"number"},mm:{minLength:2,maxLength:2,name:"minute",type:"number"},m:{minLength:1,maxLength:2,name:"minute",type:"number"},ss:{minLength:2,maxLength:2,name:"second",type:"number"},s:{minLength:1,maxLength:2,name:"second",type:"number"},sss:{minLength:3,maxLength:3,name:"millisecond",type:"number"},a:{name:"ampm",type:"select",select:l.AMPMS},ww:{minLength:2,maxLength:2,max:53,name:"week",type:"number"},w:{minLength:1,maxLength:2,max:53,name:"week",type:"number"},Z:{name:"timezone",type:"static"},ZZ:{name:"timezone",type:"static",colon:!0},string:{name:"string",type:"static"}},n={year:{extract:function(e){var t=e.getFullYear()%1e4;return 0<=t?t:0},restore:function(e,t){return e.setFullYear(t)},add:function(e,t){return e.setFullYear(e.getFullYear()+t)},prior:7},yearShort:{extract:function(e){var t=e.getFullYear()%100;return 0<=t?t:t+100},restore:function(e,t){return e.setFullYear(t)},add:function(e,t){return e.setFullYear(e.getFullYear()+t)},prior:7},month:{extract:function(e){return e.getMonth()+1},restore:function(e,t){e.setMonth(t-1),e.getMonth()==t&&e.setDate(0)},add:function(e,t){t=e.getMonth()+t,e.setMonth(t),e.getMonth()==t+1&&e.setDate(0)},prior:5},date:{extract:function(e){return e.getDate()},restore:function(e,t,n){var r=e.getMonth();if(e.setDate(t),e.getMonth()!=r&&t<=31){var i=n.getNodes("month");i&&i.every(function(e){return e.empty})&&e.setDate(t)}},add:function(e,t,n){this.restore(e,e.getDate()+t,n)},prior:4},day:{extract:function(e){return e.getDay()||7},restore:function(e,t){var n=e.getMonth(),r=t-(e.getDay()||7);e.setDate(e.getDate()+r),e.getMonth()!=n&&(0<r?e.setDate(e.getDate()-7):e.setDate(e.getDate()+7))},add:function(e,t){return e.setDate(e.getDate()+t)},prior:4},hour:{extract:function(e){return e.getHours()},restore:function(e,t){return e.setHours(t)},add:function(e,t){return e.setHours(e.getHours()+t)},prior:2},hour12:{extract:function(e){return e.getHours()%12||12},restore:function(e,t){t%=12,12<=e.getHours()&&(t+=12);e.setHours(t)},add:function(e,t){return e.setHours(e.getHours()+t)},prior:2},ampm:{extract:function(e){return e.getHours()<12?1:2},restore:function(e,t){var n=e.getHours();n<12==1<t&&e.setHours((n+12)%24)},add:function(e,t){return e.setHours(e.getHours()+12*t)},prior:3},minute:{extract:function(e){return e.getMinutes()},restore:function(e,t){return e.setMinutes(t)},add:function(e,t){return e.setMinutes(e.getMinutes()+t)},prior:0},second:{extract:function(e){return e.getSeconds()},restore:function(e,t){return e.setSeconds(t)},add:function(e,t){return e.setSeconds(e.getSeconds()+t)},prior:1},millisecond:{extract:function(e){return e.getMilliseconds()},restore:function(e,t){return e.setMilliseconds(t)},add:function(e,t){return e.setMilliseconds(e.getMilliseconds()+t)},prior:1},week:{extract:x,restore:function(e,t){return e.setDate(e.getDate()+7*(t-x(e)))},add:function(e,t){return e.setDate(e.getDate()+7*t)},prior:6}};for(var r in n)n[r].placeholder=t[r];var i=Object.values(c),o=Array.isArray(i),s=0;for(i=o?i:i[Symbol.iterator]();;){var a;if(o){if(s>=i.length)break;a=i[s++]}else{if((s=i.next()).done)break;a=s.value}var u=a;n[u.name]&&k.extend(u,n[u.name])}var d,f,p,m,g,y=(d=-(new Date).getTimezoneOffset(),f=0<=d?"+":"-",p=Math.abs(d),m=Math.floor(p/60),g=p%60,f+E(m,2,2)+E(g,2,2));function v(e){var t,n=[];for(t=1;t<e.length;t++)n.push(e[t]);return n.push(e[0]),n}function x(e){var t=new Date(e.getFullYear(),0,1),n=new Date(t.getTime());4<n.getDay()?n.setDate(n.getDate()+(1-n.getDay())+7):n.setDate(n.getDate()+(1-n.getDay()));var r=e.getTime()-n.getTime();return Math.floor(r/6048e5)}function b(e){return":"==e[3]?e:e.substr(0,3)+":"+e.substr(3,2)}function w(e){return":"!=e[3]?e:e.substr(0,3)+e.substr(4,2)}var T=function(){function t(e){V(this,t),this.tp=e,this.timezone=y,this.timezoneNodes=this.tp.nodes.filter(function(e){return"timezone"==e.token.name})}return t.prototype.parse=function(e){return this.tp.parse(e),this},t.prototype.getText=function(){return this.tp.getText()},t.prototype.setDate=function(e,t){var n,r,i;return this.tp.setValue((n=e,r=this.timezone,i=(60*+(r=w(r)).substr(1,2)+ +r.substr(3,2))*(r[0]+"1"),new Date(n.getTime()+60*(i- -n.getTimezoneOffset())*1e3)),t),this},t.prototype.getDate=function(){return e=this.tp.getValue(),t=this.timezone,n=(60*+(t=w(t)).substr(1,2)+ +t.substr(3,2))*(t[0]+"1"),new Date(e.getTime()+60*(-e.getTimezoneOffset()-n)*1e3);var e,t,n},t.prototype.setTimezone=function(){var e=0<arguments.length&&arguments[0]!==undefined?arguments[0]:y;if(e!=this.timezone){var t=this.getDate();this.timezone=e;var n=this.timezoneNodes,r=Array.isArray(n),i=0;for(n=r?n:n[Symbol.iterator]();;){var o;if(r){if(i>=n.length)break;o=n[i++]}else{if((i=n.next()).done)break;o=i.value}var s=o;s.token.colon?s.token.value=b(e):s.token.value=w(e)}return this.setDate(t,!1)}},t.prototype.isEmpty=function(){return this.tp.isEmpty.apply(this.tp,arguments)},t.prototype.isInit=function(){return this.tp.isInit.apply(this.tp,arguments)},t.prototype.unset=function(){return this.tp.unset(),this},t}();return function(e){var t,n=function(e){for(var t,n=[],r=0;t=h.exec(e);)if(t.index>r&&(n.push(k.extend({value:e.substring(r,t.index)},c.string)),r=t.index),t.index==r){if(t[1])n.push(k.extend({value:t[1]},c.string)),n.push(c.sss);else if(t[2])n.push(k.extend({value:t[2].replace("''","'")},c.string));else if("timezone"==c[t[0]].name){var i=y;c[t[0]].colon&&(i=b(i)),n.push(k.extend({value:i},c[t[0]]))}else n.push(c[t[0]]);r=h.lastIndex}return r<e.length&&n.push(k.extend({value:e.substring(r)},c.string)),n}(l[e]||e);t=n.some(function(e){return"yearShort"==e.name})?function(n){return function(e){n.apply(this,arguments);var t=e.getFullYear();t<0&&e.setFullYear(t+100)}}:function(n){return function(e){n.apply(this,arguments);var t=e.getFullYear();t<0&&e.setFullYear(0),9999<t&&e.setFullYear(9999)}};var r=n,i=Array.isArray(r),o=0;for(r=i?r:r[Symbol.iterator]();;){var s;if(i){if(o>=r.length)break;s=r[o++]}else{if((o=r.next()).done)break;s=o.value}var a=s;a.add&&(a.add=t(a.add)),a.restore&&(a.restore=t(a.restore))}var u=new D({tokens:n,value:new Date,copyValue:function(e){return new Date(e.getTime())}});return new T(u)}}function b(p,e,m){var g=function(){function n(e,t){V(this,n),this.el=e,this.doc=t}return n.prototype.on=function(e,t){if("input"!=e)return this.el.on(e,t)},n.prototype.getSelection=function(){var e=this.el[0];if(this.doc.activeElement==e){var t=e.selectionStart,n=e.selectionEnd;return k.isDefined(t)&&k.isDefined(n)?{start:t,end:n}:this.getSelectionIE()}},n.prototype.getSelectionIE=function(){var e=this.el[0],t=this.doc.selection.createRange().getBookmark(),n=e.createTextRange(),r=n.duplicate();n.moveToBookmark(t),r.setEndPoint("EndToStart",n);var i=r.text.length;return{start:i,end:i+n.text.length}},n.prototype.setSelection=function(e,t){var n=this.el[0];this.doc.activeElement==n&&(n.setSelectionRange?n.setSelectionRange(e,t):this.setSelectionIE(e,t))},n.prototype.setSelectionIE=function(e,t){var n=this.el[0].createTextRange();n.moveStart("character",e),n.collapse(),n.moveEnd("character",t-e),n.select()},n.prototype.val=function(){var e;return(e=this.el).val.apply(e,arguments)},n}();return{restrict:"A",require:"?ngModel",link:function(n,e,t,r){if(!r)return!1;t.ngTrim="false";var i,o=p(t.datetime),s=t.datetimeModel&&p(t.datetimeModel),a=new g(e,m[0]),u=new v(a,o.tp,t.datetimeSeparator);function l(e){e&&!i?(i=!0,o.setTimezone("+0000"),s&&s.setTimezone("+0000")):!e&&i&&(i=!1,o.setTimezone(),s&&s.setTimezone())}function h(e){o.setTimezone(e),s&&s.setTimezone(e)}function c(e){return!(!r.$isEmpty(e)&&!r.$isEmpty(t.min))||(k.isDate(e)||(e=s.getDate()),e>=new Date(t.min))}function d(e){return!(!r.$isEmpty(e)&&!r.$isEmpty(t.max))||(k.isDate(e)||(e=s.getDate()),e<=new Date(t.max))}function f(e){return r.$validate?r.$validate():(r.$setValidity("min",c(e)),r.$setValidity("max",d(e))),!r.$error.min&&!r.$error.max}u.on("digest",function(e){"NOT_INIT"!=e.code&&r.$setValidity("datetime",!1)}),o.tp.on("change",function(){n.$evalAsync(function(){u.err?r.$setValidity("datetime",!1):(o.isInit()||o.isEmpty()?r.$setValidity("datetime",!0):r.$setValidity("datetime",!1),o.getText()!=r.$viewValue&&r.$setViewValue(o.getText()))})}),k.isDefined(t.datetimeUtc)&&(0<t.datetimeUtc.length?n.$watch(t.datetimeUtc,l):l(!0)),k.isDefined(t.datetimeTimezone)&&(/^[+-]\d{2}:?\d{2}$/.test(t.datetimeTimezone)?h(t.datetimeTimezone):n.$watch(t.datetimeTimezone,h)),r.$validators&&(r.$validators.min=c,r.$validators.max=d),t.$observe("min",function(){f(o.getDate())}),t.$observe("max",function(){f(o.getDate())}),r.$render=function(){},r.$isEmpty=function(e){return!e||"string"==typeof e&&o.isEmpty(e)},r.$parsers.unshift(function(e){if(k.isUndefined(e)&&(e=o.getText()),!k.isString(e))return e;if(u.digest(null,e),!o.isInit())return undefined;var t=o.getDate();return r.$validate||f(t)?s?s.setDate(t).getText():new Date(t.getTime()):undefined}),r.$formatters.push(function(e){return r.$setValidity("datetime",!0),e?(t=e,k.isDate(t)&&!s||k.isString(t)&&s?(s&&(e=s.parse(e).getDate()),r.$validate||f(e),o.setDate(e).getText()):e):(o.unset(),n.$evalAsync(function(){r.$setViewValue(o.getText())}),o.getText());var t})},priority:100}}k.module("datetime").factory("datetime",x),x.$inject=["$locale","datetimePlaceholder"],k.module("datetime").directive("datetime",b),b.$inject=["datetime","$log","$document"]}(angular);
+(function(angular) {
+    "use strict";
+    angular.module("datetime", []), angular.module("datetime").constant("datetimePlaceholder", {
+        year: "(year)",
+        yearShort: "(year)",
+        month: "(month)",
+        date: "(date)",
+        day: "(day)",
+        hour: "(hour)",
+        hour12: "(hour12)",
+        minute: "(minute)",
+        second: "(second)",
+        millisecond: "(millisecond)",
+        ampm: "(AM/PM)",
+        week: "(week)"
+    });
+    var _module_ = {
+        exports: {}
+    };
+    (function(EventLite) {
+        if ("undefined" !== typeof _module_) _module_.exports = EventLite;
+        var LISTENERS = "listeners";
+        var methods = {
+            on: function on(type, func) {
+                return getListeners(this, type).push(func), this;
+            },
+            once: function once(type, func) {
+                var that = this;
+                return wrap.originalListener = func, getListeners(that, type).push(wrap), that;
+                function wrap() {
+                    off.call(that, type, wrap), func.apply(this, arguments);
+                }
+            },
+            off: off,
+            emit: function emit(type, value) {
+                var that = this;
+                var listeners = getListeners(that, type, true);
+                if (!listeners) return false;
+                var arglen = arguments.length;
+                if (1 === arglen) listeners.forEach(function zeroarg(func) {
+                    func.call(that);
+                }); else if (2 === arglen) listeners.forEach(function onearg(func) {
+                    func.call(that, value);
+                }); else {
+                    var args = Array.prototype.slice.call(arguments, 1);
+                    listeners.forEach(function moreargs(func) {
+                        func.apply(that, args);
+                    });
+                }
+                return !!listeners.length;
+            }
+        };
+        function mixin(target) {
+            for (var key in methods) target[key] = methods[key];
+            return target;
+        }
+        function off(type, func) {
+            var listners;
+            if (!arguments.length) delete this[LISTENERS]; else if (!func) {
+                if (listners = this[LISTENERS], listners) if (delete listners[type], !Object.keys(listners).length) return off.call(this);
+            } else if (listners = getListeners(this, type, true), listners) {
+                if (listners = listners.filter(function ne(test) {
+                    return test !== func && test.originalListener !== func;
+                }), !listners.length) return off.call(this, type);
+                this[LISTENERS][type] = listners;
+            }
+            return this;
+        }
+        function getListeners(that, type, readonly) {
+            if (readonly && !that[LISTENERS]) return;
+            var listeners = that[LISTENERS] || (that[LISTENERS] = {});
+            return listeners[type] || (listeners[type] = []);
+        }
+        mixin(EventLite.prototype), EventLite.mixin = mixin;
+    })(function EventLite() {
+        if (!(this instanceof EventLite)) return new EventLite();
+    });
+    var Emitter = _module_.exports;
+    var _export_num2str_ = function(num, minLength, maxLength) {
+        var i;
+        if (num = "" + num, num.length > maxLength) num = num.substr(num.length - maxLength); else if (num.length < minLength) for (i = num.length; i < minLength; i++) num = "0" + num;
+        return num;
+    };
+    var _typeof = "function" === typeof Symbol && "symbol" === typeof Symbol.iterator ? function(obj) {
+        return typeof obj;
+    } : function(obj) {
+        return obj && "function" === typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+    var classCallCheck = function(instance, Constructor) {
+        if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function");
+    };
+    var inherits = function(subClass, superClass) {
+        if ("function" !== typeof superClass && null !== superClass) throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+        if (subClass.prototype = Object.create(superClass && superClass.prototype, {
+            constructor: {
+                value: subClass,
+                enumerable: false,
+                writable: true,
+                configurable: true
+            }
+        }), superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+    };
+    var possibleConstructorReturn = function(self, call) {
+        if (!self) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+        return call && ("object" === typeof call || "function" === typeof call) ? call : self;
+    };
+    function getMatch(str, pos, pattern) {
+        var i = 0, strQ = str.toUpperCase(), patternQ = pattern.toUpperCase();
+        while (strQ[pos + i] && strQ[pos + i] == patternQ[i]) i++;
+        return str.substr(pos, i);
+    }
+    function getInteger(str, pos) {
+        str = str.substring(pos);
+        var match = str.match(/^\d+/);
+        return match && match[0];
+    }
+    function parseNode(text, token, pos) {
+        var result = parseToken(text, token, pos);
+        if (result.err && "static" != token.type && text.startsWith(token.placeholder, pos) && (result.err > 1 || result.viewValue.length <= token.placeholder.length)) return {
+            empty: true,
+            viewValue: token.placeholder
+        };
+        return result;
+    }
+    function parseToken(text, token, pos) {
+        var m, match, value, j;
+        if ("static" == token.type) {
+            if (!text.startsWith(token.value, pos)) return {
+                err: 2,
+                code: "TEXT_MISMATCH",
+                message: "Pattern value mismatch"
+            };
+            return {
+                viewValue: token.value
+            };
+        }
+        if ("number" == token.type) {
+            if (value = getInteger(text, pos), null == value) return {
+                err: 1,
+                code: "NUMBER_MISMATCH",
+                message: "Invalid number",
+                viewValue: ""
+            };
+            if (value.length < token.minLength) return {
+                err: 1,
+                code: "NUMBER_TOOSHORT",
+                message: "The length of number is too short",
+                value: +value,
+                viewValue: value,
+                properValue: _export_num2str_(+value, token.minLength, token.maxLength)
+            };
+            if (value.length > token.maxLength) value = value.substr(0, token.maxLength);
+            if (+value < token.min) return {
+                err: 1,
+                code: "NUMBER_TOOSMALL",
+                message: "The number is too small",
+                value: +value,
+                viewValue: value,
+                properValue: _export_num2str_(token.min, token.minLength, token.maxLength)
+            };
+            if (value.length > token.minLength && "0" == value[0]) return {
+                err: 1,
+                code: "LEADING_ZERO",
+                message: "The number has too many leading zero",
+                value: +value,
+                viewValue: value,
+                properValue: _export_num2str_(+value, token.minLength, token.maxLength)
+            };
+            if (+value > token.max) return {
+                err: 1,
+                code: "NUMBER_TOOLARGE",
+                message: "The number is too large",
+                value: +value,
+                viewValue: value,
+                properValue: _export_num2str_(token.max, token.minLength, token.maxLength)
+            };
+            return {
+                value: +value,
+                viewValue: value
+            };
+        }
+        if ("select" == token.type) {
+            for (match = "", j = 0; j < token.select.length; j++) if (m = getMatch(text, pos, token.select[j]), 
+            m && m.length > match.length) value = j, match = m;
+            if (!match) return {
+                err: 1,
+                code: "SELECT_MISMATCH",
+                message: "Invalid select",
+                viewValue: ""
+            };
+            if (match != token.select[value]) return {
+                err: 1,
+                code: "SELECT_INCOMPLETE",
+                message: "Incomplete select",
+                value: value + 1,
+                viewValue: match,
+                selected: token.select[value]
+            };
+            return {
+                value: value + 1,
+                viewValue: match
+            };
+        }
+        throw "Unknown token type: " + token.type;
+    }
+    function parseNodes(nodes, text) {
+        var node, r, pos = 0, result = [];
+        var _iterator = nodes, _isArray = Array.isArray(_iterator), _i = 0;
+        for (_iterator = _isArray ? _iterator : _iterator[Symbol.iterator](); ;) {
+            if (_isArray) {
+                if (_i >= _iterator.length) break;
+                node = _iterator[_i++];
+            } else {
+                if (_i = _iterator.next(), _i.done) break;
+                node = _i.value;
+            }
+            if (r = parseNode(text, node.token, pos), r.node = node, r.pos = pos, r.token = node.token, 
+            r.err >= 2) throw r.text = text, r;
+            pos += r.viewValue.length, result.push(r);
+        }
+        var last = result[result.length - 1];
+        if (last.pos + last.viewValue.length < text.length) throw {
+            code: "TEXT_TOOLONG",
+            message: "Text is too long",
+            text: text
+        };
+        return result;
+    }
+    function formatNode(value, token) {
+        if ("static" == token.type) return {
+            viewValue: token.value
+        };
+        var v = token.extract(value);
+        if ("number" == token.type) return {
+            value: v,
+            viewValue: _export_num2str_(v, token.minLength, token.maxLength)
+        };
+        if ("select" == token.type) return {
+            value: v,
+            viewValue: token.select[v - 1]
+        };
+        throw "Unknown type to format: " + token.type;
+    }
+    function formatNodes(value, nodes, ignoreEmpty) {
+        var r, node, result = [];
+        var _iterator2 = nodes, _isArray2 = Array.isArray(_iterator2), _i2 = 0;
+        for (_iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator](); ;) {
+            if (_isArray2) {
+                if (_i2 >= _iterator2.length) break;
+                node = _iterator2[_i2++];
+            } else {
+                if (_i2 = _iterator2.next(), _i2.done) break;
+                node = _i2.value;
+            }
+            if (r = formatNode(value, node.token), "static" != node.token.type && node.empty && !ignoreEmpty) r.value = null, 
+            r.viewValue = node.token.placeholder;
+            result.push(r);
+        }
+        return result;
+    }
+    var Node = function() {
+        function Node(parser, token) {
+            classCallCheck(this, Node), this.parser = parser, this.token = token, this.value = null, 
+            this.viewValue = token.value, this.offset = 0, this.next = null, this.prev = null, 
+            this.nextEdit = null, this.prevEdit = null, this.empty = true;
+        }
+        return Node.prototype.unset = function unset() {
+            if ("static" == this.token.type || this.parser.noEmpty) return;
+            this.empty = true, this.parser.setValue(this.parser.value, false);
+        }, Node.prototype.parse = function parse(text) {
+            var pos = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+            var result = parseNode(text, this.token, pos);
+            if (result.err) throw result.node = this, result.token = this.token, result;
+            if (this.parser.noEmpty && result.empty) throw {
+                code: "NOT_INIT_FORBIDDEN",
+                message: "Empty node is forbidden",
+                node: this
+            };
+            if (result.empty) return void this.unset();
+            this.empty = false;
+            var value = restoreValue(this.parser.copyValue(this.parser.value), this.token, result.value, this.parser);
+            this.parser.setValue(value, false);
+        }, Node.prototype.add = function add(diff) {
+            var nodeValue, value = this.parser.copyValue(this.parser.value);
+            var min, max;
+            if (this.empty = false, value = addValue(value, this.token, diff, this.parser), 
+            nodeValue = this.token.extract(value), "number" == this.token.type) min = this.token.min, 
+            max = this.token.max; else if ("select" == this.token.type) min = 1, max = this.token.select.length;
+            if (nodeValue < min) value = restoreValue(value, this.token, min, this.parser);
+            if (nodeValue > max) value = restoreValue(value, this.token, max, this.parser);
+            this.parser.setValue(value, false);
+        }, Node;
+    }();
+    function addValue(o, tk, v, p) {
+        if ("object" == ("undefined" === typeof o ? "undefined" : _typeof(o))) return tk.add(o, v, p), 
+        o; else return tk.add(o, v, p);
+    }
+    function restoreValue(o, tk, v, p) {
+        if ("object" == ("undefined" === typeof o ? "undefined" : _typeof(o))) return tk.restore(o, v, p), 
+        o; else return tk.restore(o, v, p);
+    }
+    function createNodes(parser, tokens) {
+        var tk, i, edit, nodes = [];
+        var _iterator3 = tokens, _isArray3 = Array.isArray(_iterator3), _i3 = 0;
+        for (_iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator](); ;) {
+            if (_isArray3) {
+                if (_i3 >= _iterator3.length) break;
+                tk = _iterator3[_i3++];
+            } else {
+                if (_i3 = _iterator3.next(), _i3.done) break;
+                tk = _i3.value;
+            }
+            nodes.push(new Node(parser, tk));
+        }
+        for (i = 0; i < nodes.length; i++) nodes[i].next = nodes[i + 1] || null, nodes[i].prev = nodes[i - 1] || null;
+        for (edit = null, i = 0; i < nodes.length; i++) if (nodes[i].prevEdit = edit, "static" != nodes[i].token.type) edit = nodes[i];
+        for (edit = null, i = nodes.length - 1; i >= 0; i--) if (nodes[i].nextEdit = edit, 
+        "static" != nodes[i].token.type) edit = nodes[i];
+        return nodes;
+    }
+    function nocopy(o) {
+        return o;
+    }
+    function createNameMap(nodes) {
+        var map = new Map();
+        var _iterator4 = nodes, _isArray4 = Array.isArray(_iterator4), _i4 = 0;
+        for (_iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator](); ;) {
+            var _ref;
+            if (_isArray4) {
+                if (_i4 >= _iterator4.length) break;
+                _ref = _iterator4[_i4++];
+            } else {
+                if (_i4 = _iterator4.next(), _i4.done) break;
+                _ref = _i4.value;
+            }
+            var node = _ref;
+            var l = map.get(node.token.name);
+            if (!l) l = [], map.set(node.token.name, l);
+            l.push(node);
+        }
+        return map;
+    }
+    var TextParser = function(_Emitter) {
+        function TextParser() {
+            classCallCheck(this, TextParser);
+            var _this = possibleConstructorReturn(this, _Emitter.call(this));
+            return _this._constructor.apply(_this, arguments), _this.initialize(), _this;
+        }
+        return inherits(TextParser, _Emitter), TextParser.prototype._constructor = function _constructor(_ref2) {
+            var tokens = _ref2.tokens, _ref2$noEmpty = _ref2.noEmpty, noEmpty = _ref2$noEmpty === undefined ? false : _ref2$noEmpty, value = _ref2.value, text = _ref2.text, _ref2$copyValue = _ref2.copyValue, copyValue = _ref2$copyValue === undefined ? nocopy : _ref2$copyValue;
+            if (!tokens || !tokens.length) throw new Error("option.tokens is required");
+            this.tokens = tokens, this.nodes = createNodes(this, tokens), this.nameMap = createNameMap(this.nodes), 
+            this.value = value, this.text = text, this.noEmpty = noEmpty, this.copyValue = copyValue, 
+            this.err = false;
+        }, TextParser.prototype.initialize = function initialize() {
+            this.setValue(this.value);
+        }, TextParser.prototype.parse = function parse(text) {
+            if (!text) throw {
+                code: "EMPTY",
+                message: "The input is empty",
+                oldText: this.text
+            };
+            var result, i;
+            result = parseNodes(this.nodes, text);
+            var comparer, changed = [];
+            if (this.err) comparer = parseNodes(this.nodes, this.text); else comparer = this.nodes;
+            for (i = 0; i < result.length; i++) if (!result[i].empty && result[i].viewValue != comparer[i].viewValue) result[i].token = this.nodes[i].token, 
+            changed.push(result[i]);
+            var empties = result.filter(function(r) {
+                return r.empty;
+            }), errors = result.filter(function(r) {
+                return r.err;
+            });
+            for (i = 0; i < result.length; i++) this.nodes[i].value = result[i].value, this.nodes[i].viewValue = result[i].viewValue, 
+            this.nodes[i].offset = result[i].pos, this.nodes[i].empty = result[i].empty;
+            if (errors.length) throw this.err = true, errors[0]; else this.err = false;
+            changed.sort(function(a, b) {
+                if (b.empty) return -1;
+                if (a.empty) return 1;
+                return (b.token.prior || 0) - (a.token.prior || 0);
+            });
+            var c, value = this.copyValue(this.value);
+            var _iterator5 = changed, _isArray5 = Array.isArray(_iterator5), _i5 = 0;
+            for (_iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator](); ;) {
+                if (_isArray5) {
+                    if (_i5 >= _iterator5.length) break;
+                    c = _iterator5[_i5++];
+                } else {
+                    if (_i5 = _iterator5.next(), _i5.done) break;
+                    c = _i5.value;
+                }
+                value = restoreValue(value, c.token, c.value, this);
+            }
+            var newText = formatNodes(value, result).map(function(r) {
+                return r.viewValue;
+            }).join("");
+            if (text != newText) throw this.err = true, {
+                code: "INCONSISTENT_INPUT",
+                message: "Successfully parsed but the output text doesn't match the input",
+                text: text,
+                oldText: this.text,
+                properText: newText
+            };
+            if (this.text = text, this.value = value, this.emit("change", this.value), empties.length) throw {
+                code: "NOT_INIT",
+                message: "Some nodes are empty",
+                text: text,
+                node: empties[0]
+            };
+            return this;
+        }, TextParser.prototype.setValue = function setValue(value) {
+            var ignoreEmpty = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+            var result = formatNodes(value, this.nodes, ignoreEmpty);
+            var i, pos = 0, text = "";
+            for (i = 0; i < result.length; i++) this.nodes[i].value = result[i].value, this.nodes[i].viewValue = result[i].viewValue, 
+            this.nodes[i].offset = pos, this.nodes[i].empty = ignoreEmpty ? false : this.nodes[i].empty, 
+            pos += this.nodes[i].viewValue.length, text += this.nodes[i].viewValue;
+            return this.value = value, this.text = text, this.emit("change", this.value), this;
+        }, TextParser.prototype.isEmpty = function isEmpty(text) {
+            var result;
+            if (text) try {
+                result = parseNodes(this.nodes, text);
+            } catch (err) {
+                return false;
+            } else result = this.nodes;
+            var i;
+            for (i = 0; i < result.length; i++) if ("static" != this.nodes[i].token.type && !result[i].empty) return false;
+            return true;
+        }, TextParser.prototype.isInit = function isInit() {
+            var node;
+            var _iterator6 = this.nodes, _isArray6 = Array.isArray(_iterator6), _i6 = 0;
+            for (_iterator6 = _isArray6 ? _iterator6 : _iterator6[Symbol.iterator](); ;) {
+                if (_isArray6) {
+                    if (_i6 >= _iterator6.length) break;
+                    node = _iterator6[_i6++];
+                } else {
+                    if (_i6 = _iterator6.next(), _i6.done) break;
+                    node = _i6.value;
+                }
+                if ("static" != node.token.type && node.empty) return false;
+            }
+            return true;
+        }, TextParser.prototype.unset = function unset() {
+            var node;
+            var _iterator7 = this.nodes, _isArray7 = Array.isArray(_iterator7), _i7 = 0;
+            for (_iterator7 = _isArray7 ? _iterator7 : _iterator7[Symbol.iterator](); ;) {
+                if (_isArray7) {
+                    if (_i7 >= _iterator7.length) break;
+                    node = _iterator7[_i7++];
+                } else {
+                    if (_i7 = _iterator7.next(), _i7.done) break;
+                    node = _i7.value;
+                }
+                node.empty = true;
+            }
+            return this.setValue(this.value, false), this;
+        }, TextParser.prototype.getText = function getText() {
+            return this.text;
+        }, TextParser.prototype.getValue = function getValue() {
+            return this.value;
+        }, TextParser.prototype.getNodes = function getNodes(name) {
+            if (name) return this.nameMap.get(name);
+            return this.nodes;
+        }, TextParser;
+    }(Emitter);
+    function findNearestNode(i, nodes) {
+        if (!nodes.length) return;
+        var _matchNodes$map = matchNodes(nodes, i).map(function(r) {
+            return r.node;
+        }), left = _matchNodes$map[0], right = _matchNodes$map[1];
+        if (left == right) return left;
+        if (i - left.offset - left.viewValue.length <= right.offset - i) return left;
+        return right;
+    }
+    function matchNodes(nodes, start) {
+        var end = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : start;
+        var node, left, right;
+        var _iterator = nodes, _isArray = Array.isArray(_iterator), _i = 0;
+        for (_iterator = _isArray ? _iterator : _iterator[Symbol.iterator](); ;) {
+            if (_isArray) {
+                if (_i >= _iterator.length) break;
+                node = _iterator[_i++];
+            } else {
+                if (_i = _iterator.next(), _i.done) break;
+                node = _i.value;
+            }
+            if (node.offset <= start) left = {
+                node: node,
+                pos: start - node.offset
+            };
+            if (node.offset + node.viewValue.length >= end && !right) right = {
+                node: node,
+                pos: end - node.offset
+            };
+        }
+        if (!right) {
+            var last = nodes[nodes.length - 1];
+            right = {
+                node: last,
+                pos: last.viewValue.length
+            };
+        }
+        if (!left) {
+            var first = nodes[0];
+            left = {
+                node: first,
+                pos: 0
+            };
+        }
+        if (left.pos > left.node.viewValue.length) left.pos = left.node.viewValue.length;
+        return [ left, right ];
+    }
+    var Selection = function() {
+        function Selection(element, nodes) {
+            classCallCheck(this, Selection), this.el = element, this.nodes = nodes, this.range = {
+                node: findNearestNode(0, this.nodes),
+                start: 0,
+                end: "end"
+            };
+        }
+        return Selection.prototype.selectNearestNode = function selectNearestNode() {
+            var range = this.el.getSelection();
+            if (!range) return;
+            this.select({
+                node: findNearestNode(range.start, this.nodes),
+                start: 0,
+                end: "end"
+            });
+        }, Selection.prototype.select = function select(range) {
+            if (range = Object.assign(this.range, range), range.node) this.el.setSelection(range.node.offset + range.start, range.node.offset + ("end" == range.end ? range.node.viewValue.length : range.end));
+        }, Selection.prototype.hasNext = function hasNext() {
+            if (this.range.node) return this.range.node.nextEdit;
+        }, Selection.prototype.hasPrev = function hasPrev() {
+            if (this.range.node) return this.range.node.prevEdit;
+        }, Selection.prototype.selectNext = function selectNext() {
+            var node = this.hasNext(), range = {
+                start: 0,
+                end: "end"
+            };
+            if (node) range.node = node;
+            this.select(range);
+        }, Selection.prototype.selectPrev = function selectPrev() {
+            var node = this.hasPrev(), range = {
+                start: 0,
+                end: "end"
+            };
+            if (node) range.node = node;
+            this.select(range);
+        }, Selection.prototype.get = function get$$1() {
+            if (!this.nodes.length) return;
+            var range = this.el.getSelection();
+            if (!range) return;
+            var _matchNodes = matchNodes(this.nodes, range.start, range.end), left = _matchNodes[0], right = _matchNodes[1];
+            if (left.node == right.node) this.range = {
+                node: left.node,
+                start: left.pos,
+                end: right.pos
+            };
+        }, Selection.prototype.atNodeEnd = function atNodeEnd() {
+            if (!this.range.node) return;
+            this.get();
+            var len = this.range.node.viewValue.length, max = this.range.node.token.maxLength, start = "end" == this.range.start ? len : this.range.start, end = "end" == this.range.end ? len : this.range.end;
+            return start == end && start == (null != max ? max : len) || !len;
+        }, Selection.prototype.atNodeStart = function atNodeStart() {
+            if (!this.range.node) return;
+            this.get();
+            var len = this.range.node.viewValue.length, start = "end" == this.range.start ? len : this.range.start, end = "end" == this.range.end ? len : this.range.end;
+            return start == end && 0 == start;
+        }, Selection;
+    }();
+    var InputMask = function(_Emitter) {
+        function InputMask() {
+            classCallCheck(this, InputMask);
+            var _this = possibleConstructorReturn(this, _Emitter.call(this));
+            return _this._constructor.apply(_this, arguments), _this.initialize(), _this;
+        }
+        return inherits(InputMask, _Emitter), InputMask.prototype._constructor = function _constructor(element, textParser) {
+            var separators = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : "";
+            this.el = element, this.tp = textParser, this.separators = separators, this.sel = new Selection(element, textParser.getNodes().filter(function(n) {
+                return "static" != n.token.type;
+            }));
+        }, InputMask.prototype.initialize = function initialize() {
+            var _this2 = this;
+            this.el.on("mousedown", function() {
+                _this2.mousedown = true;
+            }), this.el.on("focus", function() {
+                if (_this2.mousedown) return;
+                setTimeout(function() {
+                    _this2.sel.select({
+                        start: 0,
+                        end: "end"
+                    });
+                });
+            }), this.el.on("click", function() {
+                _this2.mousedown = false, _this2.sel.selectNearestNode();
+            }), this.el.on("input", function() {
+                _this2.digest(null, _this2.el.val());
+            }), this.el.on("keydown", function(e) {
+                if (e.altKey || e.ctrlKey) return;
+                if (37 == e.keyCode || 9 == e.keyCode && e.shiftKey && _this2.sel.hasPrev()) e.preventDefault(), 
+                _this2.tryFixingError(), _this2.sel.selectPrev(); else if (39 == e.keyCode || 9 == e.keyCode && !e.shiftKey && _this2.sel.hasNext()) e.preventDefault(), 
+                _this2.tryFixingError(), _this2.sel.selectNext(); else if (38 == e.keyCode) {
+                    if (e.preventDefault(), _this2.sel.selectNearestNode(), _this2.sel.range.node) _this2.sel.range.node.add(1);
+                    _this2.val(_this2.tp.getText()), _this2.sel.select({
+                        start: 0,
+                        end: "end"
+                    });
+                } else if (40 == e.keyCode) {
+                    if (e.preventDefault(), _this2.sel.selectNearestNode(), _this2.sel.range.node) _this2.sel.range.node.add(-1);
+                    _this2.val(_this2.tp.getText()), _this2.sel.select({
+                        start: 0,
+                        end: "end"
+                    });
+                } else if (36 == e.keyCode || 35 == e.keyCode) setTimeout(function() {
+                    return _this2.sel.selectNearestNode();
+                }); else if (46 == e.keyCode) {
+                    if (_this2.sel.atNodeEnd()) e.preventDefault(), _this2.tryFixingError(), _this2.sel.selectNext();
+                } else if (8 == e.keyCode) if (_this2.sel.atNodeStart()) e.preventDefault(), _this2.tryFixingError(), 
+                _this2.sel.selectPrev();
+            }), this.el.on("keypress", function(e) {
+                var charCode = null == e.charCode ? e.keyCode : e.charCode, key = String.fromCharCode(charCode), separators = _this2.separators, node = _this2.sel.range.node;
+                if (node && node.next && "static" == node.next.token.type) separators += node.next.viewValue[0];
+                if (separators.includes(key)) return e.preventDefault(), _this2.tryFixingError(), 
+                void _this2.sel.selectNext();
+                setTimeout(function() {
+                    if (_this2.sel.atNodeEnd() && _this2.sel.range.node.viewValue) _this2.tryFixingError(), 
+                    _this2.sel.selectNext();
+                });
+            }), this.el.on("blur", function() {
+                setTimeout(function() {
+                    _this2.tryFixingError();
+                });
+            }), this.tp.on("change", function() {
+                if (!_this2.err && !_this2.inDigest) _this2.val(_this2.tp.getText()), _this2.sel.select();
+            });
+            var text = this.el.val();
+            if (text) this.digest(null, text, true); else this.val(this.tp.getText());
+        }, InputMask.prototype.errorViewLength = function errorViewLength() {
+            if (this.err && null != this.err.viewValue) return this.err.viewValue.length;
+            return undefined;
+        }, InputMask.prototype.val = function val(text) {
+            if (this.el.val() != text) this.el.val(text);
+            this.err = null;
+        }, InputMask.prototype.tryFixingError = function tryFixingError() {
+            if (!this.err) return;
+            if (this.err.properValue) this.digest(this.err.node, this.err.properValue, true); else if (this.err.node) this.err.node.unset(), 
+            this.digest(null, this.tp.getText());
+        }, InputMask.prototype.digest = function digest(node, text, fixErr) {
+            var range, digest = 10;
+            this.inDigest = true;
+            while (digest--) {
+                this.err = null;
+                try {
+                    if (node) node.parse(text); else this.tp.parse(text);
+                } catch (err) {
+                    if (this.emit("digest", err), this.sel.get(), "NOT_INIT" == err.code) break;
+                    if (this.err = err, !fixErr && ("NUMBER_TOOSHORT" == err.code || "NUMBER_TOOSMALL" == err.code || "NUMBER_MISMATCH" == err.code || "SELECT_MISMATCH" == err.code || "LEADING_ZERO" == err.code)) break;
+                    if ("SELECT_INCOMPLETE" == err.code) {
+                        node = err.node, text = err.selected, range = {
+                            end: "end"
+                        };
+                        continue;
+                    }
+                    if (null != err.properValue) node = err.node, text = err.properValue; else if (null != err.properText) node = null, 
+                    text = err.properText; else {
+                        if ("EMPTY" == err.code) this.tp.unset();
+                        if (err.node) err.node.unset();
+                        node = null, text = this.tp.getText(), range = {
+                            start: 0,
+                            end: "end"
+                        };
+                    }
+                    continue;
+                }
+                break;
+            }
+            if (!this.err) if (this.val(this.tp.getText()), digest < 9) this.sel.select(range);
+            if (this.inDigest = false, digest < 0) throw new Error("InputMask.digest crashed! Infinite loop on " + text);
+        }, InputMask;
+    }(Emitter);
+    var _export_TextParser_ = TextParser;
+    var _export_InputMask_ = InputMask;
+    function init($locale, datetimePlaceholder) {
+        var formats = $locale.DATETIME_FORMATS;
+        var tokenRE = /yyyy|yy|y|M{1,4}|dd?|EEEE?|HH?|hh?|mm?|ss?|([.,])sss|a|Z{1,2}|ww|w|'(([^']+|'')*)'/g;
+        var definedTokens = {
+            y: {
+                minLength: 1,
+                maxLength: 4,
+                max: 9999,
+                min: 0,
+                name: "year",
+                type: "number"
+            },
+            yy: {
+                minLength: 2,
+                maxLength: 2,
+                name: "yearShort",
+                type: "number"
+            },
+            yyyy: {
+                minLength: 4,
+                maxLength: 4,
+                max: 9999,
+                min: 0,
+                name: "year",
+                type: "number"
+            },
+            MMMM: {
+                name: "month",
+                type: "select",
+                select: formats.MONTH
+            },
+            MMM: {
+                name: "month",
+                type: "select",
+                select: formats.SHORTMONTH
+            },
+            MM: {
+                minLength: 2,
+                maxLength: 2,
+                name: "month",
+                type: "number"
+            },
+            M: {
+                minLength: 1,
+                maxLength: 2,
+                name: "month",
+                type: "number",
+                min: 1
+            },
+            dd: {
+                minLength: 2,
+                maxLength: 2,
+                name: "date",
+                type: "number"
+            },
+            d: {
+                minLength: 1,
+                maxLength: 2,
+                name: "date",
+                type: "number",
+                min: 1
+            },
+            EEEE: {
+                name: "day",
+                type: "select",
+                select: fixDay(formats.DAY)
+            },
+            EEE: {
+                name: "day",
+                type: "select",
+                select: fixDay(formats.SHORTDAY)
+            },
+            HH: {
+                minLength: 2,
+                maxLength: 2,
+                name: "hour",
+                type: "number"
+            },
+            H: {
+                minLength: 1,
+                maxLength: 2,
+                name: "hour",
+                type: "number"
+            },
+            hh: {
+                minLength: 2,
+                maxLength: 2,
+                name: "hour12",
+                type: "number"
+            },
+            h: {
+                minLength: 1,
+                maxLength: 2,
+                name: "hour12",
+                type: "number"
+            },
+            mm: {
+                minLength: 2,
+                maxLength: 2,
+                name: "minute",
+                type: "number"
+            },
+            m: {
+                minLength: 1,
+                maxLength: 2,
+                name: "minute",
+                type: "number"
+            },
+            ss: {
+                minLength: 2,
+                maxLength: 2,
+                name: "second",
+                type: "number"
+            },
+            s: {
+                minLength: 1,
+                maxLength: 2,
+                name: "second",
+                type: "number"
+            },
+            sss: {
+                minLength: 3,
+                maxLength: 3,
+                name: "millisecond",
+                type: "number"
+            },
+            a: {
+                name: "ampm",
+                type: "select",
+                select: formats.AMPMS
+            },
+            ww: {
+                minLength: 2,
+                maxLength: 2,
+                max: 53,
+                name: "week",
+                type: "number"
+            },
+            w: {
+                minLength: 1,
+                maxLength: 2,
+                max: 53,
+                name: "week",
+                type: "number"
+            },
+            Z: {
+                name: "timezone",
+                type: "static"
+            },
+            ZZ: {
+                name: "timezone",
+                type: "static",
+                colon: true
+            },
+            string: {
+                name: "string",
+                type: "static"
+            }
+        };
+        var nameConf = {
+            year: {
+                extract: function(d) {
+                    var v = d.getFullYear() % 1e4;
+                    return v >= 0 ? v : 0;
+                },
+                restore: function(d, v) {
+                    return d.setFullYear(v);
+                },
+                add: function(d, v) {
+                    return d.setFullYear(d.getFullYear() + v);
+                },
+                prior: 7
+            },
+            yearShort: {
+                extract: function(d) {
+                    var v = d.getFullYear() % 100;
+                    return v >= 0 ? v : v + 100;
+                },
+                restore: function(d, v) {
+                    return d.setFullYear(v);
+                },
+                add: function(d, v) {
+                    return d.setFullYear(d.getFullYear() + v);
+                },
+                prior: 7
+            },
+            month: {
+                extract: function(d) {
+                    return d.getMonth() + 1;
+                },
+                restore: function(d, v) {
+                    if (d.setMonth(v - 1), d.getMonth() == v) d.setDate(0);
+                },
+                add: function(d, v) {
+                    if (v = d.getMonth() + v, d.setMonth(v), d.getMonth() == v + 1) d.setDate(0);
+                },
+                prior: 5
+            },
+            date: {
+                extract: function(d) {
+                    return d.getDate();
+                },
+                restore: function(d, v, p) {
+                    var oldMonth = d.getMonth();
+                    if (d.setDate(v), d.getMonth() != oldMonth && v <= 31) {
+                        var monthNodes = p.getNodes("month");
+                        if (monthNodes && monthNodes.every(function(n) {
+                            return n.empty;
+                        })) d.setDate(v);
+                    }
+                },
+                add: function(d, v, p) {
+                    this.restore(d, d.getDate() + v, p);
+                },
+                prior: 4
+            },
+            day: {
+                extract: function(d) {
+                    return d.getDay() || 7;
+                },
+                restore: function setDay(date, day) {
+                    var month = date.getMonth(), diff = day - (date.getDay() || 7);
+                    if (date.setDate(date.getDate() + diff), date.getMonth() != month) if (diff > 0) date.setDate(date.getDate() - 7); else date.setDate(date.getDate() + 7);
+                },
+                add: function(d, v) {
+                    return d.setDate(d.getDate() + v);
+                },
+                prior: 4
+            },
+            hour: {
+                extract: function(d) {
+                    return d.getHours();
+                },
+                restore: function(d, v) {
+                    return d.setHours(v);
+                },
+                add: function(d, v) {
+                    return d.setHours(d.getHours() + v);
+                },
+                prior: 2
+            },
+            hour12: {
+                extract: function(d) {
+                    return d.getHours() % 12 || 12;
+                },
+                restore: function setHour12(date, hour) {
+                    if (hour %= 12, date.getHours() >= 12) hour += 12;
+                    date.setHours(hour);
+                },
+                add: function(d, v) {
+                    return d.setHours(d.getHours() + v);
+                },
+                prior: 2
+            },
+            ampm: {
+                extract: function(d) {
+                    return d.getHours() < 12 ? 1 : 2;
+                },
+                restore: function setAmpm(date, ampm) {
+                    var hour = date.getHours();
+                    if (hour < 12 == ampm > 1) date.setHours((hour + 12) % 24);
+                },
+                add: function(d, v) {
+                    return d.setHours(d.getHours() + 12 * v);
+                },
+                prior: 3
+            },
+            minute: {
+                extract: function(d) {
+                    return d.getMinutes();
+                },
+                restore: function(d, v) {
+                    return d.setMinutes(v);
+                },
+                add: function(d, v) {
+                    return d.setMinutes(d.getMinutes() + v);
+                },
+                prior: 0
+            },
+            second: {
+                extract: function(d) {
+                    return d.getSeconds();
+                },
+                restore: function(d, v) {
+                    return d.setSeconds(v);
+                },
+                add: function(d, v) {
+                    return d.setSeconds(d.getSeconds() + v);
+                },
+                prior: 1
+            },
+            millisecond: {
+                extract: function(d) {
+                    return d.getMilliseconds();
+                },
+                restore: function(d, v) {
+                    return d.setMilliseconds(v);
+                },
+                add: function(d, v) {
+                    return d.setMilliseconds(d.getMilliseconds() + v);
+                },
+                prior: 1
+            },
+            week: {
+                extract: getWeek,
+                restore: function(d, v) {
+                    return d.setDate(d.getDate() + 7 * (v - getWeek(d)));
+                },
+                add: function(d, v) {
+                    return d.setDate(d.getDate() + 7 * v);
+                },
+                prior: 6
+            }
+        };
+        for (var name in nameConf) nameConf[name].placeholder = datetimePlaceholder[name];
+        var _iterator = Object.values(definedTokens), _isArray = Array.isArray(_iterator), _i = 0;
+        for (_iterator = _isArray ? _iterator : _iterator[Symbol.iterator](); ;) {
+            var _ref;
+            if (_isArray) {
+                if (_i >= _iterator.length) break;
+                _ref = _iterator[_i++];
+            } else {
+                if (_i = _iterator.next(), _i.done) break;
+                _ref = _i.value;
+            }
+            var tk = _ref;
+            if (nameConf[tk.name]) angular.extend(tk, nameConf[tk.name]);
+        }
+        var SYS_TIMEZONE = function() {
+            var offset = -new Date().getTimezoneOffset(), sign = offset >= 0 ? "+" : "-", absOffset = Math.abs(offset), hour = Math.floor(absOffset / 60), min = absOffset % 60;
+            return sign + _export_num2str_(hour, 2, 2) + _export_num2str_(min, 2, 2);
+        }();
+        function fixDay(days) {
+            var i, s = [];
+            for (i = 1; i < days.length; i++) s.push(days[i]);
+            return s.push(days[0]), s;
+        }
+        function createTokens(format) {
+            var match, tokens = [], pos = 0;
+            while (match = tokenRE.exec(format)) {
+                if (match.index > pos) tokens.push(angular.extend({
+                    value: format.substring(pos, match.index)
+                }, definedTokens.string)), pos = match.index;
+                if (match.index == pos) {
+                    if (match[1]) tokens.push(angular.extend({
+                        value: match[1]
+                    }, definedTokens.string)), tokens.push(definedTokens.sss); else if (match[2]) tokens.push(angular.extend({
+                        value: match[2].replace("''", "'")
+                    }, definedTokens.string)); else if ("timezone" == definedTokens[match[0]].name) {
+                        var tz = SYS_TIMEZONE;
+                        if (definedTokens[match[0]].colon) tz = insertColon(tz);
+                        tokens.push(angular.extend({
+                            value: tz
+                        }, definedTokens[match[0]]));
+                    } else tokens.push(definedTokens[match[0]]);
+                    pos = tokenRE.lastIndex;
+                }
+            }
+            if (pos < format.length) tokens.push(angular.extend({
+                value: format.substring(pos)
+            }, definedTokens.string));
+            return tokens;
+        }
+        function getWeek(date) {
+            var yearStart = new Date(date.getFullYear(), 0, 1);
+            var weekStart = new Date(yearStart.getTime());
+            if (weekStart.getDay() > 4) weekStart.setDate(weekStart.getDate() + (1 - weekStart.getDay()) + 7); else weekStart.setDate(weekStart.getDate() + (1 - weekStart.getDay()));
+            var diff = date.getTime() - weekStart.getTime();
+            return Math.floor(diff / (7 * 24 * 60 * 60 * 1e3));
+        }
+        function insertColon(timezone) {
+            if (":" == timezone[3]) return timezone;
+            return timezone.substr(0, 3) + ":" + timezone.substr(3, 2);
+        }
+        function removeColon(timezone) {
+            if (":" != timezone[3]) return timezone;
+            return timezone.substr(0, 3) + timezone.substr(4, 2);
+        }
+        function offset(date, timezone) {
+            timezone = removeColon(timezone);
+            var hour = +timezone.substr(1, 2), min = +timezone.substr(3, 2), sig = timezone[0] + "1", offset = (60 * hour + min) * sig;
+            return new Date(date.getTime() + 60 * (offset - -date.getTimezoneOffset()) * 1e3);
+        }
+        function deoffset(date, timezone) {
+            timezone = removeColon(timezone);
+            var hour = +timezone.substr(1, 2), min = +timezone.substr(3, 2), sig = timezone[0] + "1", offset = (60 * hour + min) * sig;
+            return new Date(date.getTime() + 60 * (-date.getTimezoneOffset() - offset) * 1e3);
+        }
+        var DatetimeParser = function() {
+            function DatetimeParser(tp) {
+                classCallCheck(this, DatetimeParser), this.tp = tp, this.timezone = SYS_TIMEZONE, 
+                this.timezoneNodes = this.tp.nodes.filter(function(n) {
+                    return "timezone" == n.token.name;
+                });
+            }
+            return DatetimeParser.prototype.parse = function parse(text) {
+                return this.tp.parse(text), this;
+            }, DatetimeParser.prototype.getText = function getText() {
+                return this.tp.getText();
+            }, DatetimeParser.prototype.setDate = function setDate(date, ignoreEmpty) {
+                return this.tp.setValue(offset(date, this.timezone), ignoreEmpty), this;
+            }, DatetimeParser.prototype.getDate = function getDate() {
+                return deoffset(this.tp.getValue(), this.timezone);
+            }, DatetimeParser.prototype.setTimezone = function setTimezone() {
+                var timezone = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : SYS_TIMEZONE;
+                if (timezone == this.timezone) return;
+                var date = this.getDate();
+                this.timezone = timezone;
+                var _iterator2 = this.timezoneNodes, _isArray2 = Array.isArray(_iterator2), _i2 = 0;
+                for (_iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator](); ;) {
+                    var _ref2;
+                    if (_isArray2) {
+                        if (_i2 >= _iterator2.length) break;
+                        _ref2 = _iterator2[_i2++];
+                    } else {
+                        if (_i2 = _iterator2.next(), _i2.done) break;
+                        _ref2 = _i2.value;
+                    }
+                    var n = _ref2;
+                    if (n.token.colon) n.token.value = insertColon(timezone); else n.token.value = removeColon(timezone);
+                }
+                return this.setDate(date, false);
+            }, DatetimeParser.prototype.isEmpty = function isEmpty() {
+                return this.tp.isEmpty.apply(this.tp, arguments);
+            }, DatetimeParser.prototype.isInit = function isInit() {
+                return this.tp.isInit.apply(this.tp, arguments);
+            }, DatetimeParser.prototype.unset = function unset() {
+                return this.tp.unset(), this;
+            }, DatetimeParser;
+        }();
+        return function createParser(format) {
+            var yearCheck, tokens = createTokens(formats[format] || format);
+            if (tokens.some(function(t) {
+                return "yearShort" == t.name;
+            })) yearCheck = function(fn) {
+                return function(d) {
+                    fn.apply(this, arguments);
+                    var y = d.getFullYear();
+                    if (y < 0) d.setFullYear(y + 100);
+                };
+            }; else yearCheck = function(fn) {
+                return function(d) {
+                    fn.apply(this, arguments);
+                    var y = d.getFullYear();
+                    if (y < 0) d.setFullYear(0);
+                    if (y > 9999) d.setFullYear(9999);
+                };
+            };
+            var _iterator3 = tokens, _isArray3 = Array.isArray(_iterator3), _i3 = 0;
+            for (_iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator](); ;) {
+                var _ref3;
+                if (_isArray3) {
+                    if (_i3 >= _iterator3.length) break;
+                    _ref3 = _iterator3[_i3++];
+                } else {
+                    if (_i3 = _iterator3.next(), _i3.done) break;
+                    _ref3 = _i3.value;
+                }
+                var tk = _ref3;
+                if (tk.add) tk.add = yearCheck(tk.add);
+                if (tk.restore) tk.restore = yearCheck(tk.restore);
+            }
+            var tp = new _export_TextParser_({
+                tokens: tokens,
+                value: new Date(),
+                copyValue: function(o) {
+                    return new Date(o.getTime());
+                }
+            });
+            return new DatetimeParser(tp);
+        };
+    }
+    function init$1(datetime, $log, $document) {
+        var Element = function() {
+            function Element(element, document) {
+                classCallCheck(this, Element), this.el = element, this.doc = document;
+            }
+            return Element.prototype.on = function on(eventType, callback) {
+                if ("input" == eventType) return;
+                return this.el.on(eventType, callback);
+            }, Element.prototype.getSelection = function getSelection() {
+                var el = this.el[0], doc = this.doc;
+                if (doc.activeElement != el) return;
+                var start = el.selectionStart, end = el.selectionEnd;
+                if (angular.isDefined(start) && angular.isDefined(end)) return {
+                    start: start,
+                    end: end
+                };
+                return this.getSelectionIE();
+            }, Element.prototype.getSelectionIE = function getSelectionIE() {
+                var el = this.el[0], doc = this.doc;
+                var bookmark = doc.selection.createRange().getBookmark(), range = el.createTextRange(), range2 = range.duplicate();
+                range.moveToBookmark(bookmark), range2.setEndPoint("EndToStart", range);
+                var start = range2.text.length, end = start + range.text.length;
+                return {
+                    start: start,
+                    end: end
+                };
+            }, Element.prototype.setSelection = function setSelection(start, end) {
+                var el = this.el[0], doc = this.doc;
+                if (doc.activeElement != el) return;
+                if (el.setSelectionRange) el.setSelectionRange(start, end); else this.setSelectionIE(start, end);
+            }, Element.prototype.setSelectionIE = function setSelectionIE(start, end) {
+                var el = this.el[0], select = el.createTextRange();
+                select.moveStart("character", start), select.collapse(), select.moveEnd("character", end - start), 
+                select.select();
+            }, Element.prototype.val = function val() {
+                var _el;
+                return (_el = this.el).val.apply(_el, arguments);
+            }, Element;
+        }();
+        return {
+            restrict: "A",
+            require: "?ngModel",
+            link: function linkFunc(scope, element, attrs, ngModel) {
+                if (!ngModel) return false;
+                attrs.ngTrim = "false";
+                var isUtc, parser = datetime(attrs.datetime), modelParser = attrs.datetimeModel && datetime(attrs.datetimeModel), maskElement = new Element(element, $document[0]), mask = new _export_InputMask_(maskElement, parser.tp, attrs.datetimeSeparator);
+                function setUtc(val) {
+                    if (val && !isUtc) {
+                        if (isUtc = true, parser.setTimezone("+0000"), modelParser) modelParser.setTimezone("+0000");
+                    } else if (!val && isUtc) if (isUtc = false, parser.setTimezone(), modelParser) modelParser.setTimezone();
+                }
+                function setTimezone(val) {
+                    if (parser.setTimezone(val), modelParser) modelParser.setTimezone(val);
+                }
+                if (mask.on("digest", function(err) {
+                    if ("NOT_INIT" != err.code) ngModel.$setValidity("datetime", false);
+                }), parser.tp.on("change", function() {
+                    scope.$evalAsync(function() {
+                        if (mask.err) return void ngModel.$setValidity("datetime", false);
+                        if (parser.isInit() || parser.isEmpty()) ngModel.$setValidity("datetime", true); else ngModel.$setValidity("datetime", false);
+                        if (parser.getText() != ngModel.$viewValue) ngModel.$setViewValue(parser.getText());
+                    });
+                }), angular.isDefined(attrs.datetimeUtc)) if (attrs.datetimeUtc.length > 0) scope.$watch(attrs.datetimeUtc, setUtc); else setUtc(true);
+                if (angular.isDefined(attrs.datetimeTimezone)) if (/^[+-]\d{2}:?\d{2}$/.test(attrs.datetimeTimezone)) setTimezone(attrs.datetimeTimezone); else scope.$watch(attrs.datetimeTimezone, setTimezone);
+                function validMin(value) {
+                    if (ngModel.$isEmpty(value) || ngModel.$isEmpty(attrs.min)) return true;
+                    if (!angular.isDate(value)) value = modelParser.getDate();
+                    return value >= new Date(attrs.min);
+                }
+                function validMax(value) {
+                    if (ngModel.$isEmpty(value) || ngModel.$isEmpty(attrs.max)) return true;
+                    if (!angular.isDate(value)) value = modelParser.getDate();
+                    return value <= new Date(attrs.max);
+                }
+                if (ngModel.$validators) ngModel.$validators.min = validMin, ngModel.$validators.max = validMax;
+                function validMinMax(date) {
+                    if (ngModel.$validate) ngModel.$validate(); else ngModel.$setValidity("min", validMin(date)), 
+                    ngModel.$setValidity("max", validMax(date));
+                    return !ngModel.$error.min && !ngModel.$error.max;
+                }
+                function validModelType(model) {
+                    if (angular.isDate(model) && !modelParser) return true;
+                    if (angular.isString(model) && modelParser) return true;
+                    return false;
+                }
+                attrs.$observe("min", function() {
+                    validMinMax(parser.getDate());
+                }), attrs.$observe("max", function() {
+                    validMinMax(parser.getDate());
+                }), ngModel.$render = function() {}, ngModel.$isEmpty = function(value) {
+                    if (!value) return true;
+                    if ("string" == typeof value) return parser.isEmpty(value);
+                    return false;
+                }, ngModel.$parsers.unshift(function(viewValue) {
+                    if (angular.isUndefined(viewValue)) viewValue = parser.getText();
+                    if (!angular.isString(viewValue)) return viewValue;
+                    if (mask.digest(null, viewValue), !parser.isInit()) return undefined;
+                    var date = parser.getDate();
+                    if (ngModel.$validate || validMinMax(date)) if (modelParser) return modelParser.setDate(date).getText(); else return new Date(date.getTime());
+                    return undefined;
+                }), ngModel.$formatters.push(function(modelValue) {
+                    if (ngModel.$setValidity("datetime", true), !modelValue) return parser.unset(), 
+                    scope.$evalAsync(function() {
+                        ngModel.$setViewValue(parser.getText());
+                    }), parser.getText();
+                    if (!validModelType(modelValue)) return modelValue;
+                    if (modelParser) modelValue = modelParser.parse(modelValue).getDate();
+                    if (!ngModel.$validate) validMinMax(modelValue);
+                    return parser.setDate(modelValue).getText();
+                });
+            },
+            priority: 100
+        };
+    }
+    angular.module("datetime").factory("datetime", init), init.$inject = [ "$locale", "datetimePlaceholder" ], 
+    angular.module("datetime").directive("datetime", init$1), init$1.$inject = [ "datetime", "$log", "$document" ];
+})(angular);

@@ -21,6 +21,31 @@ export default {
 		resolve(),
 		cjs({nested: true}),
 		babel(babelOptions),
-		uglify({ie8: true})
+		uglify({
+			ie8: true,
+			compress: {
+				arguments: false,
+				booleans: false,
+				collapse_vars: false,
+				comparisons: false,
+				conditionals: false,
+				dead_code: false,
+				evaluate: false,
+				hoist_props: false,
+				if_return: false,
+				inline: false,
+				join_vars: false,
+				keep_fnames: true,
+				loops: false,
+				negate_iife: false,
+				properties: false,
+				reduce_funcs: false,
+				// reduce_vars: false
+			},
+			mangle: false,
+			output: {
+				beautify: true
+			}
+		})
 	]
 };
