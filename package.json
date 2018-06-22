@@ -10,7 +10,7 @@
     "parser"
   ],
   "scripts": {
-    "test": "eslint **/*.js && mocha",
+    "test": "eslint **/*.js --cache && mocha",
     "build": "rollup -c && node build-demo.js",
     "watch": "n-run -w lib/* \"npm run build\"",
     "preversion": "npm test && npm run build",
@@ -46,9 +46,9 @@
     "jsdom-global": "^3.0.2",
     "mocha": "^5.2.0",
     "npm-build-tools": "^2.2.5",
-    "rollup": "^0.60.7",
+    "rollup": "^0.61.1",
     "rollup-plugin-babel": "^3.0.4",
-    "rollup-plugin-cjs-es": "^0.3.2",
+    "rollup-plugin-cjs-es": "^0.4.0",
     "rollup-plugin-node-resolve": "^3.3.0",
     "rollup-plugin-uglify": "^4.0.0"
   },

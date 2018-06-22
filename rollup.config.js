@@ -19,7 +19,7 @@ export default {
 	external: ["angular"],
 	plugins: [
 		resolve(),
-		cjs(),
+		cjs({nested: true}),
 		babel(babelOptions),
 		uglify({ie8: true})
 	]
