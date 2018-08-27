@@ -11,7 +11,7 @@ Features
 * This module includes:
 	- A directive which can simulate datetime input within a text field.
 	- A service which can convert a string of date into a Date object, and vice versa.
-* IE8 is supported by transpiling through babel and using polyfill.
+* Support IE8. Note that old browsers (including IE8-11) require [babel-polyfill](https://unpkg.com/babel-polyfill@6.23.0/dist/polyfill.js) to be installed.
 
 Dependencies
 ------------
