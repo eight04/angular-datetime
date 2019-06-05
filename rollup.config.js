@@ -3,11 +3,6 @@ import babel from "rollup-plugin-babel";
 import {uglify} from "rollup-plugin-uglify";
 import resolve from "rollup-plugin-node-resolve";
 
-var babelOptions = Object.assign(
-	JSON.parse(require("fs").readFileSync(".babelrc", "utf8")),
-	{babelrc: false}
-);
-
 export default {
 	input: "index.js",
 	output: {
@@ -20,7 +15,7 @@ export default {
 	plugins: [
 		resolve(),
 		cjs({nested: true}),
-		babel(babelOptions),
+		babel(),
 		uglify({
       // https://github.com/mishoo/UglifyJS2/issues/3197
 			compress: {

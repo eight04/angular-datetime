@@ -34,22 +34,22 @@
     "custom-input": "^0.3.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
     "angular": "^1.7.8",
     "angular-mocks": "^1.7.8",
     "babel-core": "^6.26.3",
-    "babel-plugin-external-helpers": "^6.22.0",
-    "babel-preset-env": "^1.7.0",
     "eslint": "^5.16.0",
     "eslint-config-angular": "^0.5.0",
     "eslint-plugin-angular": "^4.0.1",
     "jsdom": "^15.1.1",
     "jsdom-global": "^3.0.2",
     "mocha": "^6.1.4",
-    "rollup": "^0.61.2",
-    "rollup-plugin-babel": "^3.0.7",
+    "rollup": "^1.13.1",
+    "rollup-plugin-babel": "^4.3.2",
     "rollup-plugin-cjs-es": "^0.8.0",
-    "rollup-plugin-node-resolve": "^3.4.0",
-    "rollup-plugin-uglify": "^4.0.0"
+    "rollup-plugin-node-resolve": "^5.0.1",
+    "rollup-plugin-uglify": "^6.0.2"
   },
   "peerDependencies": {
     "angular": "^1.2.0"
