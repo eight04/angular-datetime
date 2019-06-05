@@ -47,7 +47,7 @@
     "mocha": "^5.2.0",
     "rollup": "^0.61.1",
     "rollup-plugin-babel": "^3.0.4",
-    "rollup-plugin-cjs-es": "^0.4.0",
+    "rollup-plugin-cjs-es": "^0.8.0",
     "rollup-plugin-node-resolve": "^3.3.0",
     "rollup-plugin-uglify": "^4.0.0"
   },
