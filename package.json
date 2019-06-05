@@ -9,8 +9,11 @@
     "time",
     "parser"
   ],
+  "eslintIgnore": [
+    "dist"
+  ],
   "scripts": {
-    "test": "eslint **/*.js --cache --ignore-pattern dist && c8 --reporter=lcov mocha",
+    "test": "eslint **/*.js --cache && c8 --reporter=lcov mocha",
     "build": "rollup -c && node build-demo.js",
     "watch": "rollup -cw",
     "preversion": "npm test && npm run build",
