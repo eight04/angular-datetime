@@ -10,7 +10,7 @@
     "parser"
   ],
   "scripts": {
-    "test": "eslint **/*.js --cache --ignore-pattern dist && mocha",
+    "test": "eslint **/*.js --cache --ignore-pattern dist && c8 --reporter=lcov mocha",
     "build": "rollup -c && node build-demo.js",
     "watch": "rollup -cw",
     "preversion": "npm test && npm run build",
@@ -39,6 +39,7 @@
     "angular": "^1.7.8",
     "angular-mocks": "^1.7.8",
     "babel-core": "^6.26.3",
+    "c8": "^5.0.1",
     "eslint": "^5.16.0",
     "eslint-config-angular": "^0.5.0",
     "eslint-plugin-angular": "^4.0.1",
